@@ -1,3 +1,13 @@
+# [1.1.0](https://github.com/rkromero/SaaS-POS/compare/v1.0.0...v1.1.0) (2026-04-05)
+
+
+### Features
+
+* add categories and products CRUD module ([271509b](https://github.com/rkromero/SaaS-POS/commit/271509b622929905009fa3f5fd1143682f322fc7))
+* add locations CRUD module (API + UI) ([7ee9d2e](https://github.com/rkromero/SaaS-POS/commit/7ee9d2ea836b169123c60db9d54cae22263a8d7b))
+* add POS screen with cart, checkout and printable ticket ([0186172](https://github.com/rkromero/SaaS-POS/commit/0186172bd97a50665d4acc83aff23f776f563a34))
+* add stock management module (movements + history + low stock alerts) ([11df8ee](https://github.com/rkromero/SaaS-POS/commit/11df8eee4450d5a82420e3267da6011bc6f7ecc6))
+
 # 1.0.0 (2026-04-05)
 
 
