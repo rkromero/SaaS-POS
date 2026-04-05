@@ -1,3 +1,10 @@
+# 1.0.0 (2026-04-05)
+
+
+### Features
+
+* initial commit - SaaS POS boilerplate ([ed894a5](https://github.com/rkromero/SaaS-POS/commit/ed894a580135969aaa2f6eb587afab9ea1656805))
+
 ## [1.7.7](https://github.com/ixartz/SaaS-Boilerplate/compare/v1.7.6...v1.7.7) (2025-12-12)
 
 
