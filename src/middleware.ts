@@ -61,6 +61,11 @@ export default function middleware(
         return NextResponse.redirect(orgSelection);
       }
 
+      // Skip intl middleware for API routes — they don't need locale prefixing
+      if (req.nextUrl.pathname.startsWith('/api/')) {
+        return NextResponse.next();
+      }
+
       return intlMiddleware(req);
     })(request, event);
   }
