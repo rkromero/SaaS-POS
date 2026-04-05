@@ -29,6 +29,10 @@ export default function DashboardLayout(props: { children: React.ReactNode }) {
                 label: t('home'),
               },
               {
+                href: '/dashboard/pos',
+                label: 'Caja',
+              },
+              {
                 href: '/dashboard/locations',
                 label: 'Locales',
               },
