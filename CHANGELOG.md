@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/rkromero/SaaS-POS/compare/v1.1.0...v1.1.1) (2026-04-05)
+
+
+### Bug Fixes
+
+* exclude API routes from i18n middleware to prevent 404s ([31f956a](https://github.com/rkromero/SaaS-POS/commit/31f956a6c285ba16764b6eeb793ce8859386ebd8))
+
 # [1.1.0](https://github.com/rkromero/SaaS-POS/compare/v1.0.0...v1.1.0) (2026-04-05)
 
 
