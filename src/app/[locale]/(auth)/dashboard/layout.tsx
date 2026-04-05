@@ -33,6 +33,10 @@ export default function DashboardLayout(props: { children: React.ReactNode }) {
                 label: 'Locales',
               },
               {
+                href: '/dashboard/products',
+                label: 'Productos',
+              },
+              {
                 href: '/dashboard/organization-profile/organization-members',
                 label: t('members'),
               },

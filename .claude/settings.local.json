@@ -8,7 +8,11 @@
       "Bash(mkdir -p D:/PROYECTOS/POS-SAAS/mi-saas/src/app/api/locations/\\\\[id\\\\])",
       "Bash(mkdir -p \"D:/PROYECTOS/POS-SAAS/mi-saas/src/app/[locale]/\\(auth\\)/dashboard/locations\")",
       "Bash(npx tsc:*)",
-      "Bash(npx shadcn@latest add dialog --yes)"
+      "Bash(npx shadcn@latest add dialog --yes)",
+      "Bash(vercel --prod)",
+      "Bash(mkdir -p D:/PROYECTOS/POS-SAAS/mi-saas/src/app/api/categories/\\\\[id\\\\])",
+      "Bash(mkdir -p D:/PROYECTOS/POS-SAAS/mi-saas/src/app/api/products/\\\\[id\\\\])",
+      "Bash(mkdir -p \"D:/PROYECTOS/POS-SAAS/mi-saas/src/app/[locale]/\\(auth\\)/dashboard/products\")"
     ]
   }
 }
