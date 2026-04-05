@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(dotenv -c production -- printenv DATABASE_URL)",
+      "Bash(npx dotenv-cli:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:YwaKWkwUefTqKABudzGmWubnqpsGKerg@junction.proxy.rlwy.net:21444/railway\" npx drizzle-kit migrate)",
+      "Bash(mkdir -p D:/PROYECTOS/POS-SAAS/mi-saas/src/app/api/locations/\\\\[id\\\\])",
+      "Bash(mkdir -p \"D:/PROYECTOS/POS-SAAS/mi-saas/src/app/[locale]/\\(auth\\)/dashboard/locations\")",
+      "Bash(npx tsc:*)",
+      "Bash(npx shadcn@latest add dialog --yes)"
+    ]
+  }
+}

@@ -1,5 +1,9 @@
 import {
   bigint,
+  boolean,
+  integer,
+  numeric,
+  pgEnum,
   pgTable,
   serial,
   text,
@@ -7,18 +11,10 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
-// This file defines the structure of your database tables using the Drizzle ORM.
+// ---------------------------------------------------------------------------
+// Existing tables (do not modify)
+// ---------------------------------------------------------------------------
 
-// To modify the database schema:
-// 1. Update this file with your desired changes.
-// 2. Generate a new migration by running: `npm run db:generate`
-
-// The generated migration file will reflect your schema changes.
-// The migration is automatically applied during the next database interaction,
-// so there's no need to run it manually or restart the Next.js server.
-
-// Need a database for production? Check out https://www.prisma.io/?via=saasboilerplatesrc
-// Tested and compatible with Next.js Boilerplate
 export const organizationSchema = pgTable(
   'organization',
   {
@@ -55,5 +51,224 @@ export const todoSchema = pgTable('todo', {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// POS Module — Enums
+// ---------------------------------------------------------------------------
+
+export const stockMovementTypeEnum = pgEnum('stock_movement_type', [
+  'in',
+  'out',
+]);
+
+export const stockMovementReasonEnum = pgEnum('stock_movement_reason', [
+  'purchase', // compra
+  'adjustment', // ajuste manual
+  'return', // devolución
+  'loss', // pérdida
+  'breakage', // rotura
+  'sale', // descuento automático por venta
+]);
+
+export const paymentMethodEnum = pgEnum('payment_method', [
+  'cash', // efectivo
+  'debit', // tarjeta de débito
+  'credit', // tarjeta de crédito
+  'transfer', // transferencia
+]);
+
+export const saleStatusEnum = pgEnum('sale_status', [
+  'completed',
+  'cancelled',
+]);
+
+// ---------------------------------------------------------------------------
+// POS Module — Tables
+// ---------------------------------------------------------------------------
+
+// Locations (sucursales/locales) — belong to a Clerk organization
+export const locationSchema = pgTable('location', {
+  id: serial('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  name: text('name').notNull(),
+  address: text('address'),
+  isActive: boolean('is_active').default(true).notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+// User ↔ Location assignment (each user belongs to one location)
+export const userLocationSchema = pgTable('user_location', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(), // Clerk user ID
+  locationId: integer('location_id')
+    .notNull()
+    .references(() => locationSchema.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+// Product categories — scoped to organization
+export const categorySchema = pgTable('category', {
+  id: serial('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  name: text('name').notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+// Products — global per organization, admin manages them
+export const productSchema = pgTable('product', {
+  id: serial('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  categoryId: integer('category_id').references(() => categorySchema.id, {
+    onDelete: 'set null',
+  }),
+  name: text('name').notNull(),
+  description: text('description'),
+  price: numeric('price', { precision: 10, scale: 2 }).notNull(),
+  costPrice: numeric('cost_price', { precision: 10, scale: 2 }),
+  sku: text('sku'),
+  imageUrl: text('image_url'),
+  isActive: boolean('is_active').default(true).notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+// Product overrides per location (price and active status)
+export const productLocationSchema = pgTable(
+  'product_location',
+  {
+    id: serial('id').primaryKey(),
+    productId: integer('product_id')
+      .notNull()
+      .references(() => productSchema.id, { onDelete: 'cascade' }),
+    locationId: integer('location_id')
+      .notNull()
+      .references(() => locationSchema.id, { onDelete: 'cascade' }),
+    // null = use global product price
+    price: numeric('price', { precision: 10, scale: 2 }),
+    isActive: boolean('is_active').default(true).notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'date' })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => ({
+    productLocationIdx: uniqueIndex('product_location_idx').on(
+      table.productId,
+      table.locationId,
+    ),
+  }),
+);
+
+// Stock — current quantity per product per location
+export const stockSchema = pgTable(
+  'stock',
+  {
+    id: serial('id').primaryKey(),
+    productId: integer('product_id')
+      .notNull()
+      .references(() => productSchema.id, { onDelete: 'cascade' }),
+    locationId: integer('location_id')
+      .notNull()
+      .references(() => locationSchema.id, { onDelete: 'cascade' }),
+    quantity: integer('quantity').default(0).notNull(),
+    // Alert threshold: show warning when quantity falls below this value
+    lowStockThreshold: integer('low_stock_threshold').default(5).notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'date' })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => ({
+    stockProductLocationIdx: uniqueIndex('stock_product_location_idx').on(
+      table.productId,
+      table.locationId,
+    ),
+  }),
+);
+
+// Stock movements — full audit trail of every stock change
+export const stockMovementSchema = pgTable('stock_movement', {
+  id: serial('id').primaryKey(),
+  stockId: integer('stock_id')
+    .notNull()
+    .references(() => stockSchema.id, { onDelete: 'cascade' }),
+  type: stockMovementTypeEnum('type').notNull(),
+  quantity: integer('quantity').notNull(),
+  reason: stockMovementReasonEnum('reason').notNull(),
+  userId: text('user_id').notNull(), // Clerk user ID
+  notes: text('notes'),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+// Customers — registered at point of sale
+export const customerSchema = pgTable('customer', {
+  id: serial('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  name: text('name').notNull(),
+  email: text('email'),
+  whatsapp: text('whatsapp'),
+  updatedAt: timestamp('updated_at', { mode: 'date' })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+// Sales — one record per completed transaction
+export const saleSchema = pgTable('sale', {
+  id: serial('id').primaryKey(),
+  // Correlative receipt number per organization (e.g. "ORG-000001")
+  receiptNumber: text('receipt_number').notNull(),
+  organizationId: text('organization_id').notNull(),
+  locationId: integer('location_id')
+    .notNull()
+    .references(() => locationSchema.id),
+  userId: text('user_id').notNull(), // Clerk user ID (cashier)
+  customerId: integer('customer_id').references(() => customerSchema.id, {
+    onDelete: 'set null',
+  }),
+  // Customer data stored directly to preserve history even if customer is deleted
+  customerName: text('customer_name').notNull(),
+  customerEmail: text('customer_email'),
+  customerWhatsapp: text('customer_whatsapp'),
+  paymentMethod: paymentMethodEnum('payment_method').notNull(),
+  total: numeric('total', { precision: 10, scale: 2 }).notNull(),
+  status: saleStatusEnum('status').default('completed').notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+// Sale items — products included in each sale
+export const saleItemSchema = pgTable('sale_item', {
+  id: serial('id').primaryKey(),
+  saleId: integer('sale_id')
+    .notNull()
+    .references(() => saleSchema.id, { onDelete: 'cascade' }),
+  productId: integer('product_id').references(() => productSchema.id, {
+    onDelete: 'set null',
+  }),
+  // Product name and price stored at time of sale to preserve history
+  productName: text('product_name').notNull(),
+  quantity: integer('quantity').notNull(),
+  unitPrice: numeric('unit_price', { precision: 10, scale: 2 }).notNull(),
+  subtotal: numeric('subtotal', { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 });
