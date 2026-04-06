@@ -25,23 +25,19 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'locationId requerido' }, { status: 400 });
   }
 
-  // Verify location belongs to org
-  const [location] = await db
-    .select()
-    .from(locationSchema)
-    .where(
-      and(
-        eq(locationSchema.id, Number(locationId)),
-        eq(locationSchema.organizationId, orgId),
-      ),
-    );
+  // Verificación de local y carga de productos en paralelo
+  const [locationResult, products] = await Promise.all([
+    db.select({ id: locationSchema.id })
+      .from(locationSchema)
+      .where(
+        and(
+          eq(locationSchema.id, Number(locationId)),
+          eq(locationSchema.organizationId, orgId),
+        ),
+      )
+      .limit(1),
 
-  if (!location) {
-    return NextResponse.json({ error: 'Local no encontrado' }, { status: 404 });
-  }
-
-  const products = await db
-    .select({
+    db.select({
       id: productSchema.id,
       name: productSchema.name,
       description: productSchema.description,
@@ -52,22 +48,27 @@ export async function GET(request: Request) {
       categoryName: categorySchema.name,
       stock: stockSchema.quantity,
     })
-    .from(productSchema)
-    .leftJoin(categorySchema, eq(productSchema.categoryId, categorySchema.id))
-    .leftJoin(
-      stockSchema,
-      and(
-        eq(stockSchema.productId, productSchema.id),
-        eq(stockSchema.locationId, Number(locationId)),
-      ),
-    )
-    .where(
-      and(
-        eq(productSchema.organizationId, orgId),
-        eq(productSchema.isActive, true),
-      ),
-    )
-    .orderBy(productSchema.name);
+      .from(productSchema)
+      .leftJoin(categorySchema, eq(productSchema.categoryId, categorySchema.id))
+      .leftJoin(
+        stockSchema,
+        and(
+          eq(stockSchema.productId, productSchema.id),
+          eq(stockSchema.locationId, Number(locationId)),
+        ),
+      )
+      .where(
+        and(
+          eq(productSchema.organizationId, orgId),
+          eq(productSchema.isActive, true),
+        ),
+      )
+      .orderBy(productSchema.name),
+  ]);
+
+  if (!locationResult[0]) {
+    return NextResponse.json({ error: 'Local no encontrado' }, { status: 404 });
+  }
 
   return NextResponse.json(products);
 }

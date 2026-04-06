@@ -87,20 +87,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Local no encontrado' }, { status: 404 });
   }
 
-  // Validate and enrich each item with current product data
+  // Todas las queries de validación en paralelo: productos + stock + receipt number + customer
+  const productIds = items.map((i: { productId: number }) => Number(i.productId));
+
+  const [productsResult, stocksResult, countResult] = await Promise.all([
+    // Trae todos los productos del carrito en una sola query
+    db.select().from(productSchema).where(
+      and(
+        eq(productSchema.organizationId, orgId),
+        eq(productSchema.isActive, true),
+      ),
+    ).then(rows => rows.filter(p => productIds.includes(p.id))),
+
+    // Trae el stock de todos los productos del carrito en una sola query
+    db.select().from(stockSchema).where(
+      and(
+        eq(stockSchema.locationId, Number(locationId)),
+      ),
+    ).then(rows => rows.filter(s => productIds.includes(s.productId))),
+
+    // Cuenta las ventas para generar el número de comprobante
+    db.select({ salesCount: count() }).from(saleSchema)
+      .where(eq(saleSchema.organizationId, orgId)),
+  ]);
+
+  // Valida cada ítem contra los resultados obtenidos
   const enrichedItems = [];
   for (const item of items) {
-    const [product] = await db
-      .select()
-      .from(productSchema)
-      .where(
-        and(
-          eq(productSchema.id, Number(item.productId)),
-          eq(productSchema.organizationId, orgId),
-          eq(productSchema.isActive, true),
-        ),
-      );
-
+    const product = productsResult.find(p => p.id === Number(item.productId));
     if (!product) {
       return NextResponse.json(
         { error: `Producto no encontrado: ${item.productId}` },
@@ -108,17 +122,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check stock availability
-    const [stock] = await db
-      .select()
-      .from(stockSchema)
-      .where(
-        and(
-          eq(stockSchema.productId, product.id),
-          eq(stockSchema.locationId, Number(locationId)),
-        ),
-      );
-
+    const stock = stocksResult.find(s => s.productId === product.id) ?? null;
     const available = stock?.quantity ?? 0;
     if (available < item.quantity) {
       return NextResponse.json(
@@ -135,12 +139,6 @@ export async function POST(request: Request) {
     (sum, { product, quantity }) => sum + Number(product.price) * quantity,
     0,
   );
-
-  // Generate receipt number: ORG-000001 (sequential per org)
-  const countResult = await db
-    .select({ salesCount: count() })
-    .from(saleSchema)
-    .where(eq(saleSchema.organizationId, orgId));
 
   const salesCount = countResult[0]?.salesCount ?? 0;
   const receiptNumber = `${orgId.slice(-6).toUpperCase()}-${String(salesCount + 1).padStart(6, '0')}`;
@@ -196,37 +194,40 @@ export async function POST(request: Request) {
     })
     .returning();
 
-  // Insert sale items and deduct stock
-  for (const { product, stock, quantity } of enrichedItems) {
-    const unitPrice = Number(product.price);
-    const subtotal = unitPrice * quantity;
+  // Insert todos los sale items en un solo batch y actualiza stock en paralelo
+  await Promise.all([
+    // Batch insert de todos los ítems de la venta en una sola query
+    db.insert(saleItemSchema).values(
+      enrichedItems.map(({ product, quantity }) => {
+        const unitPrice = Number(product.price);
+        return {
+          saleId: sale!.id,
+          productId: product.id,
+          productName: product.name,
+          quantity,
+          unitPrice: String(unitPrice.toFixed(2)),
+          subtotal: String((unitPrice * quantity).toFixed(2)),
+        };
+      }),
+    ),
 
-    await db.insert(saleItemSchema).values({
-      saleId: sale!.id,
-      productId: product.id,
-      productName: product.name,
-      quantity,
-      unitPrice: String(unitPrice.toFixed(2)),
-      subtotal: String(subtotal.toFixed(2)),
-    });
-
-    // Deduct stock
-    if (stock) {
-      await db
-        .update(stockSchema)
-        .set({ quantity: sql`${stockSchema.quantity} - ${quantity}` })
-        .where(eq(stockSchema.id, stock.id));
-
-      await db.insert(stockMovementSchema).values({
-        stockId: stock.id,
-        type: 'out',
-        quantity,
-        reason: 'sale',
-        userId,
-        notes: `Venta ${receiptNumber}`,
-      });
-    }
-  }
+    // Actualiza stock y registra movimientos en paralelo para cada ítem
+    ...enrichedItems
+      .filter(({ stock }) => stock !== null)
+      .map(async ({ stock, quantity }) => {
+        await db.update(stockSchema)
+          .set({ quantity: sql`${stockSchema.quantity} - ${quantity}` })
+          .where(eq(stockSchema.id, stock!.id));
+        await db.insert(stockMovementSchema).values({
+          stockId: stock!.id,
+          type: 'out',
+          quantity,
+          reason: 'sale',
+          userId,
+          notes: `Venta ${receiptNumber}`,
+        });
+      }),
+  ]);
 
   // Si el pago fue por fiado, registrar la deuda automáticamente vinculada a la venta
   if (paymentMethod === 'fiado' && customerId) {
