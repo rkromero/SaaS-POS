@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 
 import { CategoryManager } from '@/features/categories/CategoryManager';
 import { TitleBar } from '@/features/dashboard/TitleBar';
-import { ProductList } from '@/features/products/ProductList';
+import { ProductsPageClient } from '@/features/products/ProductsPageClient';
 
 export default async function ProductsPage() {
   const { orgRole } = await auth();
@@ -24,9 +24,7 @@ export default async function ProductsPage() {
         </div>
       )}
 
-      <div className="rounded-md bg-card p-6 shadow-sm">
-        <ProductList isAdmin={isAdmin} />
-      </div>
+      <ProductsPageClient isAdmin={isAdmin} />
     </>
   );
 }

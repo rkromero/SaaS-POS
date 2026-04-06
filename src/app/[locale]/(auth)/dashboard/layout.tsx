@@ -30,7 +30,15 @@ export default function DashboardLayout(props: { children: React.ReactNode }) {
               },
               {
                 href: '/dashboard/pos',
-                label: 'Caja',
+                label: 'Caja POS',
+              },
+              {
+                href: '/dashboard/caja',
+                label: 'Apertura/Cierre',
+              },
+              {
+                href: '/dashboard/fiado',
+                label: 'Fiado',
               },
               {
                 href: '/dashboard/locations',
@@ -43,6 +51,10 @@ export default function DashboardLayout(props: { children: React.ReactNode }) {
               {
                 href: '/dashboard/stock',
                 label: 'Stock',
+              },
+              {
+                href: '/dashboard/suppliers',
+                label: 'Proveedores',
               },
               {
                 href: '/dashboard/sales',

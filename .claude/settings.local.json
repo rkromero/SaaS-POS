@@ -14,7 +14,8 @@
       "Bash(mkdir -p D:/PROYECTOS/POS-SAAS/mi-saas/src/app/api/products/\\\\[id\\\\])",
       "Bash(mkdir -p \"D:/PROYECTOS/POS-SAAS/mi-saas/src/app/[locale]/\\(auth\\)/dashboard/products\")",
       "Bash(mkdir -p D:/PROYECTOS/POS-SAAS/mi-saas/src/app/api/sales/\\\\[id\\\\])",
-      "Bash(mkdir -p \"D:/PROYECTOS/POS-SAAS/mi-saas/src/app/[locale]/\\(auth\\)/dashboard/pos\")"
+      "Bash(mkdir -p \"D:/PROYECTOS/POS-SAAS/mi-saas/src/app/[locale]/\\(auth\\)/dashboard/pos\")",
+      "Bash(npx drizzle-kit:*)"
     ]
   }
 }

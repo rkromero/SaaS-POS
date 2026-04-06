@@ -144,6 +144,8 @@ export const productSchema = pgTable('product', {
   categoryId: integer('category_id').references(() => categorySchema.id, {
     onDelete: 'set null',
   }),
+  // supplierId is set after supplierSchema is declared (see bottom of file)
+  supplierId: integer('supplier_id'),
   name: text('name').notNull(),
   description: text('description'),
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
@@ -283,5 +285,135 @@ export const saleItemSchema = pgTable('sale_item', {
   quantity: integer('quantity').notNull(),
   unitPrice: numeric('unit_price', { precision: 10, scale: 2 }).notNull(),
   subtotal: numeric('subtotal', { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Fiado — Customer debt / cuenta corriente
+// ---------------------------------------------------------------------------
+
+export const debtTransactionTypeEnum = pgEnum('debt_transaction_type', [
+  'charge', // se fió (se agregó deuda)
+  'payment', // pagó (se redujo deuda)
+]);
+
+// Each row = one charge or one payment on a customer account
+export const debtTransactionSchema = pgTable('debt_transaction', {
+  id: serial('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  locationId: integer('location_id')
+    .notNull()
+    .references(() => locationSchema.id, { onDelete: 'cascade' }),
+  customerId: integer('customer_id')
+    .notNull()
+    .references(() => customerSchema.id, { onDelete: 'cascade' }),
+  // Denormalized for history integrity
+  customerName: text('customer_name').notNull(),
+  type: debtTransactionTypeEnum('type').notNull(),
+  amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
+  description: text('description'), // e.g. "Alfajor + coca", "Pago en efectivo"
+  // Optional link to the sale that originated the charge
+  saleId: integer('sale_id').references(() => saleSchema.id, {
+    onDelete: 'set null',
+  }),
+  userId: text('user_id').notNull(), // Clerk user ID (cashier who registered it)
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Cash register sessions — apertura y cierre de caja
+// ---------------------------------------------------------------------------
+
+export const cashRegisterStatusEnum = pgEnum('cash_register_status', [
+  'open',
+  'closed',
+]);
+
+export const cashRegisterSessionSchema = pgTable('cash_register_session', {
+  id: serial('id').primaryKey(),
+  locationId: integer('location_id')
+    .notNull()
+    .references(() => locationSchema.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull(), // who opened the session
+  closedByUserId: text('closed_by_user_id'),
+  openingBalance: numeric('opening_balance', {
+    precision: 10,
+    scale: 2,
+  }).notNull(), // fondo inicial
+  closingBalance: numeric('closing_balance', { precision: 10, scale: 2 }), // efectivo contado al cerrar
+  totalSales: numeric('total_sales', { precision: 10, scale: 2 }), // calculado al cerrar
+  totalCash: numeric('total_cash', { precision: 10, scale: 2 }), // ventas en efectivo
+  totalTransfer: numeric('total_transfer', { precision: 10, scale: 2 }),
+  totalCard: numeric('total_card', { precision: 10, scale: 2 }),
+  difference: numeric('difference', { precision: 10, scale: 2 }), // closingBalance - (openingBalance + totalCash)
+  notes: text('notes'),
+  status: cashRegisterStatusEnum('status').default('open').notNull(),
+  openedAt: timestamp('opened_at', { mode: 'date' }).defaultNow().notNull(),
+  closedAt: timestamp('closed_at', { mode: 'date' }),
+});
+
+// ---------------------------------------------------------------------------
+// Suppliers — proveedores
+// ---------------------------------------------------------------------------
+
+export const supplierSchema = pgTable('supplier', {
+  id: serial('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  name: text('name').notNull(),
+  contactName: text('contact_name'),
+  phone: text('phone'),
+  email: text('email'),
+  notes: text('notes'),
+  isActive: boolean('is_active').default(true).notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// Purchase orders — órdenes de compra a proveedores
+// ---------------------------------------------------------------------------
+
+export const purchaseOrderStatusEnum = pgEnum('purchase_order_status', [
+  'pending', // generado, aún no llegó
+  'received', // mercadería recibida (actualiza stock)
+  'cancelled',
+]);
+
+export const purchaseOrderSchema = pgTable('purchase_order', {
+  id: serial('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  locationId: integer('location_id')
+    .notNull()
+    .references(() => locationSchema.id, { onDelete: 'cascade' }),
+  supplierId: integer('supplier_id').references(() => supplierSchema.id, {
+    onDelete: 'set null',
+  }),
+  supplierName: text('supplier_name').notNull(), // denormalized
+  status: purchaseOrderStatusEnum('status').default('pending').notNull(),
+  notes: text('notes'),
+  userId: text('user_id').notNull(), // who created it
+  receivedByUserId: text('received_by_user_id'),
+  receivedAt: timestamp('received_at', { mode: 'date' }),
+  updatedAt: timestamp('updated_at', { mode: 'date' })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+export const purchaseOrderItemSchema = pgTable('purchase_order_item', {
+  id: serial('id').primaryKey(),
+  purchaseOrderId: integer('purchase_order_id')
+    .notNull()
+    .references(() => purchaseOrderSchema.id, { onDelete: 'cascade' }),
+  productId: integer('product_id').references(() => productSchema.id, {
+    onDelete: 'set null',
+  }),
+  productName: text('product_name').notNull(), // denormalized
+  quantity: integer('quantity').notNull(),
+  unitCost: numeric('unit_cost', { precision: 10, scale: 2 }),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 });
