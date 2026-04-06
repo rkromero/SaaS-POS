@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/rkromero/SaaS-POS/compare/v1.10.3...v1.11.0) (2026-04-06)
+
+
+### Features
+
+* reemplazar landing page con diseño nuevo orientado a beneficios ([e12c6ee](https://github.com/rkromero/SaaS-POS/commit/e12c6ee4a48abb7a1762fc17aa10513e81e19ae5))
+
 ## [1.10.3](https://github.com/rkromero/SaaS-POS/compare/v1.10.2...v1.10.3) (2026-04-06)
 
 
