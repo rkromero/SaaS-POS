@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/rkromero/SaaS-POS/compare/v1.2.0...v1.3.0) (2026-04-06)
+
+
+### Features
+
+* add user-location assignment (admin assigns members to locations) ([e7ec784](https://github.com/rkromero/SaaS-POS/commit/e7ec784385c1484135c4833f5c879b486dc30e98))
+
 # [1.2.0](https://github.com/rkromero/SaaS-POS/compare/v1.1.2...v1.2.0) (2026-04-06)
 
 
