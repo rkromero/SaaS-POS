@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/rkromero/SaaS-POS/compare/v1.9.0...v1.10.0) (2026-04-06)
+
+
+### Features
+
+* alta de cliente en Fiado con WhatsApp obligatorio como identificador ([4c47bb3](https://github.com/rkromero/SaaS-POS/commit/4c47bb3227c39bbfd80d55529d652d80c4c77a5b))
+
 # [1.9.0](https://github.com/rkromero/SaaS-POS/compare/v1.8.0...v1.9.0) (2026-04-06)
 
 
