@@ -76,7 +76,7 @@ const navGroups: NavGroup[] = [
     label: 'Administración',
     items: [
       { href: '/dashboard/locations', label: 'Locales', icon: <Store className={iconClass} /> },
-      { href: '/dashboard/organization-profile/organization-members', label: 'Miembros', icon: <Users className={iconClass} /> },
+      { href: '/dashboard/members', label: 'Miembros', icon: <Users className={iconClass} /> },
       { href: '/dashboard/billing', label: 'Planes', icon: <CreditCard className={iconClass} /> },
       { href: '/dashboard/organization-profile', label: 'Configuración', icon: <Building2 className={iconClass} /> },
     ],
