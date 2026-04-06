@@ -53,7 +53,15 @@ const PAYMENT_METHODS = [
   { value: 'debit', label: 'Débito' },
   { value: 'credit', label: 'Crédito' },
   { value: 'transfer', label: 'Transferencia' },
+  { value: 'fiado', label: 'Fiado' },
 ];
+
+type FiadoCustomer = {
+  id: number;
+  name: string;
+  whatsapp: string | null;
+  email: string | null;
+};
 
 type POSScreenProps = {
   orgName: string;
@@ -80,6 +88,12 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [submitting, setSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
+
+  // Fiado: búsqueda de cliente por WhatsApp
+  const [fiadoPhone, setFiadoPhone] = useState('');
+  const [fiadoSearching, setFiadoSearching] = useState(false);
+  const [fiadoCustomer, setFiadoCustomer] = useState<FiadoCustomer | null>(null);
+  const [fiadoNotFound, setFiadoNotFound] = useState(false);
 
   // Ticket modal
   const [completedSale, setCompletedSale] = useState<CompletedSale | null>(null);
@@ -166,17 +180,55 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     return matchSearch && matchCategory;
   });
 
+  const searchFiadoCustomer = async (phone: string) => {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length < 6) {
+      setFiadoCustomer(null);
+      setFiadoNotFound(false);
+      return;
+    }
+    setFiadoSearching(true);
+    setFiadoNotFound(false);
+    try {
+      const res = await fetch(`/api/customers/search?whatsapp=${encodeURIComponent(digits)}`);
+      const data = await res.json();
+      if (data && data.id) {
+        setFiadoCustomer(data);
+        setFiadoNotFound(false);
+      } else {
+        setFiadoCustomer(null);
+        setFiadoNotFound(true);
+      }
+    } catch {
+      setFiadoCustomer(null);
+    } finally {
+      setFiadoSearching(false);
+    }
+  };
+
   const handleCheckout = async () => {
     if (cart.length === 0) {
       return;
     }
-    if (!customerName.trim()) {
+
+    // Validación extra para fiado
+    if (paymentMethod === 'fiado') {
+      if (!fiadoCustomer) {
+        setCheckoutError('Buscá y seleccioná un cliente por WhatsApp para registrar el fiado');
+        return;
+      }
+    } else if (!customerName.trim()) {
       setCheckoutError('El nombre del cliente es requerido');
       return;
     }
 
     setCheckoutError('');
     setSubmitting(true);
+
+    // Para fiado, usamos los datos del cliente encontrado
+    const effectiveCustomerName = paymentMethod === 'fiado' ? fiadoCustomer!.name : customerName;
+    const effectiveCustomerWhatsapp = paymentMethod === 'fiado' ? fiadoCustomer!.whatsapp : customerWhatsapp;
+    const effectiveCustomerId = paymentMethod === 'fiado' ? fiadoCustomer!.id : undefined;
 
     try {
       const response = await fetch('/api/sales', {
@@ -185,10 +237,11 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
         body: JSON.stringify({
           locationId: Number(selectedLocationId),
           items: cart.map(i => ({ productId: i.product.id, quantity: i.quantity })),
-          customerName,
-          customerEmail: customerEmail || null,
-          customerWhatsapp: customerWhatsapp || null,
+          customerName: effectiveCustomerName,
+          customerEmail: paymentMethod === 'fiado' ? (fiadoCustomer!.email || null) : (customerEmail || null),
+          customerWhatsapp: effectiveCustomerWhatsapp || null,
           paymentMethod,
+          ...(effectiveCustomerId !== undefined && { customerId: effectiveCustomerId }),
         }),
       });
 
@@ -215,6 +268,9 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     setCustomerWhatsapp('');
     setPaymentMethod('cash');
     setCheckoutError('');
+    setFiadoPhone('');
+    setFiadoCustomer(null);
+    setFiadoNotFound(false);
     fetchProducts();
     setTimeout(() => searchRef.current?.focus(), 100);
   };
@@ -423,39 +479,93 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
         {/* Customer + payment */}
         {cart.length > 0 && (
           <div className="space-y-3 border-t pt-3">
-            <div className="space-y-1">
-              <Label htmlFor="customerName">Cliente *</Label>
-              <Input
-                id="customerName"
-                value={customerName}
-                onChange={e => setCustomerName(e.target.value)}
-                placeholder="Nombre del cliente"
-              />
-            </div>
+            {/* Campos de cliente: ocultos cuando se selecciona fiado */}
+            {paymentMethod !== 'fiado' && (
+              <>
+                <div className="space-y-1">
+                  <Label htmlFor="customerName">Cliente *</Label>
+                  <Input
+                    id="customerName"
+                    value={customerName}
+                    onChange={e => setCustomerName(e.target.value)}
+                    placeholder="Nombre del cliente"
+                  />
+                </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label htmlFor="customerEmail" className="text-xs">Email</Label>
-                <Input
-                  id="customerEmail"
-                  type="email"
-                  className="text-xs"
-                  value={customerEmail}
-                  onChange={e => setCustomerEmail(e.target.value)}
-                  placeholder="opcional"
-                />
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="customerEmail" className="text-xs">Email</Label>
+                    <Input
+                      id="customerEmail"
+                      type="email"
+                      className="text-xs"
+                      value={customerEmail}
+                      onChange={e => setCustomerEmail(e.target.value)}
+                      placeholder="opcional"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="customerWhatsapp" className="text-xs">WhatsApp</Label>
+                    <Input
+                      id="customerWhatsapp"
+                      className="text-xs"
+                      value={customerWhatsapp}
+                      onChange={e => setCustomerWhatsapp(e.target.value)}
+                      placeholder="opcional"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Búsqueda de cliente por WhatsApp cuando el pago es fiado */}
+            {paymentMethod === 'fiado' && (
+              <div className="space-y-2">
+                <Label htmlFor="fiadoPhone">WhatsApp del cliente *</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="fiadoPhone"
+                    className="flex-1"
+                    value={fiadoPhone}
+                    onChange={e => setFiadoPhone(e.target.value)}
+                    placeholder="Ej: 1123456789"
+                    onBlur={() => searchFiadoCustomer(fiadoPhone)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        searchFiadoCustomer(fiadoPhone);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={fiadoSearching}
+                    onClick={() => searchFiadoCustomer(fiadoPhone)}
+                  >
+                    {fiadoSearching ? '...' : 'Buscar'}
+                  </Button>
+                </div>
+
+                {/* Cliente encontrado */}
+                {fiadoCustomer && (
+                  <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm dark:border-green-800 dark:bg-green-950">
+                    <p className="font-medium text-green-800 dark:text-green-200">{fiadoCustomer.name}</p>
+                    {fiadoCustomer.whatsapp && (
+                      <p className="text-xs text-green-600 dark:text-green-400">{fiadoCustomer.whatsapp}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Cliente no encontrado */}
+                {fiadoNotFound && !fiadoCustomer && (
+                  <p className="text-xs text-destructive">
+                    Cliente no encontrado. Registralo primero en la sección Fiado.
+                  </p>
+                )}
               </div>
-              <div className="space-y-1">
-                <Label htmlFor="customerWhatsapp" className="text-xs">WhatsApp</Label>
-                <Input
-                  id="customerWhatsapp"
-                  className="text-xs"
-                  value={customerWhatsapp}
-                  onChange={e => setCustomerWhatsapp(e.target.value)}
-                  placeholder="opcional"
-                />
-              </div>
-            </div>
+            )}
 
             <div className="space-y-1">
               <Label>Método de pago</Label>
@@ -464,7 +574,15 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
                   <button
                     key={pm.value}
                     type="button"
-                    onClick={() => setPaymentMethod(pm.value)}
+                    onClick={() => {
+                      setPaymentMethod(pm.value);
+                      // Al salir de fiado, limpiar el estado de búsqueda
+                      if (pm.value !== 'fiado') {
+                        setFiadoPhone('');
+                        setFiadoCustomer(null);
+                        setFiadoNotFound(false);
+                      }
+                    }}
                     className={`rounded-md border px-2 py-1.5 text-xs font-medium transition-colors ${
                       paymentMethod === pm.value
                         ? 'border-primary bg-primary text-primary-foreground'

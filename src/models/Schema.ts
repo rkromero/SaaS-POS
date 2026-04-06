@@ -91,6 +91,7 @@ export const paymentMethodEnum = pgEnum('payment_method', [
   'debit', // tarjeta de débito
   'credit', // tarjeta de crédito
   'transfer', // transferencia
+  'fiado', // cuenta corriente / fiado
 ]);
 
 export const saleStatusEnum = pgEnum('sale_status', [

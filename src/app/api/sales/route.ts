@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/libs/DB';
 import {
   customerSchema,
+  debtTransactionSchema,
   locationSchema,
   productSchema,
   saleItemSchema,
@@ -57,10 +58,18 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { locationId, items, customerName, customerEmail, customerWhatsapp, paymentMethod } = body;
+  const { locationId, items, customerName, customerEmail, customerWhatsapp, paymentMethod, customerId: bodyCustomerId } = body;
 
   if (!locationId || !items?.length || !customerName || !paymentMethod) {
     return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
+  }
+
+  // Fiado requiere un cliente identificado (no "Consumidor final")
+  if (paymentMethod === 'fiado' && !bodyCustomerId) {
+    return NextResponse.json(
+      { error: 'El pago por fiado requiere seleccionar un cliente registrado' },
+      { status: 400 },
+    );
   }
 
   // Verify location belongs to org
@@ -138,7 +147,10 @@ export async function POST(request: Request) {
 
   // Find or create customer record
   let customerId: number | null = null;
-  if (customerName.trim() !== 'Consumidor final') {
+  if (paymentMethod === 'fiado') {
+    // Para fiado, el customer ya fue buscado y validado en el frontend — usamos el id directo
+    customerId = Number(bodyCustomerId);
+  } else if (customerName.trim() !== 'Consumidor final') {
     const existingCustomers = await db
       .select()
       .from(customerSchema)
@@ -212,6 +224,28 @@ export async function POST(request: Request) {
         reason: 'sale',
         userId,
         notes: `Venta ${receiptNumber}`,
+      });
+    }
+  }
+
+  // Si el pago fue por fiado, registrar la deuda automáticamente vinculada a la venta
+  if (paymentMethod === 'fiado' && customerId) {
+    const [customer] = await db
+      .select({ name: customerSchema.name })
+      .from(customerSchema)
+      .where(eq(customerSchema.id, customerId));
+
+    if (customer) {
+      await db.insert(debtTransactionSchema).values({
+        organizationId: orgId,
+        locationId: Number(locationId),
+        customerId,
+        customerName: customer.name,
+        type: 'charge',
+        amount: String(total.toFixed(2)),
+        description: `Venta ${receiptNumber}`,
+        saleId: sale!.id,
+        userId,
       });
     }
   }

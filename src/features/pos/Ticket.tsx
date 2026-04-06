@@ -36,6 +36,7 @@ const PAYMENT_LABELS: Record<string, string> = {
   debit: 'Tarjeta de débito',
   credit: 'Tarjeta de crédito',
   transfer: 'Transferencia',
+  fiado: 'Fiado',
 };
 
 export const Ticket = ({ sale, items, locationName, orgName, onClose }: TicketProps) => {

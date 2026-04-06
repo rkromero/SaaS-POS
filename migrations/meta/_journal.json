@@ -43,6 +43,13 @@
       "when": 1775442882844,
       "tag": "0005_mature_phalanx",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1744070400000,
+      "tag": "0006_fiado_payment",
+      "breakpoints": true
     }
   ]
 }

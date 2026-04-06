@@ -35,6 +35,7 @@ const PAYMENT_LABELS: Record<string, string> = {
   debit: 'Débito',
   credit: 'Crédito',
   transfer: 'Transferencia',
+  fiado: 'Fiado',
 };
 
 export const SalesList = () => {
