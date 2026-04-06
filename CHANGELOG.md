@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/rkromero/SaaS-POS/compare/v1.5.0...v1.6.0) (2026-04-06)
+
+
+### Features
+
+* kiosco features — fiado, caja, stock alerts, bulk prices, suppliers ([83688a6](https://github.com/rkromero/SaaS-POS/commit/83688a644c28999ea578279cd537befdc350c036))
+
 # [1.5.0](https://github.com/rkromero/SaaS-POS/compare/v1.4.0...v1.5.0) (2026-04-06)
 
 
