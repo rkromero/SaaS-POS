@@ -1,3 +1,10 @@
+## [1.10.2](https://github.com/rkromero/SaaS-POS/compare/v1.10.1...v1.10.2) (2026-04-06)
+
+
+### Performance Improvements
+
+* reducir latencia con pool de conexiones y queries paralelas ([dacaca7](https://github.com/rkromero/SaaS-POS/commit/dacaca713ee35d3376abe1223890dba720dee564))
+
 ## [1.10.1](https://github.com/rkromero/SaaS-POS/compare/v1.10.0...v1.10.1) (2026-04-06)
 
 
