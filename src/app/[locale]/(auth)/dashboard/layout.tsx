@@ -45,6 +45,10 @@ export default function DashboardLayout(props: { children: React.ReactNode }) {
                 label: 'Stock',
               },
               {
+                href: '/dashboard/sales',
+                label: 'Ventas',
+              },
+              {
                 href: '/dashboard/organization-profile/organization-members',
                 label: t('members'),
               },
