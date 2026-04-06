@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/table';
 
 import { LocationForm } from './LocationForm';
+import { LocationMembers } from './LocationMembers';
 
 type Location = {
   id: number;
@@ -30,6 +31,7 @@ export const LocationList = ({ isAdmin }: { isAdmin: boolean }) => {
   const [editing, setEditing] = useState<Location | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [membersLocation, setMembersLocation] = useState<Location | null>(null);
 
   const fetchLocations = useCallback(async () => {
     setLoading(true);
@@ -130,6 +132,13 @@ export const LocationList = ({ isAdmin }: { isAdmin: boolean }) => {
                           <Button
                             size="sm"
                             variant="outline"
+                            onClick={() => setMembersLocation(loc)}
+                          >
+                            Miembros
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
                             onClick={() => openEdit(loc)}
                           >
                             Editar
@@ -167,6 +176,14 @@ export const LocationList = ({ isAdmin }: { isAdmin: boolean }) => {
           onClose={() => setFormOpen(false)}
           onSuccess={fetchLocations}
           location={editing}
+        />
+      )}
+
+      {membersLocation && (
+        <LocationMembers
+          locationId={membersLocation.id}
+          locationName={membersLocation.name}
+          onClose={() => setMembersLocation(null)}
         />
       )}
     </div>
