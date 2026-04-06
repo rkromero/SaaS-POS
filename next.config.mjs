@@ -4,6 +4,7 @@ import withBundleAnalyzer from '@next/bundle-analyzer';
 import { withSentryConfig } from '@sentry/nextjs';
 import createJiti from 'jiti';
 import withNextIntl from 'next-intl/plugin';
+import withPWA from 'next-pwa';
 
 const jiti = createJiti(fileURLToPath(import.meta.url));
 
@@ -15,19 +16,44 @@ const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
+const pwa = withPWA({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
+  // Cache API routes for offline resilience — only GET requests
+  runtimeCaching: [
+    {
+      urlPattern: /^https:\/\/.*\/_next\/static\/.*/i,
+      handler: 'CacheFirst',
+      options: { cacheName: 'static-assets', expiration: { maxEntries: 200, maxAgeSeconds: 86400 * 30 } },
+    },
+    {
+      urlPattern: /\/api\/pos\/products/,
+      handler: 'NetworkFirst',
+      options: { cacheName: 'pos-products', expiration: { maxEntries: 50, maxAgeSeconds: 300 } },
+    },
+    {
+      urlPattern: /\/api\/locations/,
+      handler: 'NetworkFirst',
+      options: { cacheName: 'locations', expiration: { maxEntries: 20, maxAgeSeconds: 300 } },
+    },
+  ],
+});
+
 /** @type {import('next').NextConfig} */
 export default withSentryConfig(
   bundleAnalyzer(
-    withNextIntlConfig({
-      eslint: {
-        dirs: ['.'],
-      },
-      poweredByHeader: false,
-      reactStrictMode: true,
-      experimental: {
-        serverComponentsExternalPackages: ['@electric-sql/pglite'],
-      },
-    }),
+    pwa(
+      withNextIntlConfig({
+        eslint: {
+          dirs: ['.'],
+        },
+        poweredByHeader: false,
+        reactStrictMode: true,
+        experimental: {
+          serverComponentsExternalPackages: ['@electric-sql/pglite'],
+        },
+      }),
+    ),
   ),
   {
     // For all available options, see:

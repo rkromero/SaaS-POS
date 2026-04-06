@@ -283,6 +283,16 @@ function CustomerRow({
   onPay: () => void;
 }) {
   const hasDebt = Number(customer.balance) > 0;
+
+  const handleWhatsApp = () => {
+    if (!customer.whatsapp) {
+      return;
+    }
+    const phone = customer.whatsapp.replace(/\D/g, '');
+    const msg = `Hola ${customer.name} 👋, te recordamos que tenés una deuda pendiente de *${fmt(customer.balance)}* en nuestro local. Podés pasar a abonar o hacernos una transferencia. ¡Gracias!`;
+    window.open(`https://wa.me/549${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
   return (
     <div className="flex items-center justify-between rounded-lg border bg-card p-3">
       <button type="button" className="flex items-center gap-3 text-left" onClick={onHistory}>
@@ -297,6 +307,11 @@ function CustomerRow({
         )}
       </button>
       <div className="flex gap-2">
+        {hasDebt && customer.whatsapp && (
+          <Button size="sm" variant="outline" onClick={handleWhatsApp} title="Recordar deuda por WhatsApp">
+            💬
+          </Button>
+        )}
         {hasDebt && (
           <Button size="sm" variant="outline" onClick={onPay}>
             Cobrar

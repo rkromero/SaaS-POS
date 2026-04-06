@@ -8,6 +8,12 @@ import { DemoBadge } from '@/components/DemoBadge';
 import { AllLocales } from '@/utils/AppConfig';
 
 export const metadata: Metadata = {
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'POS Kiosco',
+  },
   icons: [
     {
       rel: 'apple-touch-icon',

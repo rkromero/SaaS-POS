@@ -41,10 +41,6 @@ const PAYMENT_LABELS: Record<string, string> = {
 export const Ticket = ({ sale, items, locationName, orgName, onClose }: TicketProps) => {
   const ticketRef = useRef<HTMLDivElement>(null);
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const date = new Date(sale.createdAt);
   const formattedDate = date.toLocaleDateString('es-AR', {
     day: '2-digit',
@@ -55,6 +51,39 @@ export const Ticket = ({ sale, items, locationName, orgName, onClose }: TicketPr
     hour: '2-digit',
     minute: '2-digit',
   });
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleWhatsApp = () => {
+    const lines = [
+      `🧾 *Comprobante de venta*`,
+      `📍 ${orgName} — ${locationName}`,
+      `📅 ${formattedDate} ${formattedTime}`,
+      `Nº ${sale.receiptNumber}`,
+      ``,
+      `*Cliente:* ${sale.customerName}`,
+      ``,
+      `*Productos:*`,
+      ...items.map(
+        i =>
+          `  • ${i.productName} x${i.quantity} = $${Number(i.subtotal).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`,
+      ),
+      ``,
+      `*TOTAL: $${Number(sale.total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}*`,
+      `Pago: ${PAYMENT_LABELS[sale.paymentMethod] ?? sale.paymentMethod}`,
+      ``,
+      `¡Gracias por su compra! 🙌`,
+    ].join('\n');
+
+    const phone = sale.customerWhatsapp?.replace(/\D/g, '');
+    const url = phone
+      ? `https://wa.me/549${phone}?text=${encodeURIComponent(lines)}`
+      : `https://wa.me/?text=${encodeURIComponent(lines)}`;
+
+    window.open(url, '_blank');
+  };
 
   return (
     <>
@@ -166,11 +195,14 @@ export const Ticket = ({ sale, items, locationName, orgName, onClose }: TicketPr
           </div>
 
           {/* Actions */}
-          <div className="no-print flex gap-2 border-t p-3">
+          <div className="no-print flex flex-wrap gap-2 border-t p-3">
             <Button className="flex-1" onClick={handlePrint}>
               🖨️ Imprimir
             </Button>
-            <Button variant="outline" className="flex-1" onClick={onClose}>
+            <Button variant="outline" className="flex-1" onClick={handleWhatsApp}>
+              💬 WhatsApp
+            </Button>
+            <Button variant="outline" className="w-full" onClick={onClose}>
               Nueva venta
             </Button>
           </div>

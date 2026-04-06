@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -68,6 +68,11 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const [filterCategory, setFilterCategory] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Barcode scanner: track rapid keypresses
+  const searchRef = useRef<HTMLInputElement>(null);
+  const lastKeyTime = useRef<number>(0);
+  const barcodeBuffer = useRef<string>('');
+
   // Checkout form
   const [customerName, setCustomerName] = useState('Consumidor final');
   const [customerEmail, setCustomerEmail] = useState('');
@@ -102,6 +107,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
       const res = await fetch(`/api/pos/products?locationId=${selectedLocationId}`);
       const data = await res.json();
       setProducts(data);
+      setTimeout(() => searchRef.current?.focus(), 50);
     } finally {
       setLoading(false);
     }
@@ -210,6 +216,51 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     setPaymentMethod('cash');
     setCheckoutError('');
     fetchProducts();
+    setTimeout(() => searchRef.current?.focus(), 100);
+  };
+
+  // Barcode scanner: detect rapid input (chars < 80ms apart) followed by Enter
+  // Hardware scanners type the full barcode in < 100ms total
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const now = Date.now();
+    const timeDiff = now - lastKeyTime.current;
+    lastKeyTime.current = now;
+
+    if (e.key === 'Enter') {
+      const sku = barcodeBuffer.current || search;
+      barcodeBuffer.current = '';
+
+      if (!sku.trim()) {
+        return;
+      }
+
+      // If chars arrived very fast (scanner), try to match by SKU
+      if (timeDiff < 80) {
+        const match = products.find(
+          p => p.sku?.toLowerCase() === sku.trim().toLowerCase(),
+        );
+        if (match) {
+          addToCart(match);
+          setSearch('');
+          e.preventDefault();
+          return;
+        }
+      }
+
+      // Normal Enter: if only one product matches, add it
+      if (filteredProducts.length === 1 && filteredProducts[0]) {
+        addToCart(filteredProducts[0]);
+        setSearch('');
+      }
+      return;
+    }
+
+    // Accumulate barcode buffer when keys arrive fast
+    if (timeDiff < 80 && e.key.length === 1) {
+      barcodeBuffer.current += e.key;
+    } else {
+      barcodeBuffer.current = e.key.length === 1 ? e.key : '';
+    }
   };
 
   if (locations.length === 0) {
@@ -239,10 +290,12 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
           )}
 
           <Input
+            ref={searchRef}
             className="flex-1"
-            placeholder="Buscar producto o SKU..."
+            placeholder="Buscar o escanear código de barras..."
             value={search}
             onChange={e => setSearch(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
           />
 
           <select

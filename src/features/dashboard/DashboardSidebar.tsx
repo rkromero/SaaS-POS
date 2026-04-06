@@ -9,7 +9,9 @@ import {
   HandCoins,
   LayoutDashboard,
   Menu,
+  MinusCircle,
   Package,
+  PieChart,
   ShoppingCart,
   Store,
   Truck,
@@ -53,6 +55,13 @@ const navGroups: NavGroup[] = [
       { href: '/dashboard/caja', label: 'Apertura / Cierre', icon: <Wallet className={iconClass} /> },
       { href: '/dashboard/fiado', label: 'Fiado', icon: <HandCoins className={iconClass} /> },
       { href: '/dashboard/sales', label: 'Ventas', icon: <BarChart3 className={iconClass} /> },
+      { href: '/dashboard/expenses', label: 'Gastos', icon: <MinusCircle className={iconClass} /> },
+    ],
+  },
+  {
+    label: 'Análisis',
+    items: [
+      { href: '/dashboard/reports', label: 'Reportes', icon: <PieChart className={iconClass} /> },
     ],
   },
   {

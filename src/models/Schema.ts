@@ -519,6 +519,44 @@ export const purchaseOrderSchema = pgTable(
   }),
 );
 
+// ---------------------------------------------------------------------------
+// Expenses — gastos del negocio
+// ---------------------------------------------------------------------------
+
+export const expenseCategoryEnum = pgEnum('expense_category', [
+  'supplies', // insumos (bolsas, papel, etc.)
+  'utilities', // servicios (luz, gas, internet)
+  'rent', // alquiler
+  'salary', // sueldos
+  'maintenance', // mantenimiento
+  'other', // otros
+]);
+
+export const expenseSchema = pgTable(
+  'expense',
+  {
+    id: serial('id').primaryKey(),
+    organizationId: text('organization_id').notNull(),
+    locationId: integer('location_id')
+      .notNull()
+      .references(() => locationSchema.id, { onDelete: 'cascade' }),
+    amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
+    description: text('description').notNull(),
+    category: expenseCategoryEnum('category').notNull(),
+    userId: text('user_id').notNull(),
+    // Date of the expense (may differ from createdAt for past entries)
+    date: timestamp('date', { mode: 'date' }).defaultNow().notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => ({
+    expenseOrgIdx: index('expense_org_idx').on(table.organizationId),
+    expenseLocationDateIdx: index('expense_location_date_idx').on(
+      table.locationId,
+      table.date,
+    ),
+  }),
+);
+
 export const purchaseOrderItemSchema = pgTable(
   'purchase_order_item',
   {
