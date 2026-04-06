@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/rkromero/SaaS-POS/compare/v1.11.0...v1.12.0) (2026-04-06)
+
+
+### Features
+
+* crear usuarios directamente desde el panel admin ([3d1e318](https://github.com/rkromero/SaaS-POS/commit/3d1e318b33673eb27e6dd063283f4a0e16b73310))
+
 # [1.11.0](https://github.com/rkromero/SaaS-POS/compare/v1.10.3...v1.11.0) (2026-04-06)
 
 
