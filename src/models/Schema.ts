@@ -15,6 +15,14 @@ import {
 // Existing tables (do not modify)
 // ---------------------------------------------------------------------------
 
+export const planTypeEnum = pgEnum('plan_type', [
+  'free',
+  'socio',
+  'basic',
+  'pro',
+  'enterprise',
+]);
+
 export const organizationSchema = pgTable(
   'organization',
   {
@@ -27,6 +35,11 @@ export const organizationSchema = pgTable(
       'stripe_subscription_current_period_end',
       { mode: 'number' },
     ),
+    // Mercado Pago subscription fields
+    planType: planTypeEnum('plan_type').default('free').notNull(),
+    mpPreapprovalId: text('mp_preapproval_id'),
+    mpPlanStatus: text('mp_plan_status'), // authorized | paused | cancelled | pending
+    planExpiresAt: timestamp('plan_expires_at', { mode: 'date' }),
     updatedAt: timestamp('updated_at', { mode: 'date' })
       .defaultNow()
       .$onUpdate(() => new Date())
