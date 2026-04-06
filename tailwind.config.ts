@@ -6,7 +6,24 @@ const config = {
   content: ['./src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        lora: ['var(--font-lora)', 'Georgia', 'serif'],
+        sans: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-space-mono)', 'monospace'],
+      },
       colors: {
+        // Landing page palette
+        g900: '#0d2318',
+        g800: '#14391f',
+        g700: '#1a5c2a',
+        g600: '#1e7a35',
+        g500: '#22a047',
+        g400: '#34c759',
+        g300: '#6fdb8a',
+        g100: '#e8f9ed',
+        g50: '#f3fdf6',
+        cream: '#faf8f3',
+        // shadcn tokens
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
