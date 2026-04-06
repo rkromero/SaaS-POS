@@ -1,3 +1,10 @@
+## [1.10.3](https://github.com/rkromero/SaaS-POS/compare/v1.10.2...v1.10.3) (2026-04-06)
+
+
+### Performance Improvements
+
+* cache HTTP en browser para productos y locales ([9ab9684](https://github.com/rkromero/SaaS-POS/commit/9ab968493f26a177167985a8f984d3e488a7dd60))
+
 ## [1.10.2](https://github.com/rkromero/SaaS-POS/compare/v1.10.1...v1.10.2) (2026-04-06)
 
 
