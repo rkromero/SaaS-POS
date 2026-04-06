@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/rkromero/SaaS-POS/compare/v1.7.1...v1.8.0) (2026-04-06)
+
+
+### Features
+
+* scanner, reports, expenses, csv import, pwa, whatsapp ([9c9d99a](https://github.com/rkromero/SaaS-POS/commit/9c9d99a2cdf5f3d1fd1f15cded591acfb409999e))
+
 ## [1.7.1](https://github.com/rkromero/SaaS-POS/compare/v1.7.0...v1.7.1) (2026-04-06)
 
 
