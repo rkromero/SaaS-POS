@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/rkromero/SaaS-POS/compare/v1.1.2...v1.2.0) (2026-04-06)
+
+
+### Features
+
+* add sales history with detail and reprint ([af87d0c](https://github.com/rkromero/SaaS-POS/commit/af87d0c9b0fda05d77028cd158b692052b9382fc))
+
 ## [1.1.2](https://github.com/rkromero/SaaS-POS/compare/v1.1.1...v1.1.2) (2026-04-06)
 
 
