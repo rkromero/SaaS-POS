@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/rkromero/SaaS-POS/compare/v1.7.0...v1.7.1) (2026-04-06)
+
+
+### Performance Improvements
+
+* add 20 database indexes across all tables ([fe410f9](https://github.com/rkromero/SaaS-POS/commit/fe410f9e0083216cdcc54f77164fba6cdf8d353a))
+
 # [1.7.0](https://github.com/rkromero/SaaS-POS/compare/v1.6.0...v1.7.0) (2026-04-06)
 
 
