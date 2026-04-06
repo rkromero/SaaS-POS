@@ -111,14 +111,19 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
       });
   }, []);
 
-  // Load products for selected location
-  const fetchProducts = useCallback(async () => {
+  // Load products for selected location.
+  // force=true omite el caché del browser (se usa después de completar una venta
+  // para mostrar el stock actualizado).
+  const fetchProducts = useCallback(async (force = false) => {
     if (!selectedLocationId) {
       return;
     }
     setLoading(true);
     try {
-      const res = await fetch(`/api/pos/products?locationId=${selectedLocationId}`);
+      const res = await fetch(
+        `/api/pos/products?locationId=${selectedLocationId}`,
+        force ? { cache: 'no-store' } : undefined,
+      );
       const data = await res.json();
       setProducts(data);
       setTimeout(() => searchRef.current?.focus(), 50);
@@ -271,7 +276,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     setFiadoPhone('');
     setFiadoCustomer(null);
     setFiadoNotFound(false);
-    fetchProducts();
+    fetchProducts(true); // fuerza refetch para mostrar stock actualizado tras la venta
     setTimeout(() => searchRef.current?.focus(), 100);
   };
 

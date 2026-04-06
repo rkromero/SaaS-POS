@@ -70,5 +70,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Local no encontrado' }, { status: 404 });
   }
 
-  return NextResponse.json(products);
+  // Cache 30s en el browser: si el cajero completa una venta y vuelve al POS,
+  // los productos cargan instantáneamente desde caché en lugar de ir a Railway.
+  return NextResponse.json(products, {
+    headers: { 'Cache-Control': 'private, max-age=30, stale-while-revalidate=60' },
+  });
 }

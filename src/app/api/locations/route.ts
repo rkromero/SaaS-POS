@@ -19,7 +19,10 @@ export async function GET() {
     .where(eq(locationSchema.organizationId, orgId))
     .orderBy(locationSchema.createdAt);
 
-  return NextResponse.json(locations);
+  // Cache 60s en el browser: los locales casi nunca cambian durante el día
+  return NextResponse.json(locations, {
+    headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=120' },
+  });
 }
 
 // POST /api/locations — create a new location (admin only)
