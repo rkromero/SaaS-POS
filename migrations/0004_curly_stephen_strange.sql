@@ -1,0 +1,23 @@
+CREATE INDEX IF NOT EXISTS "cash_session_location_status_idx" ON "cash_register_session" USING btree ("location_id","status");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "category_org_idx" ON "category" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "customer_org_idx" ON "customer" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "debt_customer_idx" ON "debt_transaction" USING btree ("customer_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "debt_org_idx" ON "debt_transaction" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "location_org_idx" ON "location" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "product_org_idx" ON "product" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "product_org_active_idx" ON "product" USING btree ("organization_id","is_active");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "product_category_idx" ON "product" USING btree ("category_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "purchase_order_item_order_idx" ON "purchase_order_item" USING btree ("purchase_order_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "purchase_order_org_idx" ON "purchase_order" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "purchase_order_location_idx" ON "purchase_order" USING btree ("location_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "sale_item_sale_idx" ON "sale_item" USING btree ("sale_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "sale_item_product_idx" ON "sale_item" USING btree ("product_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "sale_org_created_idx" ON "sale" USING btree ("organization_id","created_at");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "sale_location_status_created_idx" ON "sale" USING btree ("location_id","status","created_at");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "sale_customer_idx" ON "sale" USING btree ("customer_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "sale_org_idx" ON "sale" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "stock_movement_stock_idx" ON "stock_movement" USING btree ("stock_id","created_at");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "stock_location_idx" ON "stock" USING btree ("location_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "supplier_org_idx" ON "supplier" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "user_location_user_idx" ON "user_location" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "user_location_location_idx" ON "user_location" USING btree ("location_id");
