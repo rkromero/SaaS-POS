@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/rkromero/SaaS-POS/compare/v1.8.0...v1.9.0) (2026-04-06)
+
+
+### Features
+
+* pago por fiado en POS con búsqueda de cliente por WhatsApp ([041f76c](https://github.com/rkromero/SaaS-POS/commit/041f76cc9fdfe312e50c310ed2b26942885805be))
+
 # [1.8.0](https://github.com/rkromero/SaaS-POS/compare/v1.7.1...v1.8.0) (2026-04-06)
 
 
