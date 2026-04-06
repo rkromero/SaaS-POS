@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/rkromero/SaaS-POS/compare/v1.10.0...v1.10.1) (2026-04-06)
+
+
+### Bug Fixes
+
+* cobro/fiado no se registraba para admin sin local asignado ([8305864](https://github.com/rkromero/SaaS-POS/commit/8305864ffde050b1afd59852b7cab17b2f9954b4))
+
 # [1.10.0](https://github.com/rkromero/SaaS-POS/compare/v1.9.0...v1.10.0) (2026-04-06)
 
 
