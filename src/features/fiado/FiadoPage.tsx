@@ -23,7 +23,7 @@ type Transaction = {
   createdAt: string;
 };
 
-type Mode = 'list' | 'history' | 'charge' | 'pay';
+type Mode = 'list' | 'history' | 'charge' | 'pay' | 'new-customer';
 
 export const FiadoPage = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -35,6 +35,12 @@ export const FiadoPage = () => {
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
+
+  // Nuevo cliente
+  const [newName, setNewName] = useState('');
+  const [newWhatsapp, setNewWhatsapp] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newError, setNewError] = useState('');
 
   const loadCustomers = () => {
     setLoading(true);
@@ -72,6 +78,44 @@ export const FiadoPage = () => {
     setMode('pay');
   };
 
+  const openNewCustomer = () => {
+    setNewName('');
+    setNewWhatsapp('');
+    setNewEmail('');
+    setNewError('');
+    setMode('new-customer');
+  };
+
+  const handleNewCustomer = async () => {
+    setNewError('');
+    const digits = newWhatsapp.replace(/\D/g, '');
+    if (!newName.trim()) {
+      setNewError('El nombre es requerido');
+      return;
+    }
+    if (digits.length < 6) {
+      setNewError('El número de WhatsApp es requerido');
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName, whatsapp: digits, email: newEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setNewError(data.error ?? 'Error al crear el cliente');
+        return;
+      }
+      setMode('list');
+      loadCustomers();
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!selected || !amount) {
       return;
@@ -103,6 +147,66 @@ export const FiadoPage = () => {
 
   const withDebt = filtered.filter(c => Number(c.balance) > 0);
   const noDebt = filtered.filter(c => Number(c.balance) <= 0);
+
+  if (mode === 'new-customer') {
+    return (
+      <div className="mx-auto max-w-md space-y-4">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setMode('list')}>← Volver</Button>
+          <h2 className="text-lg font-bold">Nuevo cliente</h2>
+        </div>
+
+        <div className="space-y-3 rounded-lg border bg-card p-4">
+          <div>
+            <Label htmlFor="newName">Nombre *</Label>
+            <Input
+              id="newName"
+              placeholder="Nombre completo"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="newWhatsapp">
+              WhatsApp *
+              <span className="text-xs font-normal text-muted-foreground">(identificador único)</span>
+            </Label>
+            <Input
+              id="newWhatsapp"
+              placeholder="Ej: 1123456789"
+              value={newWhatsapp}
+              onChange={e => setNewWhatsapp(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="newEmail">
+              Email
+              <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
+            </Label>
+            <Input
+              id="newEmail"
+              type="email"
+              placeholder="cliente@email.com"
+              value={newEmail}
+              onChange={e => setNewEmail(e.target.value)}
+            />
+          </div>
+
+          {newError && (
+            <p className="text-sm text-destructive">{newError}</p>
+          )}
+
+          <Button
+            className="w-full"
+            disabled={saving}
+            onClick={handleNewCustomer}
+          >
+            {saving ? 'Guardando...' : 'Dar de alta'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (mode === 'charge' || mode === 'pay') {
     return (
@@ -213,12 +317,15 @@ export const FiadoPage = () => {
 
   return (
     <div className="space-y-4">
-      <Input
-        placeholder="Buscar cliente..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        className="max-w-sm"
-      />
+      <div className="flex items-center gap-2">
+        <Input
+          placeholder="Buscar cliente..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="max-w-sm"
+        />
+        <Button onClick={openNewCustomer}>+ Nuevo cliente</Button>
+      </div>
 
       {loading
         ? (
