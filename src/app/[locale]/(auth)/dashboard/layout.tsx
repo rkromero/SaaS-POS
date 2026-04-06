@@ -1,7 +1,6 @@
-import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 
-import { DashboardHeader } from '@/features/dashboard/DashboardHeader';
+import { DashboardSidebar } from '@/features/dashboard/DashboardSidebar';
 
 export async function generateMetadata(props: { params: { locale: string } }) {
   const t = await getTranslations({
@@ -16,73 +15,18 @@ export async function generateMetadata(props: { params: { locale: string } }) {
 }
 
 export default function DashboardLayout(props: { children: React.ReactNode }) {
-  const t = useTranslations('DashboardLayout');
-
   return (
-    <>
-      <div className="shadow-md">
-        <div className="mx-auto flex max-w-screen-xl items-center justify-between px-3 py-4">
-          <DashboardHeader
-            menu={[
-              {
-                href: '/dashboard',
-                label: t('home'),
-              },
-              {
-                href: '/dashboard/pos',
-                label: 'Caja POS',
-              },
-              {
-                href: '/dashboard/caja',
-                label: 'Apertura/Cierre',
-              },
-              {
-                href: '/dashboard/fiado',
-                label: 'Fiado',
-              },
-              {
-                href: '/dashboard/locations',
-                label: 'Locales',
-              },
-              {
-                href: '/dashboard/products',
-                label: 'Productos',
-              },
-              {
-                href: '/dashboard/stock',
-                label: 'Stock',
-              },
-              {
-                href: '/dashboard/suppliers',
-                label: 'Proveedores',
-              },
-              {
-                href: '/dashboard/sales',
-                label: 'Ventas',
-              },
-              {
-                href: '/dashboard/billing',
-                label: 'Planes',
-              },
-              {
-                href: '/dashboard/organization-profile/organization-members',
-                label: t('members'),
-              },
-              {
-                href: '/dashboard/organization-profile',
-                label: t('settings'),
-              },
-            ]}
-          />
-        </div>
-      </div>
+    <div className="min-h-screen bg-muted">
+      <DashboardSidebar />
 
-      <div className="min-h-[calc(100vh-72px)] bg-muted">
-        <div className="mx-auto max-w-screen-xl px-3 pb-16 pt-6">
+      {/* Main content — offset by sidebar width on desktop */}
+      <main className="lg:pl-56">
+        {/* Mobile top bar spacer is handled inside DashboardSidebar */}
+        <div className="px-4 pb-16 pt-6 sm:px-6">
           {props.children}
         </div>
-      </div>
-    </>
+      </main>
+    </div>
   );
 }
 
