@@ -111,8 +111,25 @@ export async function POST(request: Request) {
 
   // Resolve locationId
   let resolvedLocationId: number;
-  if (orgRole === 'org:admin' && bodyLocationId) {
-    resolvedLocationId = Number(bodyLocationId);
+  if (orgRole === 'org:admin') {
+    if (bodyLocationId) {
+      resolvedLocationId = Number(bodyLocationId);
+    } else {
+      const [firstLocation] = await db
+        .select({ id: locationSchema.id })
+        .from(locationSchema)
+        .where(
+          and(
+            eq(locationSchema.organizationId, orgId),
+            eq(locationSchema.isActive, true),
+          ),
+        )
+        .limit(1);
+      if (!firstLocation) {
+        return NextResponse.json({ error: 'No hay locales activos' }, { status: 400 });
+      }
+      resolvedLocationId = firstLocation.id;
+    }
   } else {
     const [assignment] = await db
       .select({ locationId: userLocationSchema.locationId })

@@ -34,6 +34,7 @@ export const FiadoPage = () => {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [search, setSearch] = useState('');
 
   // Nuevo cliente
@@ -120,6 +121,7 @@ export const FiadoPage = () => {
     if (!selected || !amount) {
       return;
     }
+    setSubmitError('');
     setSaving(true);
     const url = mode === 'charge'
       ? '/api/fiado'
@@ -128,14 +130,24 @@ export const FiadoPage = () => {
       ? { customerId: selected.id, amount: Number(amount), description }
       : { amount: Number(amount), description };
 
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    setSaving(false);
-    setMode('list');
-    loadCustomers();
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setSubmitError(data.error ?? 'Error al registrar');
+        return;
+      }
+      setMode('list');
+      loadCustomers();
+    } catch {
+      setSubmitError('Error de conexión');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const fmt = (v: string) =>
@@ -249,6 +261,9 @@ export const FiadoPage = () => {
               onChange={e => setDescription(e.target.value)}
             />
           </div>
+          {submitError && (
+            <p className="text-sm text-destructive">{submitError}</p>
+          )}
           <Button
             className="w-full"
             disabled={!amount || Number(amount) <= 0 || saving}
