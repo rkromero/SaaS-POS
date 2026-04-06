@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/rkromero/SaaS-POS/compare/v1.6.0...v1.7.0) (2026-04-06)
+
+
+### Features
+
+* replace top nav with CRM-style sidebar ([50993c0](https://github.com/rkromero/SaaS-POS/commit/50993c036a936165d921d2ee6059a4313afd81ee))
+
 # [1.6.0](https://github.com/rkromero/SaaS-POS/compare/v1.5.0...v1.6.0) (2026-04-06)
 
 
