@@ -37,6 +37,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Local no encontrado' }, { status: 404 });
     }
 
+    // Left join from products → stock so ALL active products appear,
+    // even those without a stock record yet (shown with quantity 0)
     const stock = await db
       .select({
         id: stockSchema.id,
@@ -50,13 +52,33 @@ export async function GET(request: Request) {
         categoryName: categorySchema.name,
         locationId: stockSchema.locationId,
       })
-      .from(stockSchema)
-      .innerJoin(productSchema, eq(stockSchema.productId, productSchema.id))
+      .from(productSchema)
+      .leftJoin(
+        stockSchema,
+        and(
+          eq(stockSchema.productId, productSchema.id),
+          eq(stockSchema.locationId, Number(locationId)),
+        ),
+      )
       .leftJoin(categorySchema, eq(productSchema.categoryId, categorySchema.id))
-      .where(eq(stockSchema.locationId, Number(locationId)))
+      .where(
+        and(
+          eq(productSchema.organizationId, orgId),
+          eq(productSchema.isActive, true),
+        ),
+      )
       .orderBy(productSchema.name);
 
-    return NextResponse.json(stock);
+    // Normalize: products without stock record get quantity 0
+    const normalized = stock.map(row => ({
+      ...row,
+      id: row.id ?? null,
+      quantity: row.quantity ?? 0,
+      lowStockThreshold: row.lowStockThreshold ?? 5,
+      locationId: row.locationId ?? Number(locationId),
+    }));
+
+    return NextResponse.json(normalized);
   }
 
   // Consolidated view — admin only

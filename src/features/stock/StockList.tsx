@@ -18,7 +18,7 @@ import { StockMovementForm } from './StockMovementForm';
 import { StockMovementHistory } from './StockMovementHistory';
 
 type StockItem = {
-  id: number;
+  id: number | null; // null when no stock record exists yet
   quantity: number;
   lowStockThreshold: number;
   productId: number;
@@ -209,7 +209,8 @@ export const StockList = ({ isAdmin: _isAdmin }: StockListProps) => {
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => openHistory(item)}
+                              disabled={item.id === null}
+                              onClick={() => item.id !== null && openHistory(item)}
                             >
                               Historial
                             </Button>
@@ -240,7 +241,7 @@ export const StockList = ({ isAdmin: _isAdmin }: StockListProps) => {
         <StockMovementHistory
           open={historyModal.open}
           onClose={() => setHistoryModal({ open: false, item: null })}
-          stockId={historyModal.item.id}
+          stockId={historyModal.item.id!}
           productName={historyModal.item.productName}
         />
       )}
