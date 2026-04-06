@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/rkromero/SaaS-POS/compare/v1.3.0...v1.4.0) (2026-04-06)
+
+
+### Features
+
+* add dashboard metrics (KPIs, trend chart, top products, low stock) ([3234990](https://github.com/rkromero/SaaS-POS/commit/32349908d04877d988bb7c0ca97bedeea405c3db))
+
 # [1.3.0](https://github.com/rkromero/SaaS-POS/compare/v1.2.0...v1.3.0) (2026-04-06)
 
 
