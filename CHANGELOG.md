@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/rkromero/SaaS-POS/compare/v1.4.0...v1.5.0) (2026-04-06)
+
+
+### Features
+
+* add Mercado Pago billing module with plan management ([940f0d1](https://github.com/rkromero/SaaS-POS/commit/940f0d11289e639991808cc75bba0a45870ec401))
+
 # [1.4.0](https://github.com/rkromero/SaaS-POS/compare/v1.3.0...v1.4.0) (2026-04-06)
 
 
