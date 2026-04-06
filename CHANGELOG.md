@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/rkromero/SaaS-POS/compare/v1.1.1...v1.1.2) (2026-04-06)
+
+
+### Bug Fixes
+
+* show all products in stock page, not just those with movements ([76b5563](https://github.com/rkromero/SaaS-POS/commit/76b55633232161cefd87a95c68018359cf464f18))
+
 ## [1.1.1](https://github.com/rkromero/SaaS-POS/compare/v1.1.0...v1.1.1) (2026-04-05)
 
 
