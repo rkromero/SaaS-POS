@@ -22,6 +22,10 @@ type Sale = {
   paymentMethod: string;
   total: string;
   createdAt: string;
+  cae?: string | null;
+  caeVencimiento?: string | null;
+  invoiceFullNumber?: string | null;
+  invoiceType?: string | null;
 };
 
 type TicketProps = {
@@ -140,14 +144,16 @@ export const Ticket = ({ sale, items, locationName, orgName, onClose }: TicketPr
             </div>
 
             <div className="mb-3 border-y border-dashed border-gray-400 py-1 text-center text-xs text-gray-500">
-              COMPROBANTE DE VENTA
+              {sale.cae
+                ? `FACTURA ELECTRÓNICA TIPO ${sale.invoiceType}`
+                : 'COMPROBANTE DE VENTA'}
             </div>
 
             {/* Sale info */}
             <div className="mb-3 space-y-0.5 text-xs">
               <div className="flex justify-between">
                 <span>Comprobante:</span>
-                <span className="font-semibold">{sale.receiptNumber}</span>
+                <span className="font-semibold">{sale.invoiceFullNumber || sale.receiptNumber}</span>
               </div>
               <div className="flex justify-between">
                 <span>Fecha:</span>
@@ -209,6 +215,19 @@ export const Ticket = ({ sale, items, locationName, orgName, onClose }: TicketPr
                 {PAYMENT_LABELS[sale.paymentMethod] ?? sale.paymentMethod}
               </div>
             </div>
+
+            {sale.cae && (
+              <div className="mt-2 border-t border-dashed border-gray-400 pt-2 text-xs space-y-0.5">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">CAE:</span>
+                  <span className="font-mono font-semibold">{sale.cae}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Vto. CAE:</span>
+                  <span>{sale.caeVencimiento}</span>
+                </div>
+              </div>
+            )}
 
             <div className="mt-3 border-t border-dashed border-gray-400 pt-2 text-center text-xs text-gray-500">
               {branding?.receiptFooter || '¡Gracias por su compra!'}

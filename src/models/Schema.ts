@@ -324,6 +324,12 @@ export const saleSchema = pgTable(
     paymentMethod: paymentMethodEnum('payment_method').notNull(),
     total: numeric('total', { precision: 10, scale: 2 }).notNull(),
     status: saleStatusEnum('status').default('completed').notNull(),
+    // ARCA facturación electrónica
+    cae: text('cae'),
+    caeVencimiento: text('cae_vencimiento'),
+    invoiceNumber: integer('invoice_number'),
+    invoiceType: text('invoice_type'), // 'A' | 'B' | 'C'
+    invoiceFullNumber: text('invoice_full_number'), // ej: "0001-00000001"
     updatedAt: timestamp('updated_at', { mode: 'date' })
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -560,6 +566,23 @@ export const expenseSchema = pgTable(
     ),
   }),
 );
+
+// ---------------------------------------------------------------------------
+// ARCA (ex-AFIP) — configuración de facturación electrónica por organización
+// ---------------------------------------------------------------------------
+
+export const arcaConfigSchema = pgTable('arca_config', {
+  organizationId: text('organization_id').primaryKey(),
+  cuit: text('cuit').notNull(),
+  razonSocial: text('razon_social').notNull(),
+  puntoVenta: integer('punto_venta').notNull(),
+  tipoContribuyente: text('tipo_contribuyente').notNull(), // 'monotributo' | 'responsable_inscripto'
+  ambiente: text('ambiente').default('sandbox').notNull(), // 'sandbox' | 'production'
+  cert: text('cert'), // PEM certificate content
+  privateKey: text('private_key'), // PEM private key content
+  isActive: boolean('is_active').default(false).notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
+});
 
 // ---------------------------------------------------------------------------
 // Branding — personalización visual por organización (planes de pago)

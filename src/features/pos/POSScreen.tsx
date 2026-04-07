@@ -99,6 +99,20 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   // Ticket modal
   const [completedSale, setCompletedSale] = useState<CompletedSale | null>(null);
 
+  // ARCA facturación
+  const [arcaActive, setArcaActive] = useState(false);
+  const [emitirFactura, setEmitirFactura] = useState(false);
+  const [buyerType, setBuyerType] = useState<'consumidor_final' | 'con_cuit'>('consumidor_final');
+  const [buyerCuit, setBuyerCuit] = useState('');
+
+  // Load ARCA config
+  useEffect(() => {
+    fetch('/api/arca/config')
+      .then(r => r.json())
+      .then((data: any) => { if (data?.isActive) setArcaActive(true); })
+      .catch(() => {});
+  }, []);
+
   // Load locations
   useEffect(() => {
     fetch('/api/locations')
@@ -258,7 +272,37 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
       }
 
       const data: CompletedSale = await response.json();
-      setCompletedSale(data);
+
+      // Si el usuario eligió emitir factura, llamar a ARCA
+      if (emitirFactura && arcaActive) {
+        try {
+          const invoiceRes = await fetch('/api/arca/invoice', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              saleId: data.sale.id,
+              buyerType,
+              buyerCuit: buyerType === 'con_cuit' ? buyerCuit : undefined,
+            }),
+          });
+          if (invoiceRes.ok) {
+            const invoiceData = await invoiceRes.json();
+            setCompletedSale({
+              ...data,
+              sale: { ...data.sale, ...invoiceData },
+            });
+          } else {
+            // Venta OK pero factura falló — mostrar igualmente
+            setCompletedSale(data);
+            setCheckoutError('Venta registrada, pero hubo un error al emitir la factura ARCA.');
+          }
+        } catch {
+          setCompletedSale(data);
+          setCheckoutError('Venta registrada, pero no se pudo conectar con ARCA.');
+        }
+      } else {
+        setCompletedSale(data);
+      }
     } catch {
       setCheckoutError('Error de conexión');
     } finally {
@@ -277,6 +321,9 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     setFiadoPhone('');
     setFiadoCustomer(null);
     setFiadoNotFound(false);
+    setEmitirFactura(false);
+    setBuyerType('consumidor_final');
+    setBuyerCuit('');
     fetchProducts(true); // fuerza refetch para mostrar stock actualizado tras la venta
     setTimeout(() => searchRef.current?.focus(), 100);
   };
@@ -603,6 +650,55 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
                 ))}
               </div>
             </div>
+
+            {/* ARCA — factura electrónica */}
+            {arcaActive && (
+              <div className="space-y-2 rounded-lg border bg-muted/40 p-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="emitirFactura"
+                    checked={emitirFactura}
+                    onChange={e => setEmitirFactura(e.target.checked)}
+                    className="size-4"
+                  />
+                  <Label htmlFor="emitirFactura" className="text-sm font-medium cursor-pointer">
+                    Emitir factura electrónica (ARCA)
+                  </Label>
+                </div>
+                {emitirFactura && (
+                  <div className="space-y-2 pl-6">
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[
+                        { value: 'consumidor_final', label: 'Consumidor Final' },
+                        { value: 'con_cuit', label: 'Con CUIT' },
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setBuyerType(opt.value as any)}
+                          className={`rounded border px-2 py-1.5 text-xs font-medium transition-colors ${
+                            buyerType === opt.value
+                              ? 'border-primary bg-primary text-primary-foreground'
+                              : 'bg-background hover:bg-muted'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    {buyerType === 'con_cuit' && (
+                      <Input
+                        value={buyerCuit}
+                        onChange={e => setBuyerCuit(e.target.value)}
+                        placeholder="CUIT del comprador"
+                        className="h-8 font-mono text-xs"
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Total + confirm */}
             <div className="border-t pt-2">
