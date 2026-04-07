@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/rkromero/SaaS-POS/compare/v1.13.0...v1.14.0) (2026-04-07)
+
+
+### Features
+
+* soporte completo de código de barras para POS y stock ([8f8e91f](https://github.com/rkromero/SaaS-POS/commit/8f8e91ff30c7e9cf4b07910ad53bb2de89d33f48))
+
 # [1.13.0](https://github.com/rkromero/SaaS-POS/compare/v1.12.0...v1.13.0) (2026-04-07)
 
 
