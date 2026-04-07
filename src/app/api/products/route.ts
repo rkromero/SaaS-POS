@@ -11,27 +11,32 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const products = await db
-    .select({
-      id: productSchema.id,
-      name: productSchema.name,
-      description: productSchema.description,
-      price: productSchema.price,
-      costPrice: productSchema.costPrice,
-      sku: productSchema.sku,
-      barcode: productSchema.barcode,
-      imageUrl: productSchema.imageUrl,
-      isActive: productSchema.isActive,
-      categoryId: productSchema.categoryId,
-      categoryName: categorySchema.name,
-      createdAt: productSchema.createdAt,
-    })
-    .from(productSchema)
-    .leftJoin(categorySchema, eq(productSchema.categoryId, categorySchema.id))
-    .where(eq(productSchema.organizationId, orgId))
-    .orderBy(productSchema.name);
+  try {
+    const products = await db
+      .select({
+        id: productSchema.id,
+        name: productSchema.name,
+        description: productSchema.description,
+        price: productSchema.price,
+        costPrice: productSchema.costPrice,
+        sku: productSchema.sku,
+        barcode: productSchema.barcode,
+        imageUrl: productSchema.imageUrl,
+        isActive: productSchema.isActive,
+        categoryId: productSchema.categoryId,
+        categoryName: categorySchema.name,
+        createdAt: productSchema.createdAt,
+      })
+      .from(productSchema)
+      .leftJoin(categorySchema, eq(productSchema.categoryId, categorySchema.id))
+      .where(eq(productSchema.organizationId, orgId))
+      .orderBy(productSchema.name);
 
-  return NextResponse.json(products);
+    return NextResponse.json(products);
+  } catch (error) {
+    console.error('GET /api/products error:', error);
+    return NextResponse.json({ error: 'Error de conexión con la base de datos' }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
@@ -54,20 +59,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'El precio de venta es requerido' }, { status: 400 });
   }
 
-  const [product] = await db
-    .insert(productSchema)
-    .values({
-      organizationId: orgId,
-      name: name.trim(),
-      description: description?.trim() || null,
-      price: String(Number(price).toFixed(2)),
-      costPrice: costPrice ? String(Number(costPrice).toFixed(2)) : null,
-      sku: sku?.trim() || null,
-      barcode: barcode?.trim() || null,
-      imageUrl: imageUrl?.trim() || null,
-      categoryId: categoryId ? Number(categoryId) : null,
-    })
-    .returning();
+  try {
+    const [product] = await db
+      .insert(productSchema)
+      .values({
+        organizationId: orgId,
+        name: name.trim(),
+        description: description?.trim() || null,
+        price: String(Number(price).toFixed(2)),
+        costPrice: costPrice ? String(Number(costPrice).toFixed(2)) : null,
+        sku: sku?.trim() || null,
+        barcode: barcode?.trim() || null,
+        imageUrl: imageUrl?.trim() || null,
+        categoryId: categoryId ? Number(categoryId) : null,
+      })
+      .returning();
 
-  return NextResponse.json(product, { status: 201 });
+    return NextResponse.json(product, { status: 201 });
+  } catch (error) {
+    console.error('POST /api/products error:', error);
+    return NextResponse.json({ error: 'Error de conexión con la base de datos' }, { status: 500 });
+  }
 }
