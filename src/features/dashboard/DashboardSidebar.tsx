@@ -1,6 +1,6 @@
 'use client';
 
-import { OrganizationSwitcher, UserButton, useOrganization } from '@clerk/nextjs';
+import { UserButton, useOrganization } from '@clerk/nextjs';
 import {
   AlertTriangle,
   BarChart3,
@@ -21,12 +21,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useLocale } from 'next-intl';
 import { useState } from 'react';
 
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { Logo } from '@/templates/Logo';
-import { getI18nPath } from '@/utils/Helpers';
 
 type NavItem = {
   href: string;
@@ -110,8 +108,7 @@ function NavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
 }
 
 function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
-  const locale = useLocale();
-  const { membership } = useOrganization();
+  const { membership, organization } = useOrganization();
   const isAdmin = membership?.role === 'org:admin';
 
   const visibleGroups = navGroups.filter(g => !g.adminOnly || isAdmin);
@@ -123,19 +120,20 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
         <Link href="/dashboard" className="mb-3 block">
           <Logo />
         </Link>
-        <OrganizationSwitcher
-          organizationProfileMode="navigation"
-          organizationProfileUrl={getI18nPath('/dashboard/organization-profile', locale)}
-          afterCreateOrganizationUrl="/dashboard"
-          hidePersonal
-          skipInvitationScreen
-          appearance={{
-            elements: {
-              organizationSwitcherTrigger: 'w-full max-w-full',
-              organizationSwitcherTriggerIcon: 'ml-auto',
-            },
-          }}
-        />
+        {organization && (
+          <div className="flex items-center gap-2 rounded-md px-2 py-1.5">
+            {organization.imageUrl
+              ? (
+                  <img src={organization.imageUrl} alt="" className="size-5 rounded-full object-cover" />
+                )
+              : (
+                  <div className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                    {organization.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+            <span className="truncate text-sm font-medium">{organization.name}</span>
+          </div>
+        )}
       </div>
 
       {/* Nav groups */}

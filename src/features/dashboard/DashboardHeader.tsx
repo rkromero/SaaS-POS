@@ -1,8 +1,7 @@
 'use client';
 
-import { OrganizationSwitcher, UserButton } from '@clerk/nextjs';
+import { UserButton, useOrganization } from '@clerk/nextjs';
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
 
 import { ActiveLink } from '@/components/ActiveLink';
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
@@ -15,7 +14,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { Logo } from '@/templates/Logo';
-import { getI18nPath } from '@/utils/Helpers';
 
 export const DashboardHeader = (props: {
   menu: {
@@ -23,7 +21,7 @@ export const DashboardHeader = (props: {
     label: string;
   }[];
 }) => {
-  const locale = useLocale();
+  const { organization } = useOrganization();
 
   return (
     <>
@@ -44,21 +42,20 @@ export const DashboardHeader = (props: {
           <path d="M17 5 7 19" />
         </svg>
 
-        <OrganizationSwitcher
-          organizationProfileMode="navigation"
-          organizationProfileUrl={getI18nPath(
-            '/dashboard/organization-profile',
-            locale,
-          )}
-          afterCreateOrganizationUrl="/dashboard"
-          hidePersonal
-          skipInvitationScreen
-          appearance={{
-            elements: {
-              organizationSwitcherTrigger: 'max-w-28 sm:max-w-52',
-            },
-          }}
-        />
+        {organization && (
+          <div className="flex items-center gap-2">
+            {organization.imageUrl
+              ? (
+                  <img src={organization.imageUrl} alt="" className="size-5 rounded-full object-cover" />
+                )
+              : (
+                  <div className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                    {organization.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+            <span className="max-w-28 truncate text-sm font-medium sm:max-w-52">{organization.name}</span>
+          </div>
+        )}
 
         <nav className="ml-3 max-lg:hidden">
           <ul className="flex flex-row items-center gap-x-3 text-lg font-medium [&_a:hover]:opacity-100 [&_a]:opacity-75">
