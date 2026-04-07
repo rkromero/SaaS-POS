@@ -1,3 +1,10 @@
+## [1.14.4](https://github.com/rkromero/SaaS-POS/compare/v1.14.3...v1.14.4) (2026-04-07)
+
+
+### Bug Fixes
+
+* usar URL pública de Railway para Vercel (no URL interna) ([b6deccf](https://github.com/rkromero/SaaS-POS/commit/b6deccf736eea79486b312ae436571400c63094f))
+
 ## [1.14.3](https://github.com/rkromero/SaaS-POS/compare/v1.14.2...v1.14.3) (2026-04-07)
 
 
