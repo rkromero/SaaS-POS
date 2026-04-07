@@ -50,8 +50,11 @@ export async function PUT(request: Request) {
     isActive,
   } = body;
 
-  if (!cuit || !razonSocial || !puntoVenta || !tipoContribuyente) {
-    return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
+  if (!cuit || !razonSocial || !tipoContribuyente) {
+    return NextResponse.json({ error: 'Faltan campos requeridos: CUIT, razón social y tipo de contribuyente' }, { status: 400 });
+  }
+  if (isActive && !puntoVenta) {
+    return NextResponse.json({ error: 'Se requiere el punto de venta para activar ARCA' }, { status: 400 });
   }
 
   // Get existing config to preserve cert/key if not provided
@@ -66,7 +69,7 @@ export async function PUT(request: Request) {
       organizationId: orgId,
       cuit: cuit.replace(/\D/g, ''),
       razonSocial,
-      puntoVenta: Number(puntoVenta),
+      puntoVenta: puntoVenta ? Number(puntoVenta) : 0,
       tipoContribuyente,
       ambiente: ambiente ?? 'sandbox',
       cert: cert || existing?.cert || null,
@@ -78,7 +81,7 @@ export async function PUT(request: Request) {
       set: {
         cuit: cuit.replace(/\D/g, ''),
         razonSocial,
-        puntoVenta: Number(puntoVenta),
+        puntoVenta: puntoVenta ? Number(puntoVenta) : 0,
         tipoContribuyente,
         ambiente: ambiente ?? 'sandbox',
         ...(cert ? { cert } : {}),
