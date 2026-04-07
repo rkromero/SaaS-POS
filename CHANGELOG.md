@@ -1,3 +1,10 @@
+## [1.14.2](https://github.com/rkromero/SaaS-POS/compare/v1.14.1...v1.14.2) (2026-04-07)
+
+
+### Bug Fixes
+
+* aislamiento de datos por local para usuarios miembro ([aac22d4](https://github.com/rkromero/SaaS-POS/commit/aac22d49663337b852ff97853961350673c9ca86))
+
 ## [1.14.1](https://github.com/rkromero/SaaS-POS/compare/v1.14.0...v1.14.1) (2026-04-07)
 
 
