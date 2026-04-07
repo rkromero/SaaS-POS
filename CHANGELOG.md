@@ -1,3 +1,10 @@
+## [1.14.6](https://github.com/rkromero/SaaS-POS/compare/v1.14.5...v1.14.6) (2026-04-07)
+
+
+### Bug Fixes
+
+* manejo de errores en API de productos ([33ec93f](https://github.com/rkromero/SaaS-POS/commit/33ec93f235718e910213daaaefce7e6ff3dd73f2))
+
 ## [1.14.5](https://github.com/rkromero/SaaS-POS/compare/v1.14.4...v1.14.5) (2026-04-07)
 
 
