@@ -1,3 +1,10 @@
+# [1.18.0](https://github.com/rkromero/SaaS-POS/compare/v1.17.2...v1.18.0) (2026-04-07)
+
+
+### Features
+
+* personalización de marca para planes de pago (logo, color, recibos) ([fb7cb59](https://github.com/rkromero/SaaS-POS/commit/fb7cb598a26f37939f342e020697615b2277818f))
+
 ## [1.17.2](https://github.com/rkromero/SaaS-POS/compare/v1.17.1...v1.17.2) (2026-04-07)
 
 
