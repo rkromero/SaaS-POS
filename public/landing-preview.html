@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TuCaja — El POS que entiende tu negocio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-900: #0d2318;
+      --green-800: #14391f;
+      --green-700: #1a5c2a;
+      --green-600: #1e7a35;
+      --green-500: #22a047;
+      --green-400: #34c759;
+      --green-300: #6fdb8a;
+      --green-100: #e8f9ed;
+      --green-50:  #f3fdf6;
+      --cream:     #faf8f3;
+      --warm-gray: #f5f3ee;
+      --text-dark: #111a14;
+      --text-mid:  #3a4a3e;
+      --text-soft: #6b7d6f;
+      --text-muted: #9aab9e;
+      --border:    #dde8df;
+      --white:     #ffffff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text-dark);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── UTILS ─── */
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+    .section    { padding: 96px 0; }
+    .section-sm { padding: 64px 0; }
+    .tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--green-100); color: var(--green-700);
+      font-size: 12px; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; padding: 5px 12px; border-radius: 100px;
+      margin-bottom: 20px;
+    }
+    .tag-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green-500); flex-shrink: 0;
+    }
+    h1, h2, h3 { font-family: 'Lora', serif; line-height: 1.18; }
+    h1 { font-size: clamp(2.4rem, 5.5vw, 4rem); font-weight: 700; }
+    h2 { font-size: clamp(1.9rem, 3.5vw, 2.75rem); font-weight: 700; }
+    h3 { font-size: 1.25rem; font-weight: 600; }
+    p  { color: var(--text-mid); }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+      text-decoration: none; border: none; cursor: pointer;
+      transition: all .2s ease; white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--green-600); color: var(--white);
+      box-shadow: 0 4px 16px rgba(30,122,53,.35);
+    }
+    .btn-primary:hover { background: var(--green-700); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,122,53,.4); }
+    .btn-outline {
+      background: transparent; color: var(--green-700);
+      border: 1.5px solid var(--green-600);
+    }
+    .btn-outline:hover { background: var(--green-50); }
+    .btn-white {
+      background: var(--white); color: var(--green-700);
+      box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    }
+    .btn-white:hover { background: var(--green-50); transform: translateY(-1px); }
+
+    /* Animate on scroll */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .65s ease, transform .65s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: .1s; }
+    .reveal-delay-2 { transition-delay: .2s; }
+    .reveal-delay-3 { transition-delay: .3s; }
+    .reveal-delay-4 { transition-delay: .4s; }
+
+    /* ─── NAVBAR ─── */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 0 24px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(250, 248, 243, 0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      transition: box-shadow .3s ease;
+    }
+    .navbar.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,.06); }
+    .nav-logo {
+      font-family: 'Space Mono', monospace; font-size: 20px; font-weight: 700;
+      color: var(--green-700); letter-spacing: -.02em; text-decoration: none;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-logo-icon {
+      width: 32px; height: 32px; background: var(--green-600); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-logo-icon svg { width: 18px; height: 18px; fill: white; }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a { color: var(--text-mid); text-decoration: none; font-size: 14px; font-weight: 500; }
+    .nav-links a:hover { color: var(--green-700); }
+    .nav-cta { display: flex; align-items: center; gap: 12px; }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh; display: flex; align-items: center;
+      padding-top: 80px;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(34,160,71,.12) 0%, transparent 70%),
+        var(--cream);
+    }
+    .hero-inner {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+      padding: 80px 0 100px;
+    }
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+      .hero-visual { order: -1; }
+    }
+    .hero-kicker {
+      font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+      letter-spacing: .15em; text-transform: uppercase;
+      color: var(--green-600); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .hero-kicker::before {
+      content: ''; width: 24px; height: 2px; background: var(--green-500);
+    }
+    .hero h1 { margin-bottom: 20px; color: var(--text-dark); }
+    .hero h1 em { font-style: italic; color: var(--green-600); }
+    .hero-sub {
+      font-size: 18px; color: var(--text-mid); margin-bottom: 36px; max-width: 480px;
+      line-height: 1.65;
+    }
+    .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 48px; }
+    .hero-trust {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 13px; color: var(--text-soft);
+    }
+    .hero-avatars { display: flex; }
+    .hero-avatar {
+      width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--cream);
+      background: var(--green-200); overflow: hidden; margin-left: -8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: var(--green-800);
+    }
+    .hero-avatar:first-child { margin-left: 0; }
+
+    /* POS mockup */
+    .hero-visual {
+      position: relative; display: flex; justify-content: center;
+    }
+    .pos-mockup {
+      width: 100%; max-width: 500px;
+      background: var(--white); border-radius: 20px;
+      box-shadow: 0 32px 80px rgba(0,0,0,.14), 0 0 0 1px rgba(0,0,0,.04);
+      overflow: hidden;
+    }
+    .pos-topbar {
+      background: var(--green-700); padding: 14px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .pos-topbar-title { color: white; font-weight: 600; font-size: 14px; }
+    .pos-topbar-time { color: rgba(255,255,255,.7); font-size: 12px; font-family: 'Space Mono', monospace; }
+    .pos-body { padding: 20px; }
+    .pos-search {
+      background: var(--warm-gray); border-radius: 8px;
+      padding: 10px 14px; display: flex; align-items: center; gap: 8px;
+      margin-bottom: 16px;
+    }
+    .pos-search-icon { color: var(--text-soft); font-size: 14px; }
+    .pos-search-text { color: var(--text-muted); font-size: 13px; }
+    .pos-items { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .pos-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--green-50); border-radius: 10px; padding: 12px 14px;
+      border: 1px solid var(--green-100);
+    }
+    .pos-item-name { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+    .pos-item-qty {
+      background: var(--green-200); color: var(--green-800);
+      font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 100px;
+    }
+    .pos-item-price { font-size: 13px; font-weight: 700; color: var(--green-700); font-family: 'Space Mono', monospace; }
+    .pos-divider { height: 1px; background: var(--border); margin: 16px 0; }
+    .pos-total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .pos-total-label { font-size: 14px; color: var(--text-soft); }
+    .pos-total-amount { font-size: 22px; font-weight: 700; font-family: 'Space Mono', monospace; color: var(--text-dark); }
+    .pos-payment-methods { display: flex; gap: 8px; margin-bottom: 16px; }
+    .pos-pm {
+      flex: 1; padding: 8px; border-radius: 8px; text-align: center;
+      font-size: 11px; font-weight: 600; cursor: pointer;
+      border: 1.5px solid var(--border); color: var(--text-soft);
+      transition: all .15s;
+    }
+    .pos-pm.active {
+      border-color: var(--green-500); background: var(--green-50);
+      color: var(--green-700);
+    }
+    .pos-confirm {
+      background: var(--green-600); color: white; border: none;
+      width: 100%; padding: 14px; border-radius: 10px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .pos-badge-floating {
+      position: absolute; top: -12px; right: -12px;
+      background: var(--white); border-radius: 12px;
+      padding: 12px 16px; box-shadow: 0 8px 32px rgba(0,0,0,.12);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .pos-badge-icon { font-size: 20px; }
+    .pos-badge-text { font-size: 11px; color: var(--text-soft); font-weight: 500; }
+    .pos-badge-value { font-size: 14px; font-weight: 700; color: var(--text-dark); display: block; }
+    .pos-badge-floating-2 {
+      position: absolute; bottom: 20px; left: -16px;
+      background: var(--green-700); border-radius: 12px;
+      padding: 12px 16px; box-shadow: 0 8px 32px rgba(0,0,0,.2);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .pos-badge-floating-2 .pos-badge-icon { font-size: 18px; }
+    .pos-badge-floating-2 .pos-badge-text { color: rgba(255,255,255,.7); }
+    .pos-badge-floating-2 .pos-badge-value { color: var(--white); }
+
+    /* ─── PROBLEM / SOLUTION ─── */
+    .antes-despues { background: var(--white); }
+    .ad-grid {
+      display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: stretch;
+    }
+    @media (max-width: 768px) {
+      .ad-grid { grid-template-columns: 1fr; gap: 0; }
+      .ad-arrow { display: none; }
+    }
+    .ad-card {
+      padding: 48px 40px; border-radius: 0;
+    }
+    .ad-before { background: #fff8f5; border-right: 1px solid #ffe4d9; }
+    .ad-after  { background: var(--green-50); border-left: 1px solid var(--green-100); }
+    .ad-label {
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      margin-bottom: 24px; display: flex; align-items: center; gap: 8px;
+    }
+    .ad-label.before { color: #b94a23; }
+    .ad-label.after  { color: var(--green-600); }
+    .ad-items { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .ad-items li {
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: 15px; line-height: 1.5;
+    }
+    .ad-items li .icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .ad-items.before li { color: #6b3d2e; }
+    .ad-items.after  li { color: var(--text-mid); }
+    .ad-arrow {
+      display: flex; align-items: center; justify-content: center;
+      width: 64px; background: var(--white);
+      font-size: 24px;
+    }
+    .ad-title { font-family: 'Lora', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; }
+    .ad-title.before { color: #4a2010; }
+    .ad-title.after  { color: var(--green-800); }
+
+    /* ─── FEATURES ─── */
+    .features-section { background: var(--cream); }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .feature-card {
+      background: var(--white); border-radius: 16px; padding: 32px;
+      border: 1px solid var(--border);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .feature-card:hover { border-color: var(--green-300); box-shadow: 0 8px 32px rgba(34,160,71,.08); }
+    .feature-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: var(--green-100); display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 20px;
+    }
+    .feature-card h3 { margin-bottom: 10px; color: var(--text-dark); font-size: 1.1rem; }
+    .feature-card p  { font-size: 14px; line-height: 1.65; color: var(--text-mid); }
+    .feature-card .feature-detail {
+      margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .feature-pill {
+      background: var(--green-50); color: var(--green-700); border: 1px solid var(--green-100);
+      font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 100px;
+    }
+    .feature-card.highlight {
+      background: var(--green-700); border-color: var(--green-700);
+    }
+    .feature-card.highlight .feature-icon { background: rgba(255,255,255,.15); }
+    .feature-card.highlight h3 { color: white; }
+    .feature-card.highlight p  { color: rgba(255,255,255,.8); }
+    .feature-card.highlight .feature-detail { border-color: rgba(255,255,255,.2); }
+    .feature-card.highlight .feature-pill { background: rgba(255,255,255,.15); color: white; border-color: rgba(255,255,255,.2); }
+    .features-subheader {
+      font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--text-muted); margin: 56px 0 20px;
+    }
+
+    /* ─── PARA QUIÉN ─── */
+    .para-quien { background: var(--green-900); }
+    .para-quien h2 { color: white; margin-bottom: 12px; }
+    .para-quien .section-sub { color: rgba(255,255,255,.6); margin-bottom: 56px; font-size: 18px; }
+    .negocios-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;
+    }
+    .negocio-card {
+      background: rgba(255,255,255,.06); border-radius: 16px;
+      padding: 28px 24px; border: 1px solid rgba(255,255,255,.1);
+      transition: all .2s;
+    }
+    .negocio-card:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); }
+    .negocio-icon { font-size: 36px; margin-bottom: 16px; display: block; }
+    .negocio-card h3 { color: white; font-size: 1rem; margin-bottom: 12px; }
+    .negocio-card ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .negocio-card ul li {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: rgba(255,255,255,.65); line-height: 1.4;
+    }
+    .negocio-card ul li::before {
+      content: '→'; color: var(--green-400); font-size: 11px; flex-shrink: 0;
+    }
+
+    /* ─── SOCIAL PROOF ─── */
+    .social-proof { background: var(--white); }
+    .metrics-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+      border: 1px solid var(--border); border-radius: 16px;
+      overflow: hidden; margin-bottom: 72px;
+    }
+    @media (max-width: 600px) { .metrics-row { grid-template-columns: 1fr; } }
+    .metric-item {
+      padding: 40px 32px; text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .metric-item:last-child { border-right: none; }
+    .metric-number {
+      font-family: 'Space Mono', monospace; font-size: 3rem; font-weight: 700;
+      color: var(--green-600); display: block; line-height: 1;
+    }
+    .metric-label { font-size: 14px; color: var(--text-soft); margin-top: 8px; }
+    .testimonials-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;
+    }
+    .testimonial-card {
+      background: var(--warm-gray); border-radius: 16px; padding: 32px;
+    }
+    .testimonial-quote {
+      font-family: 'Lora', serif; font-style: italic; font-size: 1.05rem;
+      color: var(--text-dark); line-height: 1.7; margin-bottom: 24px;
+    }
+    .testimonial-quote::before { content: '"'; color: var(--green-400); font-size: 3rem; line-height: .5; float: left; margin-right: 4px; padding-top: 8px; }
+    .testimonial-author { display: flex; align-items: center; gap: 12px; }
+    .testimonial-avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--green-100); display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; color: var(--green-700);
+      flex-shrink: 0;
+    }
+    .testimonial-name { font-weight: 600; color: var(--text-dark); font-size: 14px; }
+    .testimonial-biz  { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+    .stars { color: #f59e0b; font-size: 14px; margin-bottom: 6px; }
+
+    /* ─── PRECIOS ─── */
+    .pricing-section { background: var(--cream); }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px; align-items: start;
+    }
+    .plan-card {
+      background: var(--white); border-radius: 20px; padding: 36px 28px;
+      border: 2px solid var(--border); position: relative;
+    }
+    .plan-card.recommended {
+      border-color: var(--green-500);
+      box-shadow: 0 12px 40px rgba(34,160,71,.15);
+      transform: scale(1.02);
+    }
+    .plan-badge {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--green-500); color: white;
+      font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+      padding: 5px 16px; border-radius: 100px; white-space: nowrap;
+    }
+    .plan-name { font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; }
+    .plan-desc { font-size: 13px; color: var(--text-soft); margin-bottom: 24px; }
+    .plan-price { margin-bottom: 24px; }
+    .plan-amount {
+      font-family: 'Space Mono', monospace; font-size: 2.4rem; font-weight: 700;
+      color: var(--text-dark);
+    }
+    .plan-period { font-size: 13px; color: var(--text-soft); margin-left: 4px; }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+    .plan-features li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 14px; color: var(--text-mid); line-height: 1.45;
+    }
+    .plan-features li .check { color: var(--green-500); flex-shrink: 0; margin-top: 1px; font-size: 15px; }
+    .plan-features li .cross { color: #d1d5db; flex-shrink: 0; }
+    .plan-cta { display: block; width: 100%; text-align: center; }
+    .plan-cta.primary { background: var(--green-600); color: white; }
+    .plan-note { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 12px; }
+    @media (max-width: 900px) { .plan-card.recommended { transform: scale(1); } }
+
+    /* ─── CTA FINAL ─── */
+    .cta-section {
+      background:
+        radial-gradient(ellipse 60% 80% at 50% 100%, rgba(34,160,71,.2) 0%, transparent 70%),
+        var(--green-900);
+      text-align: center; padding: 120px 24px;
+    }
+    .cta-section h2 { color: white; margin-bottom: 16px; }
+    .cta-section p  { color: rgba(255,255,255,.65); font-size: 18px; margin-bottom: 40px; max-width: 500px; margin-left: auto; margin-right: auto; }
+    .cta-section .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .cta-note { margin-top: 20px; font-size: 13px; color: rgba(255,255,255,.4); }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--green-900); border-top: 1px solid rgba(255,255,255,.08);
+      padding: 48px 24px; text-align: center;
+    }
+    .footer-logo {
+      font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700;
+      color: rgba(255,255,255,.7); margin-bottom: 16px; display: block;
+    }
+    .footer-links {
+      display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .footer-links a { color: rgba(255,255,255,.4); text-decoration: none; font-size: 13px; }
+    .footer-links a:hover { color: rgba(255,255,255,.7); }
+    .footer-copy { font-size: 12px; color: rgba(255,255,255,.25); }
+
+    /* ─── FAQ ─── */
+    .faq-section { background: var(--white); }
+    .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+    @media (max-width: 768px) { .faq-grid { grid-template-columns: 1fr; } }
+    .faq-item { border-bottom: 1px solid var(--border); padding-bottom: 24px; }
+    .faq-q { font-weight: 600; color: var(--text-dark); margin-bottom: 8px; font-size: 15px; }
+    .faq-a { font-size: 14px; color: var(--text-mid); line-height: 1.65; }
+
+    /* ─── SECTION HEADER ─── */
+    .section-header { text-align: center; margin-bottom: 56px; }
+    .section-header h2 { margin-bottom: 14px; }
+    .section-header p { font-size: 18px; color: var(--text-mid); max-width: 560px; margin: 0 auto; }
+
+    /* ─── HIGHLIGHT STRIP ─── */
+    .highlight-strip {
+      background: var(--green-600); padding: 20px 24px;
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+      flex-wrap: wrap;
+    }
+    .hs-item { display: flex; align-items: center; gap: 8px; color: white; font-size: 14px; font-weight: 500; }
+    .hs-icon { font-size: 18px; }
+    .hs-sep { color: rgba(255,255,255,.3); }
+
+    /* ─── VIDEO / DEMO ─── */
+    .demo-section { background: var(--green-50); }
+    .demo-inner {
+      background: var(--white); border-radius: 24px;
+      border: 1px solid var(--border); overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,.08);
+    }
+    .demo-tabs {
+      display: flex; background: var(--warm-gray);
+      border-bottom: 1px solid var(--border);
+    }
+    .demo-tab {
+      padding: 14px 24px; font-size: 13px; font-weight: 600; cursor: pointer;
+      border-bottom: 2px solid transparent; color: var(--text-soft); transition: all .2s;
+    }
+    .demo-tab.active { color: var(--green-700); border-bottom-color: var(--green-600); background: white; }
+    .demo-screen { padding: 32px; min-height: 300px; }
+
+    /* ─── Dashboard mockup ─── */
+    .db-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .db-title  { font-family: 'Lora', serif; font-size: 1.3rem; font-weight: 700; }
+    .db-date   { font-size: 12px; color: var(--text-soft); font-family: 'Space Mono', monospace; }
+    .db-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    @media (max-width: 700px) { .db-metrics { grid-template-columns: 1fr 1fr; } }
+    .db-metric {
+      background: var(--warm-gray); border-radius: 12px; padding: 20px 16px;
+    }
+    .db-metric-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .db-metric-value { font-family: 'Space Mono', monospace; font-size: 1.6rem; font-weight: 700; color: var(--text-dark); }
+    .db-metric-delta { font-size: 11px; color: var(--green-600); font-weight: 600; margin-top: 4px; }
+    .db-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+    @media (max-width: 700px) { .db-row { grid-template-columns: 1fr; } }
+    .db-chart { background: var(--warm-gray); border-radius: 12px; padding: 20px; }
+    .db-chart-title { font-size: 12px; font-weight: 600; color: var(--text-soft); margin-bottom: 16px; }
+    .db-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+    .db-bar { flex: 1; background: var(--green-100); border-radius: 4px 4px 0 0; position: relative; }
+    .db-bar::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; background: var(--green-500); border-radius: 4px 4px 0 0; }
+    .h10 { height: 10%; } .h20 { height: 20%; } .h35 { height: 35%; } .h50 { height: 50%; }
+    .h65 { height: 65%; } .h80 { height: 80%; } .h95 { height: 95%; }
+    .h10::after { height: 100%; } .h20::after { height: 100%; } .h35::after { height: 100%; }
+    .h50::after { height: 100%; } .h65::after { height: 100%; } .h80::after { height: 100%; }
+    .h95::after { height: 100%; }
+    .db-alerts { background: var(--warm-gray); border-radius: 12px; padding: 20px; }
+    .db-alerts-title { font-size: 12px; font-weight: 600; color: var(--text-soft); margin-bottom: 12px; }
+    .db-alert-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+    .db-alert-item:last-child { border-bottom: none; }
+    .db-alert-name { color: var(--text-dark); font-weight: 500; }
+    .db-alert-qty { background: #fee2e2; color: #b91c1c; border-radius: 100px; padding: 2px 8px; font-weight: 700; }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 2rem; }
+      .hero-inner { padding: 40px 0 60px; }
+      .section { padding: 64px 0; }
+      .ad-card { padding: 32px 24px; }
+      .btn { padding: 12px 20px; font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav class="navbar" id="navbar">
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 6.1 17 6.1 17H19v-2H6.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H15.5c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+      </svg>
+    </div>
+    TuCaja
+  </a>
+  <div class="nav-links">
+    <a href="#funciones">Funciones</a>
+    <a href="#para-quien">Para quién</a>
+    <a href="#precios">Precios</a>
+    <a href="#faq">FAQ</a>
+  </div>
+  <div class="nav-cta">
+    <a href="/sign-in" class="btn btn-outline" style="padding: 10px 20px; font-size: 14px;">Iniciar sesión</a>
+    <a href="/sign-up" class="btn btn-primary" style="padding: 10px 20px; font-size: 14px;">Probá gratis →</a>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <div class="hero-kicker reveal">Sistema de punto de venta para Argentina</div>
+        <h1 class="reveal reveal-delay-1">
+          El cuaderno se<br />
+          terminó.<br />
+          <em>Vendé con control.</em>
+        </h1>
+        <p class="hero-sub reveal reveal-delay-2">
+          Cobrá en segundos, manejá el stock, seguí el fiado y cerrá la caja sin hacer cuentas.
+          Todo desde cualquier dispositivo, aunque se corte el internet.
+        </p>
+        <div class="hero-ctas reveal reveal-delay-3">
+          <a href="/sign-up" class="btn btn-primary">Empezar gratis — 14 días sin tarjeta</a>
+          <a href="#funciones" class="btn btn-outline">Ver cómo funciona</a>
+        </div>
+        <div class="hero-trust reveal reveal-delay-4">
+          <div class="hero-avatars">
+            <div class="hero-avatar">R</div>
+            <div class="hero-avatar">M</div>
+            <div class="hero-avatar">J</div>
+            <div class="hero-avatar">L</div>
+          </div>
+          <span>Más de <strong>200 negocios</strong> ya usan TuCaja hoy</span>
+        </div>
+      </div>
+      <div class="hero-visual reveal reveal-delay-2">
+        <div class="pos-badge-floating">
+          <span class="pos-badge-icon">📈</span>
+          <div>
+            <span class="pos-badge-text">Ventas hoy</span>
+            <span class="pos-badge-value">$84.500</span>
+          </div>
+        </div>
+        <div class="pos-mockup">
+          <div class="pos-topbar">
+            <span class="pos-topbar-title">🛒 Caja — Local Centro</span>
+            <span class="pos-topbar-time">10:42 am</span>
+          </div>
+          <div class="pos-body">
+            <div class="pos-search">
+              <span class="pos-search-icon">🔍</span>
+              <span class="pos-search-text">Buscá un producto o escaneá...</span>
+            </div>
+            <div class="pos-items">
+              <div class="pos-item">
+                <div>
+                  <div class="pos-item-name">Coca Cola 1.5L</div>
+                </div>
+                <span class="pos-item-qty">×2</span>
+                <span class="pos-item-price">$2.400</span>
+              </div>
+              <div class="pos-item">
+                <div>
+                  <div class="pos-item-name">Alfajor Doble</div>
+                </div>
+                <span class="pos-item-qty">×3</span>
+                <span class="pos-item-price">$1.950</span>
+              </div>
+              <div class="pos-item">
+                <div>
+                  <div class="pos-item-name">Papas Fritas 100g</div>
+                </div>
+                <span class="pos-item-qty">×1</span>
+                <span class="pos-item-price">$1.200</span>
+              </div>
+            </div>
+            <div class="pos-divider"></div>
+            <div class="pos-total-row">
+              <span class="pos-total-label">Total</span>
+              <span class="pos-total-amount">$5.550</span>
+            </div>
+            <div class="pos-payment-methods">
+              <div class="pos-pm active">💵 Efectivo</div>
+              <div class="pos-pm">💳 Débito</div>
+              <div class="pos-pm">🔄 Transf.</div>
+              <div class="pos-pm">📝 Fiado</div>
+            </div>
+            <button class="pos-confirm">✓ Confirmar cobro</button>
+          </div>
+        </div>
+        <div class="pos-badge-floating-2">
+          <span class="pos-badge-icon">⚠️</span>
+          <div>
+            <span class="pos-badge-text">Stock bajo</span>
+            <span class="pos-badge-value">3 productos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ HIGHLIGHT STRIP ═══ -->
+<div class="highlight-strip">
+  <div class="hs-item"><span class="hs-icon">✓</span> Funciona offline</div>
+  <div class="hs-sep">|</div>
+  <div class="hs-item"><span class="hs-icon">✓</span> Sin instalación</div>
+  <div class="hs-sep">|</div>
+  <div class="hs-item"><span class="hs-icon">✓</span> Desde cualquier dispositivo</div>
+  <div class="hs-sep">|</div>
+  <div class="hs-item"><span class="hs-icon">✓</span> Soporte en español</div>
+  <div class="hs-sep">|</div>
+  <div class="hs-item"><span class="hs-icon">✓</span> Integrado con Mercado Pago</div>
+</div>
+
+<!-- ═══ ANTES / DESPUÉS ═══ -->
+<section class="antes-despues" id="funciones">
+  <div class="container">
+    <div class="section-header" style="padding-top: 80px;">
+      <div class="tag reveal"><span class="tag-dot"></span>El cambio que buscás</div>
+      <h2 class="reveal">Cómo manejabas el negocio<br />vs. cómo vas a manejarlo</h2>
+    </div>
+  </div>
+  <div class="ad-grid reveal">
+    <div class="ad-card ad-before">
+      <div class="ad-label before">❌ Antes — sin sistema</div>
+      <div class="ad-title before">El caos de todos los días</div>
+      <ul class="ad-items before">
+        <li><span class="icon">📓</span> Anotás las ventas en un cuaderno y al final del día no cierra</li>
+        <li><span class="icon">🤷</span> No sabés cuánto stock te queda hasta que se te acaba</li>
+        <li><span class="icon">🔢</span> Cerrás la caja haciendo cuentas a mano y siempre falta o sobra</li>
+        <li><span class="icon">📱</span> El fiado lo manejás de memoria y hay clientes que "se olvidaron"</li>
+        <li><span class="icon">😰</span> No sabés qué productos te conviene más tener</li>
+        <li><span class="icon">⏰</span> Perdés tiempo buscando precios, anotando, calculando</li>
+      </ul>
+    </div>
+    <div class="ad-arrow">→</div>
+    <div class="ad-card ad-after">
+      <div class="ad-label after">✓ Con TuCaja</div>
+      <div class="ad-title after">Control real desde el primer día</div>
+      <ul class="ad-items after">
+        <li><span class="icon">💚</span> Cada venta queda registrada automáticamente con número de comprobante</li>
+        <li><span class="icon">💚</span> Recibís una alerta antes de quedarte sin stock, no después</li>
+        <li><span class="icon">💚</span> El cierre de caja te dice cuánto deberías tener y la diferencia exacta</li>
+        <li><span class="icon">💚</span> El fiado queda en el sistema: quién debe, cuánto y desde cuándo</li>
+        <li><span class="icon">💚</span> Ves en tiempo real cuáles son tus productos más rentables</li>
+        <li><span class="icon">💚</span> Cobrás en segundos y el sistema hace el resto solo</li>
+      </ul>
+    </div>
+  </div>
+  <div style="height: 80px;"></div>
+</section>
+
+<!-- ═══ FEATURES ═══ -->
+<section class="features-section section">
+  <div class="container">
+
+    <div class="section-header">
+      <div class="tag reveal"><span class="tag-dot"></span>Todo lo que incluye</div>
+      <h2 class="reveal">Diseñado para el día a día<br />de tu negocio</h2>
+      <p class="reveal reveal-delay-1">No es un sistema complicado de contabilidad. Es el sistema que necesitás para abrir, vender y cerrar tranquilo.</p>
+    </div>
+
+    <div class="features-subheader reveal">Cobrá y vendé</div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">⚡</div>
+        <h3>Cobrá en segundos, no en minutos</h3>
+        <p>Buscá el producto, sumá al carrito, elegí cómo paga y listo. Sin complicaciones, sin pasos de más. El cliente no espera.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Búsqueda por nombre</span>
+          <span class="feature-pill">Búsqueda por SKU</span>
+          <span class="feature-pill">Carrito rápido</span>
+        </div>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">💳</div>
+        <h3>Acepta cualquier forma de pago</h3>
+        <p>Efectivo, débito, crédito, transferencia o fiado. No perdés una venta porque no tenés el método que el cliente quiere usar.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Efectivo</span>
+          <span class="feature-pill">Débito</span>
+          <span class="feature-pill">Crédito</span>
+          <span class="feature-pill">Transferencia</span>
+          <span class="feature-pill">Fiado</span>
+        </div>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon">🧾</div>
+        <h3>Cada venta tiene su comprobante</h3>
+        <p>Número de comprobante automático, cliente registrado, monto exacto. Todo queda asentado sin que hagas nada extra.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Comprobante automático</span>
+          <span class="feature-pill">Datos del cliente</span>
+          <span class="feature-pill">WhatsApp</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="features-subheader reveal" style="margin-top: 48px;">Manejá el fiado sin dramas</div>
+    <div class="features-grid">
+      <div class="feature-card highlight reveal">
+        <div class="feature-icon">📝</div>
+        <h3>El fiado registrado, sin cuaderno aparte</h3>
+        <p>Cuando vendés en fiado, la deuda se crea sola. Ves quién te debe, cuánto y cuándo empezó. Y cuando paga, lo asentás en segundos.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Deuda automática al vender</span>
+          <span class="feature-pill">Balance por cliente</span>
+          <span class="feature-pill">Historial completo</span>
+        </div>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">👥</div>
+        <h3>Sabés exactamente quién te debe y cuánto</h3>
+        <p>Una lista con todos tus clientes, el saldo de cada uno y el historial de transacciones. Nada queda en el aire ni en la memoria.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Lista de deudores</span>
+          <span class="feature-pill">Registro de pagos</span>
+          <span class="feature-pill">Email y WhatsApp</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="features-subheader reveal" style="margin-top: 48px;">Controlá el stock</div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">📦</div>
+        <h3>Te avisa antes de quedarte sin mercadería</h3>
+        <p>Definís un mínimo por producto y el sistema te alerta cuando llegás a ese límite. Nunca más perdés una venta porque se te acabó algo.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Umbral configurable</span>
+          <span class="feature-pill">Alertas automáticas</span>
+          <span class="feature-pill">Por local</span>
+        </div>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">🔄</div>
+        <h3>Cada movimiento de stock queda registrado</h3>
+        <p>Entradas por compra, salidas por venta, ajustes, pérdidas y roturas. Todo trazable, todo auditable. Si falta algo, sabés por qué.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Compra</span>
+          <span class="feature-pill">Ajuste manual</span>
+          <span class="feature-pill">Devolución</span>
+          <span class="feature-pill">Pérdida</span>
+          <span class="feature-pill">Rotura</span>
+        </div>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon">🗂️</div>
+        <h3>Cargá cientos de productos en minutos</h3>
+        <p>¿Tenés un Excel con tus productos? Lo importás directamente por CSV. También podés actualizar precios en masa con un porcentaje, sin tocar producto por producto.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Importación CSV</span>
+          <span class="feature-pill">Actualización masiva de precios</span>
+          <span class="feature-pill">Categorías</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="features-subheader reveal" style="margin-top: 48px;">Cerrá la caja sin nervios</div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">🏦</div>
+        <h3>Cerrás la caja en segundos y sabés si cierra</h3>
+        <p>Ingresás el fondo inicial al abrir y el total contado al cerrar. El sistema te muestra cuánto había en efectivo, cuánto por transferencia, cuánto por tarjeta y si hay diferencias.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Fondo inicial</span>
+          <span class="feature-pill">Desglose por método</span>
+          <span class="feature-pill">Diferencia automática</span>
+        </div>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">💸</div>
+        <h3>Registrá los gastos del día para saber cuánto ganás</h3>
+        <p>Los gastos van contra los ingresos y ves la ganancia neta real. No solo lo que vendiste, sino lo que te quedó después de pagar.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Gastos por local</span>
+          <span class="feature-pill">Por fecha</span>
+          <span class="feature-pill">Ganancia neta estimada</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="features-subheader reveal" style="margin-top: 48px;">Reportes que te dicen algo útil</div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">📊</div>
+        <h3>Al final del día sabés todo lo que necesitás saber</h3>
+        <p>Ventas totales, desglose por medio de pago, top 10 productos más vendidos, gastos del período y ganancia neta. Hoy, esta semana o este mes.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Hoy</span>
+          <span class="feature-pill">Semana</span>
+          <span class="feature-pill">Mes</span>
+          <span class="feature-pill">Por local</span>
+        </div>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">🏆</div>
+        <h3>Sabés cuáles son tus productos que más venden</h3>
+        <p>El ranking de productos por cantidad vendida y por facturación. Para saber qué conviene tener siempre, qué no vale la pena reponer y dónde poner el foco.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Top 10 por cantidad</span>
+          <span class="feature-pill">Top 10 por facturación</span>
+          <span class="feature-pill">Tendencia 7 días</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="features-subheader reveal" style="margin-top: 48px;">Para negocios que crecen</div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">🏪</div>
+        <h3>Manejá múltiples locales desde un solo lugar</h3>
+        <p>¿Tenés más de un local? Cada uno con su stock, su caja y sus ventas independientes. Vos lo ves todo, cada empleado solo ve el suyo.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Multi-sucursal</span>
+          <span class="feature-pill">Stock por local</span>
+          <span class="feature-pill">Empleados por local</span>
+        </div>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">🤝</div>
+        <h3>Manejá tus proveedores y pedidos de compra</h3>
+        <p>Registrá tus proveedores habituales y las órdenes de compra. Tenés un historial de qué pediste, cuándo y a quién, sin perder papeles.</p>
+        <div class="feature-detail">
+          <span class="feature-pill">Alta de proveedores</span>
+          <span class="feature-pill">Órdenes de compra</span>
+          <span class="feature-pill">Historial</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══ DEMO DASHBOARD ═══ -->
+<section class="demo-section section">
+  <div class="container">
+    <div class="section-header">
+      <div class="tag reveal"><span class="tag-dot"></span>Mirá cómo se ve</div>
+      <h2 class="reveal">Tu negocio de un vistazo</h2>
+      <p class="reveal reveal-delay-1">Abrís el dashboard y en 10 segundos sabés cómo va el día.</p>
+    </div>
+    <div class="demo-inner reveal">
+      <div class="demo-tabs">
+        <div class="demo-tab active">📊 Dashboard</div>
+        <div class="demo-tab">📦 Stock</div>
+        <div class="demo-tab">📝 Fiado</div>
+      </div>
+      <div class="demo-screen">
+        <div class="db-header">
+          <span class="db-title">Panel principal</span>
+          <span class="db-date">Hoy · domingo 06 abr</span>
+        </div>
+        <div class="db-metrics">
+          <div class="db-metric">
+            <div class="db-metric-label">Ventas hoy</div>
+            <div class="db-metric-value">$84.500</div>
+            <div class="db-metric-delta">↑ 12% vs ayer</div>
+          </div>
+          <div class="db-metric">
+            <div class="db-metric-label">Ventas este mes</div>
+            <div class="db-metric-value">$1.2M</div>
+            <div class="db-metric-delta">↑ 8% vs mes anterior</div>
+          </div>
+          <div class="db-metric">
+            <div class="db-metric-label">Fiado pendiente</div>
+            <div class="db-metric-value">$43.200</div>
+            <div class="db-metric-delta" style="color: #f59e0b;">7 clientes</div>
+          </div>
+          <div class="db-metric">
+            <div class="db-metric-label">Alertas stock</div>
+            <div class="db-metric-value" style="color: #ef4444;">3</div>
+            <div class="db-metric-delta" style="color: #ef4444;">Reposición urgente</div>
+          </div>
+        </div>
+        <div class="db-row">
+          <div class="db-chart">
+            <div class="db-chart-title">Ventas últimos 7 días</div>
+            <div class="db-bars">
+              <div class="db-bar h35"></div>
+              <div class="db-bar h50"></div>
+              <div class="db-bar h65"></div>
+              <div class="db-bar h20"></div>
+              <div class="db-bar h80"></div>
+              <div class="db-bar h95"></div>
+              <div class="db-bar h65"></div>
+            </div>
+          </div>
+          <div class="db-alerts">
+            <div class="db-alerts-title">⚠️ Stock bajo</div>
+            <div class="db-alert-item">
+              <span class="db-alert-name">Coca Cola 1.5L</span>
+              <span class="db-alert-qty">2 ud.</span>
+            </div>
+            <div class="db-alert-item">
+              <span class="db-alert-name">Papas Fritas 100g</span>
+              <span class="db-alert-qty">5 ud.</span>
+            </div>
+            <div class="db-alert-item">
+              <span class="db-alert-name">Agua Mineral 500ml</span>
+              <span class="db-alert-qty">3 ud.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PARA QUIÉN ═══ -->
+<section class="para-quien section" id="para-quien">
+  <div class="container">
+    <div class="section-header">
+      <div class="tag reveal" style="background: rgba(255,255,255,.1); color: rgba(255,255,255,.8)"><span class="tag-dot" style="background: var(--green-400)"></span>Para tu tipo de negocio</div>
+      <h2 class="reveal">¿Tu negocio está acá?</h2>
+      <p class="section-sub reveal reveal-delay-1">TuCaja funciona para cualquier negocio que venda al público y necesite control real.</p>
+    </div>
+    <div class="negocios-grid">
+      <div class="negocio-card reveal">
+        <span class="negocio-icon">🏪</span>
+        <h3>Kiosko</h3>
+        <ul>
+          <li>Cobrás rápido en hora pico sin errores</li>
+          <li>El fiado de los clientes del barrio, organizado</li>
+          <li>Sabés qué reponer antes de que se acabe</li>
+        </ul>
+      </div>
+      <div class="negocio-card reveal reveal-delay-1">
+        <span class="negocio-icon">🛒</span>
+        <h3>Almacén / Despensa</h3>
+        <ul>
+          <li>Stock de cientos de productos bajo control</li>
+          <li>Importás todo de un Excel en minutos</li>
+          <li>Actualizás precios masivamente en segundos</li>
+        </ul>
+      </div>
+      <div class="negocio-card reveal reveal-delay-2">
+        <span class="negocio-icon">🏬</span>
+        <h3>Minimercado</h3>
+        <ul>
+          <li>Múltiples cajas, mismo sistema</li>
+          <li>Empleados con acceso a su sector</li>
+          <li>Reportes por turno y por cajero</li>
+        </ul>
+      </div>
+      <div class="negocio-card reveal reveal-delay-3">
+        <span class="negocio-icon">🛍️</span>
+        <h3>Supermercado de barrio</h3>
+        <ul>
+          <li>Hasta 3 sucursales en plan Pro</li>
+          <li>Stock independiente por local</li>
+          <li>Vista centralizada de todas las sucursales</li>
+        </ul>
+      </div>
+      <div class="negocio-card reveal reveal-delay-4">
+        <span class="negocio-icon">🏭</span>
+        <h3>Cadena / Franquicia</h3>
+        <ul>
+          <li>Locales ilimitados en plan Empresa</li>
+          <li>Gestión de proveedores y órdenes de compra</li>
+          <li>Reportes consolidados de toda la red</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SOCIAL PROOF ═══ -->
+<section class="social-proof section" id="testimonios">
+  <div class="container">
+    <div class="section-header">
+      <div class="tag reveal"><span class="tag-dot"></span>Lo que dicen los que ya usan TuCaja</div>
+      <h2 class="reveal">Negocios reales, resultados reales</h2>
+    </div>
+
+    <div class="metrics-row reveal">
+      <div class="metric-item">
+        <span class="metric-number" data-count="200">0</span>
+        <div class="metric-label">Negocios activos en Argentina</div>
+      </div>
+      <div class="metric-item">
+        <span class="metric-number" data-count="50000">0</span>
+        <div class="metric-label">Ventas registradas este mes</div>
+      </div>
+      <div class="metric-item">
+        <span class="metric-number" data-count="98">0</span>
+        <div class="metric-label">% de satisfacción en soporte</div>
+      </div>
+    </div>
+
+    <div class="testimonials-grid">
+      <div class="testimonial-card reveal">
+        <div class="stars">★★★★★</div>
+        <div class="testimonial-quote">
+          Antes cerraba la caja con calculadora y siempre me faltaba o sobraba algo y no sabía por qué. Ahora en dos minutos sé exactamente qué pasó.
+        </div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">R</div>
+          <div>
+            <div class="testimonial-name">Roberto M.</div>
+            <div class="testimonial-biz">Kiosko Don Roberto · Villa del Parque, CABA</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal reveal-delay-1">
+        <div class="stars">★★★★★</div>
+        <div class="testimonial-quote">
+          El tema del fiado era un caos. Algunos clientes "se olvidaban" y yo no tenía nada para mostrarles. Ahora tengo todo registrado y la plata que recuperé pagó el primer año del sistema.
+        </div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">M</div>
+          <div>
+            <div class="testimonial-name">Marcela P.</div>
+            <div class="testimonial-biz">Almacén La Esquina · Lanús, Buenos Aires</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal reveal-delay-2">
+        <div class="stars">★★★★★</div>
+        <div class="testimonial-quote">
+          Tengo dos locales y antes me volvía loco tratando de saber cómo iba cada uno. Ahora entro al dashboard y en diez segundos sé cómo está todo.
+        </div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">J</div>
+          <div>
+            <div class="testimonial-name">Javier L.</div>
+            <div class="testimonial-biz">Minimercado Javier · Rosario, Santa Fe</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PRECIOS ═══ -->
+<section class="pricing-section section" id="precios">
+  <div class="container">
+    <div class="section-header">
+      <div class="tag reveal"><span class="tag-dot"></span>Precios</div>
+      <h2 class="reveal">Sin letra chica, sin sorpresas</h2>
+      <p class="reveal reveal-delay-1">Empezá gratis. Pagá cuando tu negocio crece.</p>
+    </div>
+
+    <div class="pricing-grid">
+      <!-- FREE -->
+      <div class="plan-card reveal">
+        <div class="plan-name">Gratis</div>
+        <div class="plan-desc">Para conocer el sistema</div>
+        <div class="plan-price">
+          <span class="plan-amount">$0</span>
+          <span class="plan-period">/mes</span>
+        </div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> 1 local</li>
+          <li><span class="check">✓</span> Hasta 200 ventas por mes</li>
+          <li><span class="check">✓</span> Gestión de productos</li>
+          <li><span class="check">✓</span> Control de stock</li>
+          <li><span class="cross">—</span> Reportes y métricas</li>
+          <li><span class="cross">—</span> Fiado / cuenta corriente</li>
+          <li><span class="cross">—</span> Múltiples locales</li>
+        </ul>
+        <a href="/sign-up" class="btn btn-outline plan-cta">Empezar gratis</a>
+      </div>
+
+      <!-- BASIC -->
+      <div class="plan-card reveal reveal-delay-1">
+        <div class="plan-name">Básico</div>
+        <div class="plan-desc">Para kioscos independientes</div>
+        <div class="plan-price">
+          <span class="plan-amount">USD 15</span>
+          <span class="plan-period">/mes</span>
+        </div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> 1 local</li>
+          <li><span class="check">✓</span> Ventas ilimitadas</li>
+          <li><span class="check">✓</span> Productos y categorías</li>
+          <li><span class="check">✓</span> Control de stock con alertas</li>
+          <li><span class="check">✓</span> Fiado / cuenta corriente</li>
+          <li><span class="check">✓</span> Reportes y métricas completos</li>
+          <li><span class="cross">—</span> Múltiples locales</li>
+        </ul>
+        <a href="/sign-up" class="btn btn-outline plan-cta">Probar 14 días gratis</a>
+        <div class="plan-note">Sin tarjeta. Cancelás cuando querés.</div>
+      </div>
+
+      <!-- PRO -->
+      <div class="plan-card recommended reveal reveal-delay-2">
+        <div class="plan-badge">⭐ El más elegido</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-desc">Para cadenas con sucursales</div>
+        <div class="plan-price">
+          <span class="plan-amount">USD 35</span>
+          <span class="plan-period">/mes</span>
+        </div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> Hasta 3 locales</li>
+          <li><span class="check">✓</span> Ventas ilimitadas</li>
+          <li><span class="check">✓</span> Todo el plan Básico</li>
+          <li><span class="check">✓</span> Stock independiente por local</li>
+          <li><span class="check">✓</span> Empleados asignados por local</li>
+          <li><span class="check">✓</span> Vista centralizada de sucursales</li>
+          <li><span class="check">✓</span> Gestión de proveedores</li>
+        </ul>
+        <a href="/sign-up" class="btn btn-primary plan-cta">Probar 14 días gratis →</a>
+        <div class="plan-note">Sin tarjeta. Cancelás cuando querés.</div>
+      </div>
+
+      <!-- ENTERPRISE -->
+      <div class="plan-card reveal reveal-delay-3">
+        <div class="plan-name">Empresa</div>
+        <div class="plan-desc">Para franquicias y cadenas grandes</div>
+        <div class="plan-price">
+          <span class="plan-amount">USD 80</span>
+          <span class="plan-period">/mes</span>
+        </div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> Locales ilimitados</li>
+          <li><span class="check">✓</span> Ventas ilimitadas</li>
+          <li><span class="check">✓</span> Todo el plan Pro</li>
+          <li><span class="check">✓</span> Soporte prioritario</li>
+          <li><span class="check">✓</span> Incorporación asistida</li>
+        </ul>
+        <a href="mailto:hola@tucaja.ar" class="btn btn-outline plan-cta">Hablar con ventas</a>
+      </div>
+    </div>
+
+    <p style="text-align: center; margin-top: 32px; font-size: 13px; color: var(--text-muted);">
+      Todos los precios en USD. El cobro se hace en pesos argentinos vía Mercado Pago al tipo de cambio vigente. IVA no incluido.
+    </p>
+  </div>
+</section>
+
+<!-- ═══ FAQ ═══ -->
+<section class="faq-section section" id="faq">
+  <div class="container">
+    <div class="section-header">
+      <div class="tag reveal"><span class="tag-dot"></span>Preguntas frecuentes</div>
+      <h2 class="reveal">Lo que te preguntás antes de empezar</h2>
+    </div>
+    <div class="faq-grid">
+      <div class="faq-item reveal">
+        <div class="faq-q">¿Funciona si se corta internet?</div>
+        <div class="faq-a">Sí. La pantalla de cobro funciona offline. Las ventas se sincronizan cuando volvés a tener conexión. No perdés ninguna venta por un problema de internet.</div>
+      </div>
+      <div class="faq-item reveal reveal-delay-1">
+        <div class="faq-q">¿Necesito instalar algo?</div>
+        <div class="faq-a">No. TuCaja funciona desde el navegador en tu celular, tablet o computadora. Sin descargas, sin instalaciones, sin configuraciones técnicas.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">¿Puedo importar mis productos de Excel?</div>
+        <div class="faq-a">Sí. Exportás tu Excel como CSV, lo subís y en minutos tenés todo tu catálogo cargado. También podés actualizar precios en masa con un porcentaje.</div>
+      </div>
+      <div class="faq-item reveal reveal-delay-1">
+        <div class="faq-q">¿El sistema maneja la cuenta corriente de clientes?</div>
+        <div class="faq-a">Sí. El módulo de fiado registra las deudas automáticamente cuando vendés en fiado, y los pagos cuando el cliente saca. Ves el saldo de cada cliente en tiempo real.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">¿Puedo tener más de un empleado?</div>
+        <div class="faq-a">Sí. Podés agregar empleados y asignarlos a un local. Cada uno solo ve su local. Vos como admin ves todo.</div>
+      </div>
+      <div class="faq-item reveal reveal-delay-1">
+        <div class="faq-q">¿Cómo se cobra? ¿Puedo cancelar cuando quiero?</div>
+        <div class="faq-a">Se cobra mensualmente vía Mercado Pago en pesos argentinos. Podés cancelar en cualquier momento sin penalidades. El plan Gratis no requiere tarjeta.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA FINAL ═══ -->
+<section class="cta-section">
+  <div class="tag reveal" style="background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); margin-bottom: 24px;">
+    <span class="tag-dot" style="background: var(--green-400)"></span>
+    Empezá hoy mismo
+  </div>
+  <h2 class="reveal">Tu negocio merece<br /><em style="font-style: italic; color: var(--green-400);">más control y menos caos.</em></h2>
+  <p class="reveal reveal-delay-1">14 días gratis, sin tarjeta de crédito. Si en dos semanas no sentís la diferencia, no pagás nada.</p>
+  <div class="cta-btns reveal reveal-delay-2">
+    <a href="/sign-up" class="btn btn-white">Empezar gratis ahora →</a>
+    <a href="https://wa.me/5491100000000" class="btn btn-outline" style="border-color: rgba(255,255,255,.3); color: rgba(255,255,255,.8);">💬 Hablar por WhatsApp</a>
+  </div>
+  <div class="cta-note reveal reveal-delay-3">Sin tarjeta · Sin contratos · Cancelás cuando querés</div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <span class="footer-logo">TuCaja</span>
+  <div class="footer-links">
+    <a href="#funciones">Funciones</a>
+    <a href="#precios">Precios</a>
+    <a href="#faq">Ayuda</a>
+    <a href="mailto:hola@tucaja.ar">Contacto</a>
+    <a href="/privacy">Privacidad</a>
+    <a href="/terms">Términos</a>
+  </div>
+  <div class="footer-copy">© 2025 TuCaja · Sistema de punto de venta para Argentina · Hecho con ❤️ para el comerciante de barrio</div>
+</footer>
+
+<script>
+  // Navbar scroll effect
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 10);
+  });
+
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => observer.observe(el));
+
+  // Number counter animation
+  const counters = document.querySelectorAll('[data-count]');
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const target = parseInt(el.dataset.count);
+      const suffix = target >= 1000 ? 'K+' : (target === 98 ? '%' : '+');
+      const displayTarget = target >= 1000 ? Math.round(target / 1000) : target;
+      let current = 0;
+      const step = Math.ceil(displayTarget / 40);
+      const timer = setInterval(() => {
+        current = Math.min(current + step, displayTarget);
+        el.textContent = current + suffix;
+        if (current >= displayTarget) clearInterval(timer);
+      }, 40);
+      counterObserver.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+  counters.forEach(el => counterObserver.observe(el));
+
+  // Demo tabs
+  const tabs = document.querySelectorAll('.demo-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

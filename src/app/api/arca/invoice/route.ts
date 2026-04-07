@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
+import { createVoucher, getLastVoucher } from '@/libs/arcaClient';
 import { db } from '@/libs/DB';
 import { arcaConfigSchema, saleSchema } from '@/models/Schema';
 
@@ -42,16 +43,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const Afip = require('afip');
-    const afip = new Afip({
-      CUIT: Number(config.cuit),
+    const arcaConfig = {
+      cuit: config.cuit,
       cert: config.cert,
-      key: config.privateKey,
-      production: config.ambiente === 'production',
-      res_folder: '/tmp',
-      ta_folder: '/tmp',
-    });
+      privateKey: config.privateKey,
+      ambiente: config.ambiente as 'sandbox' | 'production',
+    };
 
     const isMonotributo = config.tipoContribuyente === 'monotributo';
 
@@ -73,7 +70,7 @@ export async function POST(request: Request) {
     }
 
     // Obtener último número de comprobante
-    const lastVoucher = await afip.ElectronicBilling.getLastVoucher(config.puntoVenta, cbteTipo);
+    const lastVoucher = await getLastVoucher(arcaConfig, config.puntoVenta, cbteTipo);
     const nextNumber = lastVoucher + 1;
 
     // Datos del comprador
@@ -89,7 +86,7 @@ export async function POST(request: Request) {
     // IVA según tipo de contribuyente
     let impNeto: number;
     let impIva: number;
-    let iva: any[];
+    let iva: Array<{ Id: number; BaseImp: number; Importe: number }>;
 
     if (isMonotributo) {
       // Monotributo: sin IVA
@@ -103,7 +100,7 @@ export async function POST(request: Request) {
       iva = [{ Id: 5, BaseImp: impNeto, Importe: impIva }];
     }
 
-    const voucherData = {
+    const result = await createVoucher(arcaConfig, {
       CantReg: 1,
       PtoVta: config.puntoVenta,
       CbteTipo: cbteTipo,
@@ -122,9 +119,8 @@ export async function POST(request: Request) {
       MonId: 'PES',
       MonCotiz: 1,
       Iva: iva,
-    };
+    });
 
-    const result = await afip.ElectronicBilling.createVoucher(voucherData);
     const cae = result.CAE;
     const caeVencimiento = result.CAEFchVto;
     const invoiceFullNumber = `${String(config.puntoVenta).padStart(4, '0')}-${String(nextNumber).padStart(8, '0')}`;

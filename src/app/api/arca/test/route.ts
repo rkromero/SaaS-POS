@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
+import { getLastVoucher } from '@/libs/arcaClient';
 import { db } from '@/libs/DB';
 import { arcaConfigSchema } from '@/models/Schema';
 
@@ -25,22 +26,20 @@ export async function POST() {
   if (!config.cert || !config.privateKey) {
     return NextResponse.json({ error: 'Faltan el certificado o la clave privada' }, { status: 400 });
   }
+  if (!config.puntoVenta) {
+    return NextResponse.json({ error: 'Falta configurar el punto de venta' }, { status: 400 });
+  }
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const Afip = require('afip');
-    const afip = new Afip({
-      CUIT: Number(config.cuit),
+    const arcaConfig = {
+      cuit: config.cuit,
       cert: config.cert,
-      key: config.privateKey,
-      production: config.ambiente === 'production',
-      res_folder: '/tmp',
-      ta_folder: '/tmp',
-    });
+      privateKey: config.privateKey,
+      ambiente: config.ambiente as 'sandbox' | 'production',
+    };
 
-    // Test: obtener último comprobante emitido
     const cbteTipo = config.tipoContribuyente === 'monotributo' ? 11 : 6;
-    await afip.ElectronicBilling.getLastVoucher(config.puntoVenta, cbteTipo);
+    await getLastVoucher(arcaConfig, config.puntoVenta, cbteTipo);
 
     return NextResponse.json({ ok: true, message: 'Conexión exitosa con ARCA' });
   } catch (error: any) {

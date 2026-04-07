@@ -52,13 +52,6 @@ export default withSentryConfig(
         experimental: {
           serverComponentsExternalPackages: ['@electric-sql/pglite'],
         },
-        // Excluir 'afip' del bundle para que __dirname sea correcto en Vercel
-        // y pueda encontrar sus templates .ejs en node_modules
-        serverExternalPackages: ['afip'],
-        // Forzar a Vercel a incluir los archivos .ejs de afip en el deployment
-        outputFileTracingIncludes: {
-          'src/app/api/arca/**': ['./node_modules/afip/**'],
-        },
       }),
     ),
   ),
