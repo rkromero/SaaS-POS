@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/rkromero/SaaS-POS/compare/v1.18.0...v1.19.0) (2026-04-07)
+
+
+### Features
+
+* integración ARCA facturación electrónica (wizard guiado + POS + ticket) ([1f253a2](https://github.com/rkromero/SaaS-POS/commit/1f253a2512d0055d61d9ecfa50aff4f8af70b8d2))
+
 # [1.18.0](https://github.com/rkromero/SaaS-POS/compare/v1.17.2...v1.18.0) (2026-04-07)
 
 
