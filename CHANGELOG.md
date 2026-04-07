@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/rkromero/SaaS-POS/compare/v1.16.0...v1.17.0) (2026-04-07)
+
+
+### Features
+
+* gastos diferenciados por local para admins ([650de88](https://github.com/rkromero/SaaS-POS/commit/650de88fa66a6dc39f611b7203140d4291fb3c3d))
+
 # [1.16.0](https://github.com/rkromero/SaaS-POS/compare/v1.15.1...v1.16.0) (2026-04-07)
 
 
