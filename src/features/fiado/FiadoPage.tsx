@@ -23,9 +23,17 @@ type Transaction = {
   createdAt: string;
 };
 
+type Location = { id: number; name: string };
+
 type Mode = 'list' | 'history' | 'charge' | 'pay' | 'new-customer';
 
-export const FiadoPage = () => {
+type FiadoPageProps = {
+  isAdmin?: boolean;
+};
+
+export const FiadoPage = ({ isAdmin }: FiadoPageProps) => {
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Customer | null>(null);
@@ -43,9 +51,27 @@ export const FiadoPage = () => {
   const [newEmail, setNewEmail] = useState('');
   const [newError, setNewError] = useState('');
 
+  // Load locations for admins
+  useEffect(() => {
+    if (!isAdmin) {
+      return;
+    }
+    fetch('/api/locations')
+      .then(r => r.json())
+      .then((data: Location[]) => {
+        const active = data.filter((l: any) => l.isActive);
+        setLocations(active);
+        if (active.length > 0) {
+          setSelectedLocationId(active[0]!.id);
+        }
+      });
+  }, [isAdmin]);
+
+  const locationQuery = isAdmin && selectedLocationId ? `?locationId=${selectedLocationId}` : '';
+
   const loadCustomers = () => {
     setLoading(true);
-    fetch('/api/fiado')
+    fetch(`/api/fiado${locationQuery}`)
       .then(r => r.json())
       .then((data) => {
         setCustomers(data);
@@ -54,13 +80,17 @@ export const FiadoPage = () => {
   };
 
   useEffect(() => {
+    if (isAdmin && locations.length > 0 && !selectedLocationId) {
+      return;
+    }
     loadCustomers();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLocationId, isAdmin, locations.length]);
 
   const openHistory = (c: Customer) => {
     setSelected(c);
     setMode('history');
-    fetch(`/api/fiado/${c.id}/transactions`)
+    fetch(`/api/fiado/${c.id}/transactions${locationQuery}`)
       .then(r => r.json())
       .then(setTransactions);
   };
@@ -127,8 +157,8 @@ export const FiadoPage = () => {
       ? '/api/fiado'
       : `/api/fiado/${selected.id}/pay`;
     const body = mode === 'charge'
-      ? { customerId: selected.id, amount: Number(amount), description }
-      : { amount: Number(amount), description };
+      ? { customerId: selected.id, amount: Number(amount), description, ...(isAdmin && selectedLocationId ? { locationId: selectedLocationId } : {}) }
+      : { amount: Number(amount), description, ...(isAdmin && selectedLocationId ? { locationId: selectedLocationId } : {}) };
 
     try {
       const res = await fetch(url, {
@@ -159,6 +189,20 @@ export const FiadoPage = () => {
 
   const withDebt = filtered.filter(c => Number(c.balance) > 0);
   const noDebt = filtered.filter(c => Number(c.balance) <= 0);
+
+  const locationSelector = isAdmin && locations.length > 1 && (
+    <select
+      value={selectedLocationId ?? ''}
+      onChange={e => setSelectedLocationId(Number(e.target.value))}
+      className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+    >
+      {locations.map(loc => (
+        <option key={loc.id} value={loc.id}>{loc.name}</option>
+      ))}
+    </select>
+  );
+
+  const selectedLocationName = locations.find(l => l.id === selectedLocationId)?.name;
 
   if (mode === 'new-customer') {
     return (
@@ -243,6 +287,24 @@ export const FiadoPage = () => {
         )}
 
         <div className="space-y-3 rounded-lg border bg-card p-4">
+          {selectedLocationName && (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Local:</span>
+              {isAdmin && locations.length > 1
+                ? (
+                    <select
+                      value={selectedLocationId ?? ''}
+                      onChange={e => setSelectedLocationId(Number(e.target.value))}
+                      className="h-7 rounded border border-input bg-background px-2 text-xs"
+                    >
+                      {locations.map(loc => (
+                        <option key={loc.id} value={loc.id}>{loc.name}</option>
+                      ))}
+                    </select>
+                  )
+                : <span className="font-medium">{selectedLocationName}</span>}
+            </div>
+          )}
           <div>
             <Label>Monto ($)</Label>
             <Input
@@ -287,6 +349,9 @@ export const FiadoPage = () => {
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => setMode('list')}>← Volver</Button>
             <h2 className="text-lg font-bold">{selected.name}</h2>
+            {selectedLocationName && (
+              <span className="text-sm text-muted-foreground">— {selectedLocationName}</span>
+            )}
           </div>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => openPay(selected)}>
@@ -332,7 +397,8 @@ export const FiadoPage = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        {locationSelector}
         <Input
           placeholder="Buscar cliente..."
           value={search}

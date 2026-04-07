@@ -11,16 +11,29 @@ import {
 } from '@/models/Schema';
 
 // GET /api/fiado — list all customers with their debt balance for the caller's location
-export async function GET() {
+export async function GET(request: Request) {
   const { userId, orgId, orgRole } = await auth();
   if (!userId || !orgId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const locationIdParam = searchParams.get('locationId');
+
   // Resolve locationId
   let locationId: number | null = null;
   if (orgRole === 'org:admin') {
-    // Admins see all locations — return org-wide debts (grouped by customer)
+    if (locationIdParam) {
+      locationId = Number(locationIdParam);
+    }
+    // If no locationId param, admins see all locations aggregated
+    const joinCondition = locationId
+      ? and(
+          eq(debtTransactionSchema.customerId, customerSchema.id),
+          eq(debtTransactionSchema.locationId, locationId),
+        )
+      : eq(debtTransactionSchema.customerId, customerSchema.id);
+
     const customers = await db
       .select({
         id: customerSchema.id,
@@ -37,10 +50,7 @@ export async function GET() {
         `.as('balance'),
       })
       .from(customerSchema)
-      .leftJoin(
-        debtTransactionSchema,
-        eq(debtTransactionSchema.customerId, customerSchema.id),
-      )
+      .leftJoin(debtTransactionSchema, joinCondition)
       .where(eq(customerSchema.organizationId, orgId))
       .groupBy(customerSchema.id)
       .orderBy(customerSchema.name);
