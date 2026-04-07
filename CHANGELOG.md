@@ -1,3 +1,10 @@
+## [1.19.3](https://github.com/rkromero/SaaS-POS/compare/v1.19.2...v1.19.3) (2026-04-07)
+
+
+### Bug Fixes
+
+* reemplazar paquete afip por cliente ARCA nativo sin templates EJS ([e551d3d](https://github.com/rkromero/SaaS-POS/commit/e551d3d535bf9341799c502323919e2157b50c1e))
+
 ## [1.19.2](https://github.com/rkromero/SaaS-POS/compare/v1.19.1...v1.19.2) (2026-04-07)
 
 
