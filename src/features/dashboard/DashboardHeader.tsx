@@ -1,6 +1,7 @@
 'use client';
 
 import { UserButton, useOrganization } from '@clerk/nextjs';
+import { useBranding } from '@/features/branding/BrandingContext';
 import Link from 'next/link';
 
 import { ActiveLink } from '@/components/ActiveLink';
@@ -22,6 +23,7 @@ export const DashboardHeader = (props: {
   }[];
 }) => {
   const { organization } = useOrganization();
+  const branding = useBranding();
 
   return (
     <>
@@ -44,16 +46,22 @@ export const DashboardHeader = (props: {
 
         {organization && (
           <div className="flex items-center gap-2">
-            {organization.imageUrl
+            {branding?.logoUrl
               ? (
-                  <img src={organization.imageUrl} alt="" className="size-5 rounded-full object-cover" />
+                  <img src={branding.logoUrl} alt="Logo" className="h-6 max-w-[6rem] object-contain" />
                 )
-              : (
-                  <div className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                    {organization.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-            <span className="max-w-28 truncate text-sm font-medium sm:max-w-52">{organization.name}</span>
+              : organization.imageUrl
+                ? (
+                    <img src={organization.imageUrl} alt="" className="size-5 rounded-full object-cover" />
+                  )
+                : (
+                    <div className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                      {organization.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+            <span className="max-w-28 truncate text-sm font-medium sm:max-w-52">
+              {branding?.businessName || organization.name}
+            </span>
           </div>
         )}
 

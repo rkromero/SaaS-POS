@@ -1,6 +1,11 @@
+import { auth } from '@clerk/nextjs/server';
+import { eq } from 'drizzle-orm';
 import { getTranslations } from 'next-intl/server';
 
+import { BrandingProvider } from '@/features/branding/BrandingContext';
 import { DashboardSidebar } from '@/features/dashboard/DashboardSidebar';
+import { db } from '@/libs/DB';
+import { brandingSchema } from '@/models/Schema';
 
 export async function generateMetadata(props: { params: { locale: string } }) {
   const t = await getTranslations({
@@ -14,19 +19,29 @@ export async function generateMetadata(props: { params: { locale: string } }) {
   };
 }
 
-export default function DashboardLayout(props: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-muted">
-      <DashboardSidebar />
+export default async function DashboardLayout(props: { children: React.ReactNode }) {
+  const { orgId } = await auth();
 
-      {/* Main content — offset by sidebar width on desktop */}
-      <main className="lg:pl-56">
-        {/* Mobile top bar spacer is handled inside DashboardSidebar */}
-        <div className="px-4 pb-16 pt-6 sm:px-6">
-          {props.children}
-        </div>
-      </main>
-    </div>
+  let branding = null;
+  if (orgId) {
+    const [result] = await db
+      .select()
+      .from(brandingSchema)
+      .where(eq(brandingSchema.organizationId, orgId));
+    branding = result ?? null;
+  }
+
+  return (
+    <BrandingProvider branding={branding}>
+      <div className="min-h-screen bg-muted">
+        <DashboardSidebar />
+        <main className="lg:pl-56">
+          <div className="px-4 pb-16 pt-6 sm:px-6">
+            {props.children}
+          </div>
+        </main>
+      </div>
+    </BrandingProvider>
   );
 }
 

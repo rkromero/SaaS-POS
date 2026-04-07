@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { useBranding } from '@/features/branding/BrandingContext';
 
 type SaleItem = {
   id: number;
@@ -41,6 +42,7 @@ const PAYMENT_LABELS: Record<string, string> = {
 
 export const Ticket = ({ sale, items, locationName, orgName, onClose }: TicketProps) => {
   const ticketRef = useRef<HTMLDivElement>(null);
+  const branding = useBranding();
 
   const date = new Date(sale.createdAt);
   const formattedDate = date.toLocaleDateString('es-AR', {
@@ -115,8 +117,26 @@ export const Ticket = ({ sale, items, locationName, orgName, onClose }: TicketPr
           <div id="ticket" ref={ticketRef} className="p-4 font-mono text-sm">
             {/* Header */}
             <div className="mb-3 text-center">
-              <div className="text-base font-bold uppercase">{orgName}</div>
+              {branding?.receiptShowLogo && branding?.logoUrl && (
+                <img
+                  src={branding.logoUrl}
+                  alt="Logo"
+                  className="mx-auto mb-1 h-12 object-contain"
+                />
+              )}
+              <div className="text-base font-bold uppercase">
+                {branding?.businessName || orgName}
+              </div>
               <div className="text-xs text-gray-600">{locationName}</div>
+              {branding?.receiptAddress && (
+                <div className="text-xs text-gray-500">{branding.receiptAddress}</div>
+              )}
+              {branding?.receiptPhone && (
+                <div className="text-xs text-gray-500">Tel: {branding.receiptPhone}</div>
+              )}
+              {branding?.receiptCuit && (
+                <div className="text-xs text-gray-500">CUIT: {branding.receiptCuit}</div>
+              )}
             </div>
 
             <div className="mb-3 border-y border-dashed border-gray-400 py-1 text-center text-xs text-gray-500">
@@ -191,7 +211,7 @@ export const Ticket = ({ sale, items, locationName, orgName, onClose }: TicketPr
             </div>
 
             <div className="mt-3 border-t border-dashed border-gray-400 pt-2 text-center text-xs text-gray-500">
-              ¡Gracias por su compra!
+              {branding?.receiptFooter || '¡Gracias por su compra!'}
             </div>
           </div>
 

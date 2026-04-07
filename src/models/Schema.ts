@@ -561,6 +561,24 @@ export const expenseSchema = pgTable(
   }),
 );
 
+// ---------------------------------------------------------------------------
+// Branding — personalización visual por organización (planes de pago)
+// ---------------------------------------------------------------------------
+
+export const brandingSchema = pgTable('branding', {
+  organizationId: text('organization_id').primaryKey(),
+  logoUrl: text('logo_url'),
+  faviconUrl: text('favicon_url'),
+  primaryColor: text('primary_color'), // hex ej: "#1e7a35"
+  businessName: text('business_name'),
+  receiptShowLogo: boolean('receipt_show_logo').default(true).notNull(),
+  receiptAddress: text('receipt_address'),
+  receiptPhone: text('receipt_phone'),
+  receiptCuit: text('receipt_cuit'),
+  receiptFooter: text('receipt_footer'),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
 export const purchaseOrderItemSchema = pgTable(
   'purchase_order_item',
   {

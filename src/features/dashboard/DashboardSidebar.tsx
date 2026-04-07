@@ -11,6 +11,7 @@ import {
   Menu,
   MinusCircle,
   Package,
+  Palette,
   PieChart,
   ShoppingCart,
   Store,
@@ -24,6 +25,7 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
+import { useBranding } from '@/features/branding/BrandingContext';
 import { Logo } from '@/templates/Logo';
 
 type NavItem = {
@@ -78,6 +80,7 @@ const navGroups: NavGroup[] = [
       { href: '/dashboard/locations', label: 'Locales', icon: <Store className={iconClass} /> },
       { href: '/dashboard/members', label: 'Miembros', icon: <Users className={iconClass} /> },
       { href: '/dashboard/billing', label: 'Planes', icon: <CreditCard className={iconClass} /> },
+      { href: '/dashboard/branding', label: 'Personalización', icon: <Palette className={iconClass} /> },
       { href: '/dashboard/organization-profile', label: 'Configuración', icon: <Building2 className={iconClass} /> },
     ],
   },
@@ -109,16 +112,17 @@ function NavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
 
 function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
   const { membership, organization } = useOrganization();
+  const branding = useBranding();
   const isAdmin = membership?.role === 'org:admin';
 
   const visibleGroups = navGroups.filter(g => !g.adminOnly || isAdmin);
 
   return (
     <div className="flex h-full flex-col">
-      {/* Logo + org switcher */}
+      {/* Logo + org name */}
       <div className="border-b px-4 py-3">
         <Link href="/dashboard" className="mb-3 block">
-          <Logo />
+          <Logo logoUrl={branding?.logoUrl} businessName={branding?.businessName} />
         </Link>
         {organization && (
           <div className="flex items-center gap-2 rounded-md px-2 py-1.5">
