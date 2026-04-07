@@ -1,3 +1,10 @@
+## [1.15.1](https://github.com/rkromero/SaaS-POS/compare/v1.15.0...v1.15.1) (2026-04-07)
+
+
+### Bug Fixes
+
+* selector de local en stock solo visible para admins ([3a9fdbe](https://github.com/rkromero/SaaS-POS/commit/3a9fdbefad4d13ece6cc87f0e4bb959de3b739d0))
+
 # [1.15.0](https://github.com/rkromero/SaaS-POS/compare/v1.14.6...v1.15.0) (2026-04-07)
 
 
