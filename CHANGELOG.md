@@ -1,3 +1,10 @@
+## [1.17.1](https://github.com/rkromero/SaaS-POS/compare/v1.17.0...v1.17.1) (2026-04-07)
+
+
+### Bug Fixes
+
+* usar fecha local en gastos (no UTC) ([b9d0aa8](https://github.com/rkromero/SaaS-POS/commit/b9d0aa8fc499876a970d56c3f704ce99fcb35894))
+
 # [1.17.0](https://github.com/rkromero/SaaS-POS/compare/v1.16.0...v1.17.0) (2026-04-07)
 
 
