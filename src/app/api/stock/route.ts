@@ -8,6 +8,7 @@ import {
   locationSchema,
   productSchema,
   stockSchema,
+  userLocationSchema,
 } from '@/models/Schema';
 
 // GET /api/stock?locationId=X — stock for a specific location
@@ -19,7 +20,19 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const locationId = searchParams.get('locationId');
+  let locationId = searchParams.get('locationId');
+
+  // Non-admins are always locked to their assigned location
+  if (orgRole !== 'org:admin') {
+    const [assignment] = await db
+      .select({ locationId: userLocationSchema.locationId })
+      .from(userLocationSchema)
+      .where(eq(userLocationSchema.userId, userId));
+    if (!assignment) {
+      return NextResponse.json({ error: 'Sin local asignado' }, { status: 403 });
+    }
+    locationId = String(assignment.locationId);
+  }
 
   if (locationId) {
     // Verify the location belongs to the org

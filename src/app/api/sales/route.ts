@@ -12,17 +12,30 @@ import {
   saleSchema,
   stockMovementSchema,
   stockSchema,
+  userLocationSchema,
 } from '@/models/Schema';
 
 // GET /api/sales?locationId=X — list sales for a location
 export async function GET(request: Request) {
-  const { userId, orgId } = await auth();
+  const { userId, orgId, orgRole } = await auth();
   if (!userId || !orgId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
-  const locationId = searchParams.get('locationId');
+  let locationId = searchParams.get('locationId');
+
+  // Non-admins can only see their assigned location
+  if (orgRole !== 'org:admin') {
+    const [assignment] = await db
+      .select({ locationId: userLocationSchema.locationId })
+      .from(userLocationSchema)
+      .where(eq(userLocationSchema.userId, userId));
+    if (!assignment) {
+      return NextResponse.json([]);
+    }
+    locationId = String(assignment.locationId);
+  }
 
   const sales = await db
     .select({

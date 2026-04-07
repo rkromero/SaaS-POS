@@ -1,6 +1,6 @@
 'use client';
 
-import { OrganizationSwitcher, UserButton } from '@clerk/nextjs';
+import { OrganizationSwitcher, UserButton, useOrganization } from '@clerk/nextjs';
 import {
   AlertTriangle,
   BarChart3,
@@ -37,6 +37,7 @@ type NavItem = {
 type NavGroup = {
   label: string;
   items: NavItem[];
+  adminOnly?: boolean;
 };
 
 const iconClass = 'size-4 shrink-0';
@@ -74,6 +75,7 @@ const navGroups: NavGroup[] = [
   },
   {
     label: 'Administración',
+    adminOnly: true,
     items: [
       { href: '/dashboard/locations', label: 'Locales', icon: <Store className={iconClass} /> },
       { href: '/dashboard/members', label: 'Miembros', icon: <Users className={iconClass} /> },
@@ -109,6 +111,10 @@ function NavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
 
 function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
   const locale = useLocale();
+  const { membership } = useOrganization();
+  const isAdmin = membership?.role === 'org:admin';
+
+  const visibleGroups = navGroups.filter(g => !g.adminOnly || isAdmin);
 
   return (
     <div className="flex h-full flex-col">
@@ -135,7 +141,7 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
       {/* Nav groups */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <div className="space-y-5">
-          {navGroups.map(group => (
+          {visibleGroups.map(group => (
             <div key={group.label}>
               <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
                 {group.label}

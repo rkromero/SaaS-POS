@@ -14,7 +14,13 @@ export default async function MembersPage() {
         description="Usuarios con acceso a tu organización"
       />
       <div className="rounded-md bg-card p-6 shadow-sm">
-        <MemberList isAdmin={isAdmin} />
+        {isAdmin
+          ? <MemberList isAdmin={isAdmin} />
+          : (
+              <p className="text-sm text-muted-foreground">
+                Solo los administradores pueden gestionar los miembros de la organización.
+              </p>
+            )}
       </div>
     </>
   );

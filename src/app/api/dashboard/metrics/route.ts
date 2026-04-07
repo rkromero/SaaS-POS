@@ -9,19 +9,47 @@ import {
   saleItemSchema,
   saleSchema,
   stockSchema,
+  userLocationSchema,
 } from '@/models/Schema';
 
 // GET /api/dashboard/metrics — key metrics for the dashboard
 export async function GET() {
-  const { userId, orgId } = await auth();
+  const { userId, orgId, orgRole } = await auth();
   if (!userId || !orgId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Resolve location for non-admins
+  let locationId: number | null = null;
+  if (orgRole !== 'org:admin') {
+    const [assignment] = await db
+      .select({ locationId: userLocationSchema.locationId })
+      .from(userLocationSchema)
+      .where(eq(userLocationSchema.userId, userId));
+    if (!assignment) {
+      return NextResponse.json({
+        today: { count: 0, total: 0 },
+        month: { count: 0, total: 0 },
+        revenueByPayment: [],
+        topProducts: [],
+        lowStock: [],
+        salesTrend: [],
+      });
+    }
+    locationId = assignment.locationId;
   }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  const baseSaleConditions = (from: Date) => [
+    eq(saleSchema.organizationId, orgId),
+    eq(saleSchema.status, 'completed'),
+    gte(saleSchema.createdAt, from),
+    ...(locationId ? [eq(saleSchema.locationId, locationId)] : []),
+  ];
 
   // Sales today
   const salesToday = await db
@@ -30,13 +58,7 @@ export async function GET() {
       total: sql<number>`coalesce(sum(${saleSchema.total}::numeric), 0)`,
     })
     .from(saleSchema)
-    .where(
-      and(
-        eq(saleSchema.organizationId, orgId),
-        eq(saleSchema.status, 'completed'),
-        gte(saleSchema.createdAt, today),
-      ),
-    );
+    .where(and(...baseSaleConditions(today)));
 
   // Sales this month
   const salesMonth = await db
@@ -45,13 +67,7 @@ export async function GET() {
       total: sql<number>`coalesce(sum(${saleSchema.total}::numeric), 0)`,
     })
     .from(saleSchema)
-    .where(
-      and(
-        eq(saleSchema.organizationId, orgId),
-        eq(saleSchema.status, 'completed'),
-        gte(saleSchema.createdAt, thisMonthStart),
-      ),
-    );
+    .where(and(...baseSaleConditions(thisMonthStart)));
 
   // Revenue by payment method (this month)
   const revenueByPayment = await db
@@ -61,13 +77,7 @@ export async function GET() {
       count: sql<number>`count(*)`,
     })
     .from(saleSchema)
-    .where(
-      and(
-        eq(saleSchema.organizationId, orgId),
-        eq(saleSchema.status, 'completed'),
-        gte(saleSchema.createdAt, thisMonthStart),
-      ),
-    )
+    .where(and(...baseSaleConditions(thisMonthStart)))
     .groupBy(saleSchema.paymentMethod);
 
   // Top 5 best-selling products (this month)
@@ -79,18 +89,19 @@ export async function GET() {
     })
     .from(saleItemSchema)
     .innerJoin(saleSchema, eq(saleItemSchema.saleId, saleSchema.id))
-    .where(
-      and(
-        eq(saleSchema.organizationId, orgId),
-        eq(saleSchema.status, 'completed'),
-        gte(saleSchema.createdAt, thisMonthStart),
-      ),
-    )
+    .where(and(...baseSaleConditions(thisMonthStart)))
     .groupBy(saleItemSchema.productName)
     .orderBy(desc(sql`sum(${saleItemSchema.quantity})`))
     .limit(5);
 
-  // Low stock alerts across all locations
+  // Low stock alerts
+  const lowStockConditions = [
+    eq(locationSchema.organizationId, orgId),
+    eq(productSchema.isActive, true),
+    sql`${stockSchema.quantity} <= ${stockSchema.lowStockThreshold}`,
+    ...(locationId ? [eq(stockSchema.locationId, locationId)] : []),
+  ];
+
   const lowStock = await db
     .select({
       productName: productSchema.name,
@@ -101,13 +112,7 @@ export async function GET() {
     .from(stockSchema)
     .innerJoin(productSchema, eq(stockSchema.productId, productSchema.id))
     .innerJoin(locationSchema, eq(stockSchema.locationId, locationSchema.id))
-    .where(
-      and(
-        eq(locationSchema.organizationId, orgId),
-        eq(productSchema.isActive, true),
-        sql`${stockSchema.quantity} <= ${stockSchema.lowStockThreshold}`,
-      ),
-    )
+    .where(and(...lowStockConditions))
     .orderBy(stockSchema.quantity)
     .limit(10);
 
@@ -122,13 +127,7 @@ export async function GET() {
       count: sql<number>`count(*)`,
     })
     .from(saleSchema)
-    .where(
-      and(
-        eq(saleSchema.organizationId, orgId),
-        eq(saleSchema.status, 'completed'),
-        gte(saleSchema.createdAt, sevenDaysAgo),
-      ),
-    )
+    .where(and(...baseSaleConditions(sevenDaysAgo)))
     .groupBy(sql`date(${saleSchema.createdAt})`)
     .orderBy(sql`date(${saleSchema.createdAt})`);
 
