@@ -1,3 +1,10 @@
+## [1.14.3](https://github.com/rkromero/SaaS-POS/compare/v1.14.2...v1.14.3) (2026-04-07)
+
+
+### Bug Fixes
+
+* corregir DATABASE_URL con contraseña correcta (W mayúscula) ([d6cc9e8](https://github.com/rkromero/SaaS-POS/commit/d6cc9e86bee103b65b6318303273a9298bb0087c))
+
 ## [1.14.2](https://github.com/rkromero/SaaS-POS/compare/v1.14.1...v1.14.2) (2026-04-07)
 
 
