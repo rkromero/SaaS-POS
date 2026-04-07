@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/rkromero/SaaS-POS/compare/v1.12.0...v1.13.0) (2026-04-07)
+
+
+### Features
+
+* aplicar manual de marca TuCaja al sistema (dashboard + auth) ([f9a92c3](https://github.com/rkromero/SaaS-POS/commit/f9a92c3bc087da8a387dd2fc60b7efa37a74baae)), closes [#1e7a35](https://github.com/rkromero/SaaS-POS/issues/1e7a35) [#faf8f3](https://github.com/rkromero/SaaS-POS/issues/faf8f3)
+
 # [1.12.0](https://github.com/rkromero/SaaS-POS/compare/v1.11.0...v1.12.0) (2026-04-06)
 
 
