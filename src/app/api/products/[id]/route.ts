@@ -23,7 +23,7 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { name, description, price, costPrice, sku, imageUrl, categoryId, isActive } = body;
+  const { name, description, price, costPrice, sku, barcode, imageUrl, categoryId, isActive } = body;
 
   if (!name || typeof name !== 'string' || name.trim() === '') {
     return NextResponse.json({ error: 'El nombre es requerido' }, { status: 400 });
@@ -41,6 +41,7 @@ export async function PUT(
       price: String(Number(price).toFixed(2)),
       costPrice: costPrice ? String(Number(costPrice).toFixed(2)) : null,
       sku: sku?.trim() || null,
+      barcode: barcode?.trim() || null,
       imageUrl: imageUrl?.trim() || null,
       categoryId: categoryId ? Number(categoryId) : null,
       isActive: isActive ?? true,

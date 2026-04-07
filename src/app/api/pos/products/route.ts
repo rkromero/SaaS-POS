@@ -43,6 +43,7 @@ export async function GET(request: Request) {
       description: productSchema.description,
       price: productSchema.price,
       sku: productSchema.sku,
+      barcode: productSchema.barcode,
       imageUrl: productSchema.imageUrl,
       categoryId: productSchema.categoryId,
       categoryName: categorySchema.name,

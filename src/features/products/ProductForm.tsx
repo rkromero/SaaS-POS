@@ -21,6 +21,7 @@ type Product = {
   price: string;
   costPrice: string | null;
   sku: string | null;
+  barcode: string | null;
   imageUrl: string | null;
   categoryId: number | null;
   isActive: boolean;
@@ -32,6 +33,8 @@ type ProductFormProps = {
   onSuccess: () => void;
   product?: Product | null;
   isAdmin: boolean;
+  /** Pre-rellena el campo barcode (usado desde el flujo de escaneo) */
+  initialBarcode?: string;
 };
 
 export const ProductForm = ({
@@ -40,6 +43,7 @@ export const ProductForm = ({
   onSuccess,
   product,
   isAdmin,
+  initialBarcode,
 }: ProductFormProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState(product?.name ?? '');
@@ -47,6 +51,7 @@ export const ProductForm = ({
   const [price, setPrice] = useState(product?.price ?? '');
   const [costPrice, setCostPrice] = useState(product?.costPrice ?? '');
   const [sku, setSku] = useState(product?.sku ?? '');
+  const [barcode, setBarcode] = useState(product?.barcode ?? initialBarcode ?? '');
   const [imageUrl, setImageUrl] = useState(product?.imageUrl ?? '');
   const [categoryId, setCategoryId] = useState<string>(
     product?.categoryId ? String(product.categoryId) : '',
@@ -89,6 +94,7 @@ export const ProductForm = ({
           price: Number(price),
           costPrice: costPrice ? Number(costPrice) : null,
           sku,
+          barcode,
           imageUrl,
           categoryId: categoryId ? Number(categoryId) : null,
         }),
@@ -169,7 +175,17 @@ export const ProductForm = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="sku">SKU / Código</Label>
+              <Label htmlFor="barcode">Código de barras</Label>
+              <Input
+                id="barcode"
+                value={barcode}
+                onChange={e => setBarcode(e.target.value)}
+                placeholder="EAN-13, UPC..."
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="sku">SKU interno</Label>
               <Input
                 id="sku"
                 value={sku}
@@ -177,7 +193,9 @@ export const ProductForm = ({
                 placeholder="Ej: CAFE-001"
               />
             </div>
+          </div>
 
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="category">Categoría</Label>
               <select

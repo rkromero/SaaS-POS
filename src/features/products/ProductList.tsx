@@ -24,6 +24,7 @@ type Product = {
   price: string;
   costPrice: string | null;
   sku: string | null;
+  barcode: string | null;
   imageUrl: string | null;
   isActive: boolean;
   categoryId: number | null;

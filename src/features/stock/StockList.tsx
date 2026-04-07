@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import { BarcodeScannerDialog } from './BarcodeScannerDialog';
 import { StockMovementForm } from './StockMovementForm';
 import { StockMovementHistory } from './StockMovementHistory';
 
@@ -24,6 +25,7 @@ type StockItem = {
   productId: number;
   productName: string;
   productSku: string | null;
+  productBarcode: string | null;
   productIsActive: boolean;
   categoryName: string | null;
   locationId: number;
@@ -53,6 +55,8 @@ export const StockList = ({ isAdmin: _isAdmin }: StockListProps) => {
     open: boolean;
     item: StockItem | null;
   }>({ open: false, item: null });
+
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   // Load locations on mount
   useEffect(() => {
@@ -89,7 +93,8 @@ export const StockList = ({ isAdmin: _isAdmin }: StockListProps) => {
     item =>
       search === ''
       || item.productName.toLowerCase().includes(search.toLowerCase())
-      || (item.productSku ?? '').toLowerCase().includes(search.toLowerCase()),
+      || (item.productSku ?? '').toLowerCase().includes(search.toLowerCase())
+      || (item.productBarcode ?? '').toLowerCase().includes(search.toLowerCase()),
   );
 
   const lowStockCount = stock.filter(s => s.quantity <= s.lowStockThreshold).length;
@@ -120,10 +125,20 @@ export const StockList = ({ isAdmin: _isAdmin }: StockListProps) => {
 
         <Input
           className="w-56"
-          placeholder="Buscar producto o SKU..."
+          placeholder="Buscar producto, SKU o barcode..."
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
+
+        {selectedLocationId && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setScannerOpen(true)}
+          >
+            📷 Escanear producto
+          </Button>
+        )}
 
         {lowStockCount > 0 && (
           <Badge variant="destructive">
@@ -243,6 +258,16 @@ export const StockList = ({ isAdmin: _isAdmin }: StockListProps) => {
           onClose={() => setHistoryModal({ open: false, item: null })}
           stockId={historyModal.item.id!}
           productName={historyModal.item.productName}
+        />
+      )}
+
+      {/* Barcode scanner dialog */}
+      {scannerOpen && selectedLocationId && (
+        <BarcodeScannerDialog
+          open={scannerOpen}
+          onClose={() => setScannerOpen(false)}
+          locationId={Number(selectedLocationId)}
+          onSuccess={fetchStock}
         />
       )}
     </div>

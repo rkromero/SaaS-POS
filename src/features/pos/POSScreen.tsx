@@ -15,6 +15,7 @@ type POSProduct = {
   description: string | null;
   price: string;
   sku: string | null;
+  barcode: string | null;
   imageUrl: string | null;
   categoryId: number | null;
   categoryName: string | null;
@@ -295,10 +296,13 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
         return;
       }
 
-      // If chars arrived very fast (scanner), try to match by SKU
+      // Si los chars llegaron muy rápido (pistola lectora), busca por barcode o SKU
       if (timeDiff < 80) {
+        const code = sku.trim().toLowerCase();
         const match = products.find(
-          p => p.sku?.toLowerCase() === sku.trim().toLowerCase(),
+          p =>
+            p.barcode?.toLowerCase() === code
+            || p.sku?.toLowerCase() === code,
         );
         if (match) {
           addToCart(match);

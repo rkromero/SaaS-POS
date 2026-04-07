@@ -47,6 +47,7 @@ export async function GET(request: Request) {
         productId: productSchema.id,
         productName: productSchema.name,
         productSku: productSchema.sku,
+        productBarcode: productSchema.barcode,
         productImageUrl: productSchema.imageUrl,
         productIsActive: productSchema.isActive,
         categoryName: categorySchema.name,

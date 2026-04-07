@@ -176,6 +176,9 @@ export const productSchema = pgTable(
     price: numeric('price', { precision: 10, scale: 2 }).notNull(),
     costPrice: numeric('cost_price', { precision: 10, scale: 2 }),
     sku: text('sku'),
+    // barcode = código impreso en el envase (EAN-13, UPC, etc.)
+    // Distinto del SKU que es el código interno del negocio
+    barcode: text('barcode'),
     imageUrl: text('image_url'),
     isActive: boolean('is_active').default(true).notNull(),
     updatedAt: timestamp('updated_at', { mode: 'date' })

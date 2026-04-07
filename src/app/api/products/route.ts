@@ -19,6 +19,7 @@ export async function GET() {
       price: productSchema.price,
       costPrice: productSchema.costPrice,
       sku: productSchema.sku,
+      barcode: productSchema.barcode,
       imageUrl: productSchema.imageUrl,
       isActive: productSchema.isActive,
       categoryId: productSchema.categoryId,
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { name, description, price, costPrice, sku, imageUrl, categoryId } = body;
+  const { name, description, price, costPrice, sku, barcode, imageUrl, categoryId } = body;
 
   if (!name || typeof name !== 'string' || name.trim() === '') {
     return NextResponse.json({ error: 'El nombre es requerido' }, { status: 400 });
@@ -62,6 +63,7 @@ export async function POST(request: Request) {
       price: String(Number(price).toFixed(2)),
       costPrice: costPrice ? String(Number(costPrice).toFixed(2)) : null,
       sku: sku?.trim() || null,
+      barcode: barcode?.trim() || null,
       imageUrl: imageUrl?.trim() || null,
       categoryId: categoryId ? Number(categoryId) : null,
     })
