@@ -17,7 +17,12 @@ export async function GET(request: Request) {
   const to = searchParams.get('to');
 
   let locationId: number | null = null;
-  if (orgRole !== 'org:admin') {
+  if (orgRole === 'org:admin') {
+    const locationIdParam = searchParams.get('locationId');
+    if (locationIdParam) {
+      locationId = Number(locationIdParam);
+    }
+  } else {
     const [assignment] = await db
       .select({ locationId: userLocationSchema.locationId })
       .from(userLocationSchema)

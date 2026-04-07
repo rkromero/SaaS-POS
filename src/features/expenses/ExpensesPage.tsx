@@ -16,6 +16,8 @@ type Expense = {
   createdAt: string;
 };
 
+type Location = { id: number; name: string };
+
 const CATEGORIES: Record<string, string> = {
   supplies: 'Insumos',
   utilities: 'Servicios',
@@ -28,7 +30,13 @@ const CATEGORIES: Record<string, string> = {
 const fmt = (v: string | number) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(Number(v));
 
-export const ExpensesPage = () => {
+type ExpensesPageProps = {
+  isAdmin?: boolean;
+};
+
+export const ExpensesPage = ({ isAdmin }: ExpensesPageProps) => {
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -39,10 +47,26 @@ export const ExpensesPage = () => {
   const [category, setCategory] = useState('supplies');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0] ?? '');
 
+  useEffect(() => {
+    if (!isAdmin) {
+      return;
+    }
+    fetch('/api/locations')
+      .then(r => r.json())
+      .then((data: Location[]) => {
+        const active = data.filter((l: any) => l.isActive);
+        setLocations(active);
+        if (active.length > 0) {
+          setSelectedLocationId(active[0]!.id);
+        }
+      });
+  }, [isAdmin]);
+
   const load = () => {
     const now = new Date();
     const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    fetch(`/api/expenses?from=${from}`)
+    const locationParam = isAdmin && selectedLocationId ? `&locationId=${selectedLocationId}` : '';
+    fetch(`/api/expenses?from=${from}${locationParam}`)
       .then(r => r.json())
       .then((data) => {
         setExpenses(data);
@@ -51,8 +75,12 @@ export const ExpensesPage = () => {
   };
 
   useEffect(() => {
+    if (isAdmin && locations.length > 0 && !selectedLocationId) {
+      return;
+    }
     load();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLocationId, isAdmin, locations.length]);
 
   const handleSave = async () => {
     if (!amount || !description) {
@@ -62,7 +90,13 @@ export const ExpensesPage = () => {
     await fetch('/api/expenses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: Number(amount), description, category, date }),
+      body: JSON.stringify({
+        amount: Number(amount),
+        description,
+        category,
+        date,
+        ...(isAdmin && selectedLocationId ? { locationId: selectedLocationId } : {}),
+      }),
     });
     setSaving(false);
     setShowForm(false);
@@ -79,20 +113,55 @@ export const ExpensesPage = () => {
 
   const total = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
 
+  const selectedLocationName = locations.find(l => l.id === selectedLocationId)?.name;
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">Total del mes</p>
           <p className="text-2xl font-bold text-destructive">{fmt(total)}</p>
         </div>
-        <Button onClick={() => setShowForm(v => !v)}>
-          {showForm ? 'Cancelar' : '+ Nuevo gasto'}
-        </Button>
+        <div className="flex items-center gap-2">
+          {isAdmin && locations.length > 1 && (
+            <select
+              value={selectedLocationId ?? ''}
+              onChange={e => setSelectedLocationId(Number(e.target.value))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {locations.map(loc => (
+                <option key={loc.id} value={loc.id}>{loc.name}</option>
+              ))}
+            </select>
+          )}
+          <Button onClick={() => setShowForm(v => !v)}>
+            {showForm ? 'Cancelar' : '+ Nuevo gasto'}
+          </Button>
+        </div>
       </div>
 
       {showForm && (
         <div className="grid gap-3 rounded-lg border bg-card p-4 sm:grid-cols-2">
+          {isAdmin && selectedLocationName && (
+            <div className="sm:col-span-2">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">Local:</span>
+                {locations.length > 1
+                  ? (
+                      <select
+                        value={selectedLocationId ?? ''}
+                        onChange={e => setSelectedLocationId(Number(e.target.value))}
+                        className="h-7 rounded border border-input bg-background px-2 text-xs"
+                      >
+                        {locations.map(loc => (
+                          <option key={loc.id} value={loc.id}>{loc.name}</option>
+                        ))}
+                      </select>
+                    )
+                  : <span className="font-medium">{selectedLocationName}</span>}
+              </div>
+            </div>
+          )}
           <div>
             <Label>Descripción *</Label>
             <Input
