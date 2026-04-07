@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/rkromero/SaaS-POS/compare/v1.15.1...v1.16.0) (2026-04-07)
+
+
+### Features
+
+* fiado diferenciado por local para admins ([9f540c5](https://github.com/rkromero/SaaS-POS/commit/9f540c56073b8ea5ec733d9afcfd30332761a2d3))
+
 ## [1.15.1](https://github.com/rkromero/SaaS-POS/compare/v1.15.0...v1.15.1) (2026-04-07)
 
 
