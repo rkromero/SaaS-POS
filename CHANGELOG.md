@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/rkromero/SaaS-POS/compare/v1.14.6...v1.15.0) (2026-04-07)
+
+
+### Features
+
+* mostrar y seleccionar local en formulario de movimiento de stock ([67df5a9](https://github.com/rkromero/SaaS-POS/commit/67df5a98896441f34d0c6f8d75bbba1fafd85695))
+
 ## [1.14.6](https://github.com/rkromero/SaaS-POS/compare/v1.14.5...v1.14.6) (2026-04-07)
 
 
