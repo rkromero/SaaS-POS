@@ -1,3 +1,10 @@
+## [1.19.2](https://github.com/rkromero/SaaS-POS/compare/v1.19.1...v1.19.2) (2026-04-07)
+
+
+### Bug Fixes
+
+* corregir templates afip en Vercel y validación wizard ARCA ([be83272](https://github.com/rkromero/SaaS-POS/commit/be83272142a2f2221c6e18f93b999eec5ecf8926))
+
 ## [1.19.1](https://github.com/rkromero/SaaS-POS/compare/v1.19.0...v1.19.1) (2026-04-07)
 
 
