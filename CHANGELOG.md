@@ -1,3 +1,10 @@
+## [1.14.1](https://github.com/rkromero/SaaS-POS/compare/v1.14.0...v1.14.1) (2026-04-07)
+
+
+### Bug Fixes
+
+* flujo de onboarding seguro y corrección de DATABASE_URL ([04ebce8](https://github.com/rkromero/SaaS-POS/commit/04ebce80ba8eb1dfa57b81cdf553a1aae19983be))
+
 # [1.14.0](https://github.com/rkromero/SaaS-POS/compare/v1.13.0...v1.14.0) (2026-04-07)
 
 
