@@ -37,7 +37,7 @@ type StockListProps = {
   isAdmin?: boolean;
 };
 
-export const StockList = ({ isAdmin: _isAdmin }: StockListProps) => {
+export const StockList = ({ isAdmin }: StockListProps) => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const [stock, setStock] = useState<StockItem[]>([]);
@@ -248,7 +248,7 @@ export const StockList = ({ isAdmin: _isAdmin }: StockListProps) => {
           productName={movementModal.item.productName}
           locationId={movementModal.locationId ?? movementModal.item.locationId}
           locationName={locations.find(l => l.id === (movementModal.locationId ?? movementModal.item!.locationId))?.name ?? ''}
-          locations={locations}
+          locations={isAdmin ? locations : undefined}
           currentQuantity={movementModal.item.quantity}
           type={movementModal.type}
           onLocationChange={newId => setMovementModal(prev => ({ ...prev, locationId: newId }))}
