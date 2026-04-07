@@ -49,7 +49,8 @@ export const StockList = ({ isAdmin: _isAdmin }: StockListProps) => {
     open: boolean;
     type: 'in' | 'out';
     item: StockItem | null;
-  }>({ open: false, type: 'in', item: null });
+    locationId: number | null;
+  }>({ open: false, type: 'in', item: null, locationId: null });
 
   const [historyModal, setHistoryModal] = useState<{
     open: boolean;
@@ -100,7 +101,7 @@ export const StockList = ({ isAdmin: _isAdmin }: StockListProps) => {
   const lowStockCount = stock.filter(s => s.quantity <= s.lowStockThreshold).length;
 
   const openMovement = (item: StockItem, type: 'in' | 'out') => {
-    setMovementModal({ open: true, type, item });
+    setMovementModal({ open: true, type, item, locationId: item.locationId });
   };
 
   const openHistory = (item: StockItem) => {
@@ -241,13 +242,16 @@ export const StockList = ({ isAdmin: _isAdmin }: StockListProps) => {
       {movementModal.open && movementModal.item && (
         <StockMovementForm
           open={movementModal.open}
-          onClose={() => setMovementModal({ open: false, type: 'in', item: null })}
+          onClose={() => setMovementModal({ open: false, type: 'in', item: null, locationId: null })}
           onSuccess={fetchStock}
           productId={movementModal.item.productId}
           productName={movementModal.item.productName}
-          locationId={movementModal.item.locationId}
+          locationId={movementModal.locationId ?? movementModal.item.locationId}
+          locationName={locations.find(l => l.id === (movementModal.locationId ?? movementModal.item!.locationId))?.name ?? ''}
+          locations={locations}
           currentQuantity={movementModal.item.quantity}
           type={movementModal.type}
+          onLocationChange={newId => setMovementModal(prev => ({ ...prev, locationId: newId }))}
         />
       )}
 

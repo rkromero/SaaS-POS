@@ -12,6 +12,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+type Location = { id: number; name: string };
+
 type StockMovementFormProps = {
   open: boolean;
   onClose: () => void;
@@ -19,8 +21,11 @@ type StockMovementFormProps = {
   productId: number;
   productName: string;
   locationId: number;
+  locationName: string;
+  locations?: Location[];
   currentQuantity: number;
   type: 'in' | 'out';
+  onLocationChange?: (locationId: number) => void;
 };
 
 const IN_REASONS = [
@@ -42,15 +47,24 @@ export const StockMovementForm = ({
   productId,
   productName,
   locationId,
+  locationName,
+  locations,
   currentQuantity,
   type,
+  onLocationChange,
 }: StockMovementFormProps) => {
   const reasons = type === 'in' ? IN_REASONS : OUT_REASONS;
+  const [selectedLocationId, setSelectedLocationId] = useState(locationId);
   const [quantity, setQuantity] = useState('');
   const [reason, setReason] = useState(reasons[0]!.value);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleLocationChange = (newId: number) => {
+    setSelectedLocationId(newId);
+    onLocationChange?.(newId);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +81,7 @@ export const StockMovementForm = ({
       const response = await fetch('/api/stock/movement', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, locationId, type, quantity: qty, reason, notes }),
+        body: JSON.stringify({ productId, locationId: selectedLocationId, type, quantity: qty, reason, notes }),
       });
 
       if (!response.ok) {
@@ -94,13 +108,31 @@ export const StockMovementForm = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="mb-2 rounded-md bg-muted px-3 py-2 text-sm">
-          <span className="font-medium">{productName}</span>
-          <span className="ml-2 text-muted-foreground">
-            Stock actual:
-            {' '}
-            <strong>{currentQuantity}</strong>
-          </span>
+        <div className="mb-2 space-y-1.5 rounded-md bg-muted px-3 py-2 text-sm">
+          <div>
+            <span className="font-medium">{productName}</span>
+            <span className="ml-2 text-muted-foreground">
+              Stock actual:
+              {' '}
+              <strong>{currentQuantity}</strong>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Local:</span>
+            {locations && locations.length > 1
+              ? (
+                  <select
+                    value={selectedLocationId}
+                    onChange={e => handleLocationChange(Number(e.target.value))}
+                    className="h-7 rounded border border-input bg-background px-2 text-xs"
+                  >
+                    {locations.map(loc => (
+                      <option key={loc.id} value={loc.id}>{loc.name}</option>
+                    ))}
+                  </select>
+                )
+              : <span className="font-medium">{locationName}</span>}
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
