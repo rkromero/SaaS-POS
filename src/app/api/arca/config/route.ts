@@ -89,6 +89,10 @@ export async function PUT(request: Request) {
     })
     .returning();
 
+  if (!result) {
+    return NextResponse.json({ error: 'No se pudo guardar la configuración' }, { status: 500 });
+  }
+
   const { cert: _c, privateKey: _k, ...safe } = result;
   return NextResponse.json({ ...safe, hasCert: !!result.cert, hasPrivateKey: !!result.privateKey });
 }
