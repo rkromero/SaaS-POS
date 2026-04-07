@@ -1,3 +1,10 @@
+## [1.14.5](https://github.com/rkromero/SaaS-POS/compare/v1.14.4...v1.14.5) (2026-04-07)
+
+
+### Bug Fixes
+
+* hacer opcionales vars de Stripe y Clerk sign-in URL en Env.ts ([4cff878](https://github.com/rkromero/SaaS-POS/commit/4cff878302b7fb0f85e5cd747781c2218a431cb4))
+
 ## [1.14.4](https://github.com/rkromero/SaaS-POS/compare/v1.14.3...v1.14.4) (2026-04-07)
 
 
