@@ -1,3 +1,10 @@
+## [1.19.1](https://github.com/rkromero/SaaS-POS/compare/v1.19.0...v1.19.1) (2026-04-07)
+
+
+### Bug Fixes
+
+* guard result undefined en arca config route ([de737fa](https://github.com/rkromero/SaaS-POS/commit/de737fa21806e18829ef6d4da47092b38bbce717))
+
 # [1.19.0](https://github.com/rkromero/SaaS-POS/compare/v1.18.0...v1.19.0) (2026-04-07)
 
 
