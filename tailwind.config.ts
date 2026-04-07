@@ -12,48 +12,52 @@ const config = {
         mono: ['var(--font-space-mono)', 'monospace'],
       },
       colors: {
-        // Landing page palette
-        g900: '#0d2318',
-        g800: '#14391f',
-        g700: '#1a5c2a',
-        g600: '#1e7a35',
-        g500: '#22a047',
-        g400: '#34c759',
-        g300: '#6fdb8a',
-        g100: '#e8f9ed',
-        g50: '#f3fdf6',
-        cream: '#faf8f3',
+        // ─── TuCaja Brand Palette (manual de marca v1.0) ─────────────────────
+        'g950': '#040e07',
+        'g900': '#0d2318',
+        'g800': '#1a5c2a',
+        'g700': '#1e7a35',
+        'g600': '#2a9444',
+        'g500': '#3ab55a',
+        'g400': '#5ecc7a',
+        'g300': '#8ddfa0',
+        'g200': '#b8edc5',
+        'g100': '#dcf5e3',
+        'g50': '#f3fdf6',
+        'cream-dark': '#e8e2d4',
+        'cream': '#faf8f3',
+        'cream-light': '#fefdf9',
         // shadcn tokens
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        primary: {
+        'border': 'hsl(var(--border))',
+        'input': 'hsl(var(--input))',
+        'ring': 'hsl(var(--ring))',
+        'background': 'hsl(var(--background))',
+        'foreground': 'hsl(var(--foreground))',
+        'primary': {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
         },
-        secondary: {
+        'secondary': {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
         },
-        destructive: {
+        'destructive': {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
-        muted: {
+        'muted': {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
         },
-        accent: {
+        'accent': {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
         },
-        popover: {
+        'popover': {
           DEFAULT: 'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))',
         },
-        card: {
+        'card': {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
