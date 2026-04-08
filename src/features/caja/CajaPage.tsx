@@ -39,6 +39,17 @@ export const CajaPage = () => {
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [closedSession, setClosedSession] = useState<Session | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const cancelOpening = () => {
+    setMode('view');
+    setError(null);
+  };
+
+  const cancelClosing = () => {
+    setMode('view');
+    setError(null);
+  };
 
   const loadStatus = () => {
     fetch('/api/caja/status')
@@ -55,6 +66,7 @@ export const CajaPage = () => {
   }, []);
 
   const handleOpen = async () => {
+    setError(null);
     setSaving(true);
     const res = await fetch('/api/caja/open', {
       method: 'POST',
@@ -64,6 +76,9 @@ export const CajaPage = () => {
     if (res.ok) {
       loadStatus();
       setMode('view');
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? `Error ${res.status} al abrir la caja`);
     }
     setSaving(false);
   };
@@ -72,6 +87,7 @@ export const CajaPage = () => {
     if (!session) {
       return;
     }
+    setError(null);
     setSaving(true);
     const res = await fetch('/api/caja/close', {
       method: 'POST',
@@ -87,6 +103,9 @@ export const CajaPage = () => {
       setClosedSession(closed);
       setMode('closed_summary');
       setSession(null);
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? `Error ${res.status} al cerrar la caja`);
     }
     setSaving(false);
   };
@@ -138,10 +157,13 @@ export const CajaPage = () => {
     return (
       <div className="mx-auto max-w-md space-y-4">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setMode('view')}>← Volver</Button>
+          <Button variant="ghost" size="sm" onClick={cancelOpening}>← Volver</Button>
           <h2 className="text-lg font-bold">Abrir caja</h2>
         </div>
         <div className="space-y-3 rounded-lg border bg-card p-4">
+          {error && (
+            <p className="rounded bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
+          )}
           <div>
             <Label>Fondo inicial ($)</Label>
             <Input
@@ -171,10 +193,13 @@ export const CajaPage = () => {
     return (
       <div className="mx-auto max-w-md space-y-4">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setMode('view')}>← Volver</Button>
+          <Button variant="ghost" size="sm" onClick={cancelClosing}>← Volver</Button>
           <h2 className="text-lg font-bold">Cerrar caja</h2>
         </div>
         <div className="space-y-3 rounded-lg border bg-card p-4">
+          {error && (
+            <p className="rounded bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
+          )}
           <div>
             <Label>Efectivo contado en caja ($)</Label>
             <Input

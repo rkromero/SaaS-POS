@@ -25,8 +25,21 @@ export async function POST(request: Request) {
 
   // Resolve locationId
   let resolvedLocationId: number;
-  if (orgRole === 'org:admin' && bodyLocationId) {
-    resolvedLocationId = Number(bodyLocationId);
+  if (orgRole === 'org:admin') {
+    if (bodyLocationId) {
+      resolvedLocationId = Number(bodyLocationId);
+    } else {
+      // Admin without explicit locationId: use the first location of the org
+      const [loc] = await db
+        .select({ id: locationSchema.id })
+        .from(locationSchema)
+        .where(eq(locationSchema.organizationId, orgId))
+        .limit(1);
+      if (!loc) {
+        return NextResponse.json({ error: 'No hay locales configurados' }, { status: 403 });
+      }
+      resolvedLocationId = loc.id;
+    }
   } else {
     const [assignment] = await db
       .select({ locationId: userLocationSchema.locationId })
