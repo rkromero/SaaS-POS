@@ -21,7 +21,13 @@ export async function GET(
 
   const [clerkOrg, dbOrgs, moduleRows] = await Promise.all([
     client.organizations.getOrganization({ organizationId: orgId }),
-    db.select().from(organizationSchema).where(eq(organizationSchema.id, orgId)),
+    db.select({
+      planType: organizationSchema.planType,
+      licenseType: organizationSchema.licenseType,
+      mpPlanStatus: organizationSchema.mpPlanStatus,
+      mpPreapprovalId: organizationSchema.mpPreapprovalId,
+      planExpiresAt: organizationSchema.planExpiresAt,
+    }).from(organizationSchema).where(eq(organizationSchema.id, orgId)),
     db.select().from(orgModuleSchema).where(eq(orgModuleSchema.orgId, orgId)),
   ]);
 
