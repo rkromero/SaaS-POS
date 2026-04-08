@@ -1,3 +1,10 @@
+## [1.22.2](https://github.com/rkromero/SaaS-POS/compare/v1.22.1...v1.22.2) (2026-04-08)
+
+
+### Bug Fixes
+
+* rediseño del tour con dos fases por paso ([43b12f6](https://github.com/rkromero/SaaS-POS/commit/43b12f62ac95795b650131d5696980184b3cdda0))
+
 ## [1.22.1](https://github.com/rkromero/SaaS-POS/compare/v1.22.0...v1.22.1) (2026-04-08)
 
 
