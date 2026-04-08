@@ -1,3 +1,10 @@
+## [1.22.1](https://github.com/rkromero/SaaS-POS/compare/v1.22.0...v1.22.1) (2026-04-08)
+
+
+### Bug Fixes
+
+* ocultar checklist durante spotlight para no tapar los links del sidebar ([86ef339](https://github.com/rkromero/SaaS-POS/commit/86ef33926ee7db9fa9417739aee6e940200ed644))
+
 # [1.22.0](https://github.com/rkromero/SaaS-POS/compare/v1.21.0...v1.22.0) (2026-04-08)
 
 
