@@ -4,22 +4,28 @@ import 'driver.js/dist/driver.css';
 
 import confetti from 'canvas-confetti';
 import { driver } from 'driver.js';
+import { X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import { useOnboarding } from './OnboardingContext';
+import type { OnboardingStepDef } from './onboardingSteps';
 import { ONBOARDING_STEPS, TOTAL_STEPS } from './onboardingSteps';
+
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
+function isOnTargetPage(pathname: string, href: string) {
+  const segment = href.replace('/dashboard/', '');
+  return pathname.includes(segment);
+}
 
 // ─── Welcome modal (step 0) ───────────────────────────────────────────────────
 
 function WelcomeModal({ onStart, onSkip }: { onStart: () => void; onSkip: () => void }) {
   return (
     <div className="fixed inset-0 z-[9998] flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-
-      {/* Card */}
       <div className="relative w-full max-w-md rounded-2xl bg-background p-8 shadow-2xl">
-        {/* Header */}
         <div className="mb-6 text-center">
           <div className="mb-4 inline-flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-4xl">
             🎯
@@ -34,18 +40,14 @@ function WelcomeModal({ onStart, onSkip }: { onStart: () => void; onSkip: () => 
           </p>
         </div>
 
-        {/* Steps preview */}
         <div className="mb-6 space-y-2">
           {[
             { icon: '📍', label: 'Crear tu local o sucursal' },
             { icon: '🛒', label: 'Cargar categorías y productos' },
             { icon: '📦', label: 'Ingresar el stock inicial' },
             { icon: '💰', label: 'Registrar tu primera venta' },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 rounded-lg bg-muted/50 px-4 py-2.5"
-            >
+          ].map(item => (
+            <div key={item.label} className="flex items-center gap-3 rounded-lg bg-muted/50 px-4 py-2.5">
               <span className="text-base">{item.icon}</span>
               <span className="text-sm text-foreground/80">{item.label}</span>
               <div className="ml-auto size-4 rounded-full border-2 border-muted-foreground/30" />
@@ -53,7 +55,6 @@ function WelcomeModal({ onStart, onSkip }: { onStart: () => void; onSkip: () => 
           ))}
         </div>
 
-        {/* Actions */}
         <div className="flex gap-3">
           <button
             type="button"
@@ -75,14 +76,69 @@ function WelcomeModal({ onStart, onSkip }: { onStart: () => void; onSkip: () => 
   );
 }
 
+// ─── Floating card (cuando el usuario ya está en la página destino) ───────────
+
+function FloatingStepCard({
+  stepDef,
+  onNext,
+  onSkip,
+}: {
+  stepDef: OnboardingStepDef;
+  onNext: () => void;
+  onSkip: () => void;
+}) {
+  return (
+    <div className="fixed bottom-6 right-6 z-[9998] w-80 rounded-2xl border bg-background p-5 shadow-2xl">
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
+            {stepDef.step}
+          </div>
+          <span className="text-sm font-semibold">{stepDef.pageTitle}</span>
+        </div>
+        <button
+          type="button"
+          onClick={onSkip}
+          aria-label="Saltar guía"
+          className="shrink-0 rounded-md p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
+
+      <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
+        {stepDef.pageInstruction}
+      </p>
+
+      {/* Barra de progreso por pasos */}
+      <div className="mb-3 flex items-center gap-1.5">
+        {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+          <div
+            key={i}
+            className={`h-1 flex-1 rounded-full transition-all ${
+              i < stepDef.step ? 'bg-primary' : 'bg-muted'
+            }`}
+          />
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={onNext}
+        className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+      >
+        {stepDef.pageActionLabel}
+      </button>
+    </div>
+  );
+}
+
 // ─── Completion modal (step 5) ────────────────────────────────────────────────
 
 function CompletionModal({ onFinish }: { onFinish: () => void }) {
-  // Fire confetti on mount
   useEffect(() => {
     const end = Date.now() + 2800;
     const colors = ['#a855f7', '#6366f1', '#22c55e', '#f59e0b'];
-
     const frame = () => {
       confetti({ particleCount: 3, angle: 60, spread: 60, origin: { x: 0 }, colors });
       confetti({ particleCount: 3, angle: 120, spread: 60, origin: { x: 1 }, colors });
@@ -90,7 +146,6 @@ function CompletionModal({ onFinish }: { onFinish: () => void }) {
         requestAnimationFrame(frame);
       }
     };
-
     const id = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(id);
   }, []);
@@ -108,25 +163,18 @@ function CompletionModal({ onFinish }: { onFinish: () => void }) {
             Completaste la configuración inicial. Tu negocio está listo para operar con TuCaja.
           </p>
         </div>
-
-        <div className="space-y-2 text-left">
-          {[
-            { icon: '✅', label: 'Local creado' },
-            { icon: '✅', label: 'Productos cargados' },
-            { icon: '✅', label: 'Stock configurado' },
-            { icon: '✅', label: 'Primera venta lista' },
-          ].map((item, i) => (
-            <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
+        <div className="mb-6 space-y-2 text-left">
+          {['Local creado', 'Productos cargados', 'Stock configurado', 'Primera venta lista'].map(label => (
+            <div key={label} className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>✅</span>
+              <span>{label}</span>
             </div>
           ))}
         </div>
-
         <button
           type="button"
           onClick={onFinish}
-          className="mt-6 w-full rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          className="w-full rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
         >
           Ir al Dashboard →
         </button>
@@ -135,18 +183,13 @@ function CompletionModal({ onFinish }: { onFinish: () => void }) {
   );
 }
 
-// ─── Skip confirmation dialog (rendered over driver.js overlay) ───────────────
+// ─── Skip confirmation ────────────────────────────────────────────────────────
 
-function SkipConfirmDialog({
-  onCancel,
-  onConfirm,
-}: {
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
+function SkipConfirmDialog({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: () => void }) {
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
-      <div className="w-full max-w-sm rounded-2xl bg-background p-6 shadow-2xl">
+      <div className="absolute inset-0 bg-black/40" />
+      <div className="relative w-full max-w-sm rounded-2xl bg-background p-6 shadow-2xl">
         <h3 className="font-semibold">¿Saltar la guía?</h3>
         <p className="mt-1 text-sm text-muted-foreground">
           Podés volver a verla cuando quieras desde
@@ -181,12 +224,12 @@ function SkipConfirmDialog({
 export function OnboardingTour() {
   const { step, isActive, advanceStep, completeTour, skipTour } = useOnboarding();
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
-
-  // driver instance stored in ref to clean up between step changes
   const driverRef = useRef<ReturnType<typeof driver> | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
+  // ── Spotlight en sidebar: solo cuando NO está en la página destino ─────────
   useEffect(() => {
-    // Only run driver.js for steps 1–4
     if (!isActive || step < 1 || step > TOTAL_STEPS) {
       return;
     }
@@ -196,31 +239,34 @@ export function OnboardingTour() {
       return;
     }
 
+    // Ya está en la página destino → floating card lo maneja, no mostrar spotlight
+    if (isOnTargetPage(pathname, stepDef.href)) {
+      return;
+    }
+
     let driverInstance: ReturnType<typeof driver> | null = null;
 
-    // Small delay so the sidebar has painted and the target element is in the DOM
     const timer = setTimeout(() => {
-      const el = document.getElementById(stepDef.targetId);
+      const el = document.getElementById(stepDef.navTargetId);
       if (!el) {
         return;
       }
 
       driverInstance = driver({
         allowClose: false,
+        disableActiveInteraction: false, // permite hacer click en el link resaltado
         overlayOpacity: 0.65,
         stagePadding: 8,
         stageRadius: 10,
         showButtons: ['next', 'close'],
-        nextBtnText: stepDef.actionLabel,
-        doneBtnText: stepDef.actionLabel,
+        nextBtnText: stepDef.navActionLabel,
+        doneBtnText: stepDef.navActionLabel,
         popoverClass: 'tucaja-onboarding-popover',
         onNextClick: () => {
           driverInstance?.destroy();
-          advanceStep();
+          router.push(stepDef.href);
         },
         onCloseClick: () => {
-          // Intercept close: show our own confirmation dialog.
-          // driver.js won't auto-destroy because we're overriding the handler.
           setShowSkipConfirm(true);
         },
       });
@@ -228,10 +274,10 @@ export function OnboardingTour() {
       driverRef.current = driverInstance;
 
       driverInstance.highlight({
-        element: `#${stepDef.targetId}`,
+        element: `#${stepDef.navTargetId}`,
         popover: {
-          title: stepDef.title,
-          description: stepDef.description,
+          title: stepDef.navTitle,
+          description: stepDef.navDescription,
           side: 'right',
           align: 'center',
         },
@@ -242,35 +288,44 @@ export function OnboardingTour() {
       clearTimeout(timer);
       driverInstance?.destroy();
     };
-    // advanceStep is stable (useCallback), so no infinite loop
-  }, [step, isActive]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [step, isActive, pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  // Tour not active and not on completion screen → render nothing
-  if (!isActive && step !== -1) {
-    return null;
-  }
   if (step === -1) {
     return null;
   }
 
+  const currentStepDef = ONBOARDING_STEPS.find(s => s.step === step);
+  const showFloatingCard
+    = isActive
+    && step >= 1
+    && step <= TOTAL_STEPS
+    && currentStepDef !== undefined
+    && isOnTargetPage(pathname, currentStepDef.href);
+
   return (
     <>
-      {/* Welcome modal */}
-      {step === 0 && (
-        <WelcomeModal
-          onStart={advanceStep}
-          onSkip={skipTour}
+      {/* Paso 0: modal de bienvenida */}
+      {step === 0 && isActive && (
+        <WelcomeModal onStart={advanceStep} onSkip={skipTour} />
+      )}
+
+      {/* Pasos 1-4 en la página destino: floating card */}
+      {showFloatingCard && currentStepDef && (
+        <FloatingStepCard
+          stepDef={currentStepDef}
+          onNext={advanceStep}
+          onSkip={() => setShowSkipConfirm(true)}
         />
       )}
 
-      {/* Completion modal (step 5) */}
+      {/* Paso 5: modal de completado */}
       {step === TOTAL_STEPS + 1 && isActive && (
         <CompletionModal onFinish={completeTour} />
       )}
 
-      {/* Skip confirmation – rendered on top of driver.js overlay */}
+      {/* Confirmación de skip */}
       {showSkipConfirm && (
         <SkipConfirmDialog
           onCancel={() => setShowSkipConfirm(false)}
