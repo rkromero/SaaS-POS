@@ -1,3 +1,10 @@
+## [1.20.1](https://github.com/rkromero/SaaS-POS/compare/v1.20.0...v1.20.1) (2026-04-08)
+
+
+### Bug Fixes
+
+* agregar manejo de errores en loadStatus para evitar pantalla en blanco ([89e4780](https://github.com/rkromero/SaaS-POS/commit/89e4780495745a8c245a9a6852322f95a9e41502))
+
 # [1.20.0](https://github.com/rkromero/SaaS-POS/compare/v1.19.4...v1.20.0) (2026-04-08)
 
 
