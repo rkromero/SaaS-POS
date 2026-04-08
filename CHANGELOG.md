@@ -1,3 +1,10 @@
+## [1.20.2](https://github.com/rkromero/SaaS-POS/compare/v1.20.1...v1.20.2) (2026-04-08)
+
+
+### Bug Fixes
+
+* capturar error interno en /api/caja/status para diagnóstico ([850f550](https://github.com/rkromero/SaaS-POS/commit/850f550f75769b090ac0711719034afc4fe9247f))
+
 ## [1.20.1](https://github.com/rkromero/SaaS-POS/compare/v1.20.0...v1.20.1) (2026-04-08)
 
 
