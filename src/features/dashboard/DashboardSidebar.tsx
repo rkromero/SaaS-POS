@@ -1,6 +1,6 @@
 'use client';
 
-import { UserButton, useOrganization } from '@clerk/nextjs';
+import { useOrganization, UserButton } from '@clerk/nextjs';
 import {
   AlertTriangle,
   BarChart3,
@@ -27,12 +27,15 @@ import { useState } from 'react';
 
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { useBranding } from '@/features/branding/BrandingContext';
+import { OnboardingChecklist } from '@/features/onboarding/OnboardingChecklist';
 import { Logo } from '@/templates/Logo';
 
 type NavItem = {
   href: string;
   label: string;
   icon: React.ReactNode;
+  /** Used by the onboarding tour to highlight specific nav links */
+  tourId?: string;
 };
 
 type NavGroup = {
@@ -53,7 +56,7 @@ const navGroups: NavGroup[] = [
   {
     label: 'Operaciones',
     items: [
-      { href: '/dashboard/pos', label: 'Caja POS', icon: <ShoppingCart className={iconClass} /> },
+      { href: '/dashboard/pos', label: 'Caja POS', icon: <ShoppingCart className={iconClass} />, tourId: 'nav-pos' },
       { href: '/dashboard/caja', label: 'Apertura / Cierre', icon: <Wallet className={iconClass} /> },
       { href: '/dashboard/fiado', label: 'Fiado', icon: <HandCoins className={iconClass} /> },
       { href: '/dashboard/sales', label: 'Ventas', icon: <BarChart3 className={iconClass} /> },
@@ -69,8 +72,8 @@ const navGroups: NavGroup[] = [
   {
     label: 'Inventario',
     items: [
-      { href: '/dashboard/products', label: 'Productos', icon: <Package className={iconClass} /> },
-      { href: '/dashboard/stock', label: 'Stock', icon: <AlertTriangle className={iconClass} /> },
+      { href: '/dashboard/products', label: 'Productos', icon: <Package className={iconClass} />, tourId: 'nav-products' },
+      { href: '/dashboard/stock', label: 'Stock', icon: <AlertTriangle className={iconClass} />, tourId: 'nav-stock' },
       { href: '/dashboard/suppliers', label: 'Proveedores', icon: <Truck className={iconClass} /> },
     ],
   },
@@ -78,7 +81,7 @@ const navGroups: NavGroup[] = [
     label: 'Administración',
     adminOnly: true,
     items: [
-      { href: '/dashboard/locations', label: 'Locales', icon: <Store className={iconClass} /> },
+      { href: '/dashboard/locations', label: 'Locales', icon: <Store className={iconClass} />, tourId: 'nav-locations' },
       { href: '/dashboard/members', label: 'Miembros', icon: <Users className={iconClass} /> },
       { href: '/dashboard/billing', label: 'Planes', icon: <CreditCard className={iconClass} /> },
       { href: '/dashboard/arca', label: 'Facturación ARCA', icon: <FileText className={iconClass} /> },
@@ -98,6 +101,7 @@ function NavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
 
   return (
     <Link
+      id={item.tourId}
       href={item.href}
       onClick={onClick}
       className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
@@ -159,6 +163,9 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
           ))}
         </div>
       </nav>
+
+      {/* Onboarding checklist — visible until tour is completed */}
+      <OnboardingChecklist />
 
       {/* Bottom: user + locale */}
       <div className="border-t px-4 py-3">

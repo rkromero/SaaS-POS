@@ -4,6 +4,8 @@ import { getTranslations } from 'next-intl/server';
 
 import { BrandingProvider } from '@/features/branding/BrandingContext';
 import { DashboardSidebar } from '@/features/dashboard/DashboardSidebar';
+import { OnboardingProvider } from '@/features/onboarding/OnboardingContext';
+import { OnboardingTour } from '@/features/onboarding/OnboardingTour';
 import { db } from '@/libs/DB';
 import { brandingSchema } from '@/models/Schema';
 
@@ -33,14 +35,18 @@ export default async function DashboardLayout(props: { children: React.ReactNode
 
   return (
     <BrandingProvider branding={branding}>
-      <div className="min-h-screen bg-muted">
-        <DashboardSidebar />
-        <main className="lg:pl-56">
-          <div className="px-4 pb-16 pt-6 sm:px-6">
-            {props.children}
-          </div>
-        </main>
-      </div>
+      <OnboardingProvider>
+        <div className="min-h-screen bg-muted">
+          <DashboardSidebar />
+          <main className="lg:pl-56">
+            <div className="px-4 pb-16 pt-6 sm:px-6">
+              {props.children}
+            </div>
+          </main>
+        </div>
+        {/* Onboarding tour — mounts once, manages its own visibility */}
+        <OnboardingTour />
+      </OnboardingProvider>
     </BrandingProvider>
   );
 }

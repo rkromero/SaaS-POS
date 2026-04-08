@@ -93,3 +93,80 @@
     font-family: var(--font-lora), Georgia, serif;
   }
 }
+
+/* ─── driver.js onboarding popover — TuCaja theme ───────────────────────── */
+.tucaja-onboarding-popover.driver-popover {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 14px;
+  box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.35);
+  max-width: 320px;
+  font-family: inherit;
+}
+
+.tucaja-onboarding-popover .driver-popover-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin-bottom: 6px;
+}
+
+.tucaja-onboarding-popover .driver-popover-description {
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.55;
+}
+
+.tucaja-onboarding-popover .driver-popover-footer {
+  margin-top: 14px;
+  gap: 8px;
+}
+
+.tucaja-onboarding-popover .driver-popover-next-btn {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  text-shadow: none;
+}
+
+.tucaja-onboarding-popover .driver-popover-next-btn:hover {
+  opacity: 0.88;
+}
+
+.tucaja-onboarding-popover .driver-popover-close-btn {
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tucaja-onboarding-popover .driver-popover-close-btn:hover {
+  background: hsl(var(--muted));
+}
+
+.tucaja-onboarding-popover .driver-popover-arrow-side-left.driver-popover-arrow {
+  border-right-color: hsl(var(--background));
+}
+
+.tucaja-onboarding-popover .driver-popover-arrow-side-right.driver-popover-arrow {
+  border-left-color: hsl(var(--background));
+}
+
+.tucaja-onboarding-popover .driver-popover-arrow-side-top.driver-popover-arrow {
+  border-bottom-color: hsl(var(--background));
+}
+
+.tucaja-onboarding-popover .driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-top-color: hsl(var(--background));
+}
