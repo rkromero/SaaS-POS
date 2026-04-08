@@ -1,3 +1,10 @@
+# [1.23.0](https://github.com/rkromero/SaaS-POS/compare/v1.22.2...v1.23.0) (2026-04-08)
+
+
+### Features
+
+* aplicar límites de plan en locales y ventas ([adbe071](https://github.com/rkromero/SaaS-POS/commit/adbe071e2706828c375f57335ab96eba37a46e9f))
+
 ## [1.22.2](https://github.com/rkromero/SaaS-POS/compare/v1.22.1...v1.22.2) (2026-04-08)
 
 
