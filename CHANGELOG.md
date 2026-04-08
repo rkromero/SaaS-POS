@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/rkromero/SaaS-POS/compare/v1.20.3...v1.21.0) (2026-04-08)
+
+
+### Features
+
+* sistema de super admin con licencias becada y módulos por cliente ([09122bd](https://github.com/rkromero/SaaS-POS/commit/09122bdf3c96bdcfce8353e952b539a2d727c868))
+
 ## [1.20.3](https://github.com/rkromero/SaaS-POS/compare/v1.20.2...v1.20.3) (2026-04-08)
 
 
