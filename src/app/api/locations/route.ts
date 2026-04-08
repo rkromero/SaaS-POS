@@ -1,8 +1,9 @@
 import { auth } from '@clerk/nextjs/server';
-import { eq } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
+import { getOrgAccess } from '@/libs/OrgAccess';
 import { locationSchema } from '@/models/Schema';
 
 // GET /api/locations — list all locations for the current organization
@@ -43,6 +44,29 @@ export async function POST(request: Request) {
   if (!name || typeof name !== 'string' || name.trim() === '') {
     return NextResponse.json({ error: 'El nombre es requerido' }, { status: 400 });
   }
+
+  // ── Verificar límite de locales según el plan ─────────────────────────────
+  const [access, locationCountResult] = await Promise.all([
+    getOrgAccess(orgId),
+    db.select({ locationCount: count() })
+      .from(locationSchema)
+      .where(eq(locationSchema.organizationId, orgId)),
+  ]);
+
+  const locationCount = locationCountResult[0]?.locationCount ?? 0;
+
+  if (!access.canAddLocation(locationCount)) {
+    return NextResponse.json(
+      {
+        error: access.locationLimitMessage,
+        code: 'PLAN_LIMIT_LOCATIONS',
+        current: locationCount,
+        limit: access.maxLocations,
+      },
+      { status: 403 },
+    );
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   const [location] = await db
     .insert(locationSchema)

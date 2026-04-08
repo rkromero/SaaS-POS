@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -24,9 +25,17 @@ type Location = {
   createdAt: string;
 };
 
+type PlanInfo = {
+  plan: {
+    name: string;
+    maxLocations: number; // -1 = unlimited
+  };
+};
+
 export const LocationList = ({ isAdmin }: { isAdmin: boolean }) => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
+  const [planInfo, setPlanInfo] = useState<PlanInfo | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Location | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
@@ -36,9 +45,16 @@ export const LocationList = ({ isAdmin }: { isAdmin: boolean }) => {
   const fetchLocations = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/locations');
-      const data = await res.json();
-      setLocations(data);
+      const [locationsRes, planRes] = await Promise.all([
+        fetch('/api/locations'),
+        fetch('/api/billing/status'),
+      ]);
+      const [locationsData, planData] = await Promise.all([
+        locationsRes.json(),
+        planRes.json(),
+      ]);
+      setLocations(locationsData);
+      setPlanInfo(planData);
     } finally {
       setLoading(false);
     }
@@ -86,11 +102,68 @@ export const LocationList = ({ isAdmin }: { isAdmin: boolean }) => {
     setFormOpen(true);
   };
 
+  // Límite de locales según el plan
+  const maxLocations = planInfo?.plan.maxLocations ?? -1;
+  const atLocationLimit = maxLocations !== -1 && locations.length >= maxLocations;
+
   return (
     <div className="space-y-4">
       {isAdmin && (
-        <div className="flex justify-end">
-          <Button onClick={openCreate}>+ Nuevo local</Button>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Contador de uso */}
+          {maxLocations !== -1 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                Locales:
+              </span>
+              <Badge variant={atLocationLimit ? 'destructive' : 'secondary'}>
+                {locations.length}
+                {' '}
+                /
+                {' '}
+                {maxLocations}
+              </Badge>
+              {atLocationLimit && (
+                <Link
+                  href="/dashboard/billing"
+                  className="text-xs text-primary underline-offset-2 hover:underline"
+                >
+                  Actualizá tu plan
+                </Link>
+              )}
+            </div>
+          )}
+
+          <Button onClick={openCreate} disabled={atLocationLimit}>
+            + Nuevo local
+          </Button>
+        </div>
+      )}
+
+      {/* Aviso de límite alcanzado */}
+      {isAdmin && atLocationLimit && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3">
+          <p className="text-sm text-destructive">
+            <strong>Límite alcanzado.</strong>
+            {' '}
+            Tu plan
+            {' '}
+            <strong>{planInfo?.plan.name}</strong>
+            {' '}
+            permite hasta
+            {' '}
+            {maxLocations}
+            {' '}
+            local
+            {maxLocations !== 1 ? 'es' : ''}
+            .
+            {' '}
+            <Link href="/dashboard/billing" className="underline underline-offset-2">
+              Actualizá tu plan
+            </Link>
+            {' '}
+            para agregar más sucursales.
+          </p>
         </div>
       )}
 

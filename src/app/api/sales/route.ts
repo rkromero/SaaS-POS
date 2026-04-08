@@ -1,8 +1,9 @@
 import { auth } from '@clerk/nextjs/server';
-import { and, count, eq, sql } from 'drizzle-orm';
+import { and, count, eq, gte, sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
+import { getOrgAccess } from '@/libs/OrgAccess';
 import {
   customerSchema,
   debtTransactionSchema,
@@ -100,10 +101,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Local no encontrado' }, { status: 404 });
   }
 
-  // Todas las queries de validación en paralelo: productos + stock + receipt number + customer
+  // Todas las queries de validación en paralelo: productos + stock + receipt number + plan + ventas del mes
   const productIds = items.map((i: { productId: number }) => Number(i.productId));
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
 
-  const [productsResult, stocksResult, countResult] = await Promise.all([
+  const [productsResult, stocksResult, countResult, monthlySalesResult, access] = await Promise.all([
     // Trae todos los productos del carrito en una sola query
     db.select().from(productSchema).where(
       and(
@@ -119,10 +123,35 @@ export async function POST(request: Request) {
       ),
     ).then(rows => rows.filter(s => productIds.includes(s.productId))),
 
-    // Cuenta las ventas para generar el número de comprobante
+    // Cuenta las ventas totales para generar el número de comprobante
     db.select({ salesCount: count() }).from(saleSchema)
       .where(eq(saleSchema.organizationId, orgId)),
+
+    // Cuenta las ventas del mes actual para verificar el límite del plan
+    db.select({ monthlyCount: count() }).from(saleSchema)
+      .where(and(
+        eq(saleSchema.organizationId, orgId),
+        gte(saleSchema.createdAt, startOfMonth),
+      )),
+
+    // Plan y límites de la org
+    getOrgAccess(orgId),
   ]);
+
+  // ── Verificar límite mensual de ventas según el plan ─────────────────────
+  const monthlyCount = monthlySalesResult[0]?.monthlyCount ?? 0;
+  if (!access.canRegisterSale(monthlyCount)) {
+    return NextResponse.json(
+      {
+        error: access.saleLimitMessage,
+        code: 'PLAN_LIMIT_SALES',
+        current: monthlyCount,
+        limit: access.maxMonthlySales,
+      },
+      { status: 403 },
+    );
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   // Valida cada ítem contra los resultados obtenidos
   const enrichedItems = [];
