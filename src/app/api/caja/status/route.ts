@@ -7,6 +7,15 @@ import { cashRegisterSessionSchema, locationSchema, userLocationSchema } from '@
 
 // GET /api/caja/status — returns the open session for the caller's location (or null)
 export async function GET() {
+  try {
+    return await handler();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: `Internal: ${msg}` }, { status: 500 });
+  }
+}
+
+async function handler() {
   const { userId, orgId, orgRole } = await auth();
   if (!userId || !orgId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
