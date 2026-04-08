@@ -1,3 +1,10 @@
+## [1.20.3](https://github.com/rkromero/SaaS-POS/compare/v1.20.2...v1.20.3) (2026-04-08)
+
+
+### Bug Fixes
+
+* remover wrapper de debug de /api/caja/status ([86cdddf](https://github.com/rkromero/SaaS-POS/commit/86cdddf12204aa20ad25e117404e5b3b3e4fa612))
+
 ## [1.20.2](https://github.com/rkromero/SaaS-POS/compare/v1.20.1...v1.20.2) (2026-04-08)
 
 
