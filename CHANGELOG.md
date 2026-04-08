@@ -1,3 +1,10 @@
+# [1.20.0](https://github.com/rkromero/SaaS-POS/compare/v1.19.4...v1.20.0) (2026-04-08)
+
+
+### Features
+
+* agregar posnet, mercadopago y plataforma de envíos a apertura/cierre de caja ([5dd9719](https://github.com/rkromero/SaaS-POS/commit/5dd971986abac7f9ba4704cf195abe9ddc084529))
+
 ## [1.19.4](https://github.com/rkromero/SaaS-POS/compare/v1.19.3...v1.19.4) (2026-04-08)
 
 
