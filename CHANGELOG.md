@@ -1,3 +1,10 @@
+## [1.19.4](https://github.com/rkromero/SaaS-POS/compare/v1.19.3...v1.19.4) (2026-04-08)
+
+
+### Bug Fixes
+
+* corregir apertura de caja para admins y agregar feedback de errores ([4ff768e](https://github.com/rkromero/SaaS-POS/commit/4ff768eeef36e5d93f8b7648b310486d6702f742))
+
 ## [1.19.3](https://github.com/rkromero/SaaS-POS/compare/v1.19.2...v1.19.3) (2026-04-07)
 
 
