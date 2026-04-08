@@ -22,6 +22,11 @@ export function OnboardingChecklist() {
     return null;
   }
 
+  // Hide while driver.js spotlight is active so it no tapa los links del sidebar
+  if (step >= 1 && step <= TOTAL_STEPS) {
+    return null;
+  }
+
   const completedCount = doneSteps.length;
   const progressPercent = Math.round((completedCount / TOTAL_STEPS) * 100);
 
