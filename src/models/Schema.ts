@@ -45,6 +45,11 @@ export const organizationSchema = pgTable(
     planExpiresAt: timestamp('plan_expires_at', { mode: 'date' }),
     // Super admin license — overrides plan restrictions
     licenseType: licenseTypeEnum('license_type').default('none').notNull(),
+    // Mercado Pago OAuth — cuenta propia de la org para Control MP
+    mpOauthAccessToken: text('mp_oauth_access_token'),
+    mpOauthRefreshToken: text('mp_oauth_refresh_token'),
+    mpOauthUserId: text('mp_oauth_user_id'), // MP user_id, usado para routing de webhooks
+    mpWebhookId: text('mp_webhook_id'), // ID del webhook registrado en MP
     updatedAt: timestamp('updated_at', { mode: 'date' })
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -653,5 +658,38 @@ export const purchaseOrderItemSchema = pgTable(
     purchaseOrderItemOrderIdx: index('purchase_order_item_order_idx').on(
       table.purchaseOrderId,
     ),
+  }),
+);
+
+// ---------------------------------------------------------------------------
+// MP Notifications — notificaciones de Mercado Pago por organización
+// ---------------------------------------------------------------------------
+
+export const mpNotificationSchema = pgTable(
+  'mp_notification',
+  {
+    id: serial('id').primaryKey(),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizationSchema.id, { onDelete: 'cascade' }),
+    mpNotificationId: text('mp_notification_id').notNull(),
+    topic: text('topic').notNull(),
+    action: text('action'),
+    resourceId: text('resource_id'),
+    // Datos del pago (enriquecidos tras fetch a MP API)
+    status: text('status'),
+    amount: numeric('amount', { precision: 15, scale: 2 }),
+    description: text('description'),
+    payerEmail: text('payer_email'),
+    payerName: text('payer_name'),
+    paymentMethodId: text('payment_method_id'),
+    paymentTypeId: text('payment_type_id'),
+    externalReference: text('external_reference'),
+    rawPayload: text('raw_payload'),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => ({
+    mpNotifOrgIdx: index('mp_notif_org_idx').on(table.orgId),
+    mpNotifUniqueIdx: uniqueIndex('mp_notif_unique_idx').on(table.orgId, table.mpNotificationId),
   }),
 );

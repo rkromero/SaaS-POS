@@ -36,6 +36,8 @@ type NavItem = {
   icon: React.ReactNode;
   /** Used by the onboarding tour to highlight specific nav links */
   tourId?: string;
+  /** Only shown if this module is in enabledModules */
+  moduleRequired?: string;
 };
 
 type NavGroup = {
@@ -61,6 +63,7 @@ const navGroups: NavGroup[] = [
       { href: '/dashboard/fiado', label: 'Fiado', icon: <HandCoins className={iconClass} /> },
       { href: '/dashboard/sales', label: 'Ventas', icon: <BarChart3 className={iconClass} /> },
       { href: '/dashboard/expenses', label: 'Gastos', icon: <MinusCircle className={iconClass} /> },
+      { href: '/dashboard/mp-control', label: 'Control MP', icon: <CreditCard className={iconClass} />, moduleRequired: 'mp_control' },
     ],
   },
   {
@@ -116,12 +119,18 @@ function NavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
   );
 }
 
-function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
+function SidebarContent({ onLinkClick, enabledModules }: { onLinkClick?: () => void; enabledModules: string[] }) {
   const { membership, organization } = useOrganization();
   const branding = useBranding();
   const isAdmin = membership?.role === 'org:admin';
 
-  const visibleGroups = navGroups.filter(g => !g.adminOnly || isAdmin);
+  const visibleGroups = navGroups
+    .filter(g => !g.adminOnly || isAdmin)
+    .map(g => ({
+      ...g,
+      items: g.items.filter(item => !item.moduleRequired || enabledModules.includes(item.moduleRequired)),
+    }))
+    .filter(g => g.items.length > 0);
 
   return (
     <div className="flex h-full flex-col">
@@ -184,14 +193,16 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
   );
 }
 
-export const DashboardSidebar = () => {
+const EMPTY_MODULES: string[] = [];
+
+export const DashboardSidebar = ({ enabledModules = EMPTY_MODULES }: { enabledModules?: string[] }) => {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       {/* Desktop sidebar — always visible */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 border-r bg-background lg:flex lg:flex-col">
-        <SidebarContent />
+        <SidebarContent enabledModules={enabledModules} />
       </aside>
 
       {/* Mobile: top bar with hamburger */}
@@ -231,7 +242,7 @@ export const DashboardSidebar = () => {
                 <X className="size-4" />
               </button>
             </div>
-            <SidebarContent onLinkClick={() => setOpen(false)} />
+            <SidebarContent enabledModules={enabledModules} onLinkClick={() => setOpen(false)} />
           </aside>
         </>
       )}

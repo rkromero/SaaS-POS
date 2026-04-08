@@ -7,7 +7,7 @@ import { DashboardSidebar } from '@/features/dashboard/DashboardSidebar';
 import { OnboardingProvider } from '@/features/onboarding/OnboardingContext';
 import { OnboardingTour } from '@/features/onboarding/OnboardingTour';
 import { db } from '@/libs/DB';
-import { brandingSchema } from '@/models/Schema';
+import { brandingSchema, orgModuleSchema } from '@/models/Schema';
 
 export async function generateMetadata(props: { params: { locale: string } }) {
   const t = await getTranslations({
@@ -25,19 +25,21 @@ export default async function DashboardLayout(props: { children: React.ReactNode
   const { orgId } = await auth();
 
   let branding = null;
+  let enabledModules: string[] = [];
   if (orgId) {
-    const [result] = await db
-      .select()
-      .from(brandingSchema)
-      .where(eq(brandingSchema.organizationId, orgId));
-    branding = result ?? null;
+    const [brandingResult, modulesResult] = await Promise.all([
+      db.select().from(brandingSchema).where(eq(brandingSchema.organizationId, orgId)),
+      db.select({ moduleName: orgModuleSchema.moduleName }).from(orgModuleSchema).where(eq(orgModuleSchema.orgId, orgId)),
+    ]);
+    branding = brandingResult[0] ?? null;
+    enabledModules = modulesResult.map(m => m.moduleName);
   }
 
   return (
     <BrandingProvider branding={branding}>
       <OnboardingProvider>
         <div className="min-h-screen bg-muted">
-          <DashboardSidebar />
+          <DashboardSidebar enabledModules={enabledModules} />
           <main className="lg:pl-56">
             <div className="px-4 pb-16 pt-6 sm:px-6">
               {props.children}

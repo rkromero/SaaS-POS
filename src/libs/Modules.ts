@@ -8,7 +8,8 @@ export type ModuleId =
   | 'multi_location'
   | 'exports'
   | 'integrations'
-  | 'ai_features';
+  | 'ai_features'
+  | 'mp_control';
 
 export type Module = {
   id: ModuleId;
@@ -51,6 +52,11 @@ export const MODULES: Module[] = [
     id: 'ai_features',
     name: 'Funcionalidades con IA',
     description: 'Sugerencias y análisis inteligentes',
+  },
+  {
+    id: 'mp_control',
+    name: 'Control Mercado Pago',
+    description: 'Notificaciones de cobros, depósitos y transferencias en tiempo real',
   },
 ];
 
