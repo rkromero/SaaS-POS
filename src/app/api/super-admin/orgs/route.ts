@@ -18,8 +18,14 @@ export async function GET() {
   // Fetch all Clerk organizations (paginado hasta 500)
   const { data: clerkOrgs } = await client.organizations.getOrganizationList({ limit: 500 });
 
-  // Fetch DB records
-  const dbOrgs = await db.select().from(organizationSchema);
+  // Fetch DB records — solo los campos necesarios para evitar errores si hay columnas pendientes de migrar
+  const dbOrgs = await db.select({
+    id: organizationSchema.id,
+    planType: organizationSchema.planType,
+    licenseType: organizationSchema.licenseType,
+    mpPlanStatus: organizationSchema.mpPlanStatus,
+    planExpiresAt: organizationSchema.planExpiresAt,
+  }).from(organizationSchema);
 
   // Count modules per org
   const moduleCounts = await db
