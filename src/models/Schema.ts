@@ -440,16 +440,22 @@ export const cashRegisterSessionSchema = pgTable(
       .references(() => locationSchema.id, { onDelete: 'cascade' }),
     userId: text('user_id').notNull(), // who opened the session
     closedByUserId: text('closed_by_user_id'),
-    openingBalance: numeric('opening_balance', {
-      precision: 10,
-      scale: 2,
-    }).notNull(), // fondo inicial
+    openingBalance: numeric('opening_balance', { precision: 10, scale: 2 }).notNull(), // efectivo inicial
+    openingPosnet: numeric('opening_posnet', { precision: 10, scale: 2 }), // fondo inicial posnet
+    openingMercadopago: numeric('opening_mercadopago', { precision: 10, scale: 2 }), // fondo inicial mercadopago
+    openingEnvios: numeric('opening_envios', { precision: 10, scale: 2 }), // fondo inicial plataforma envíos
     closingBalance: numeric('closing_balance', { precision: 10, scale: 2 }), // efectivo contado al cerrar
+    closingPosnet: numeric('closing_posnet', { precision: 10, scale: 2 }), // posnet contado al cerrar
+    closingMercadopago: numeric('closing_mercadopago', { precision: 10, scale: 2 }), // mercadopago contado al cerrar
+    closingEnvios: numeric('closing_envios', { precision: 10, scale: 2 }), // envíos contado al cerrar
     totalSales: numeric('total_sales', { precision: 10, scale: 2 }), // calculado al cerrar
     totalCash: numeric('total_cash', { precision: 10, scale: 2 }), // ventas en efectivo
     totalTransfer: numeric('total_transfer', { precision: 10, scale: 2 }),
     totalCard: numeric('total_card', { precision: 10, scale: 2 }),
     difference: numeric('difference', { precision: 10, scale: 2 }), // closingBalance - (openingBalance + totalCash)
+    differencePosnet: numeric('difference_posnet', { precision: 10, scale: 2 }), // closingPosnet - (openingPosnet + totalCard)
+    differenceMercadopago: numeric('difference_mercadopago', { precision: 10, scale: 2 }), // closingMercadopago - (openingMercadopago + totalTransfer)
+    differenceEnvios: numeric('difference_envios', { precision: 10, scale: 2 }), // closingEnvios - openingEnvios
     notes: text('notes'),
     status: cashRegisterStatusEnum('status').default('open').notNull(),
     openedAt: timestamp('opened_at', { mode: 'date' }).defaultNow().notNull(),

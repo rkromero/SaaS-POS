@@ -10,12 +10,21 @@ import { Label } from '@/components/ui/label';
 type Session = {
   id: number;
   openingBalance: string;
+  openingPosnet: string | null;
+  openingMercadopago: string | null;
+  openingEnvios: string | null;
   closingBalance: string | null;
+  closingPosnet: string | null;
+  closingMercadopago: string | null;
+  closingEnvios: string | null;
   totalSales: string | null;
   totalCash: string | null;
   totalTransfer: string | null;
   totalCard: string | null;
   difference: string | null;
+  differencePosnet: string | null;
+  differenceMercadopago: string | null;
+  differenceEnvios: string | null;
   notes: string | null;
   status: 'open' | 'closed';
   openedAt: string;
@@ -35,7 +44,13 @@ export const CajaPage = () => {
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<Mode>('view');
   const [openingBalance, setOpeningBalance] = useState('');
+  const [openingPosnet, setOpeningPosnet] = useState('');
+  const [openingMercadopago, setOpeningMercadopago] = useState('');
+  const [openingEnvios, setOpeningEnvios] = useState('');
   const [closingBalance, setClosingBalance] = useState('');
+  const [closingPosnet, setClosingPosnet] = useState('');
+  const [closingMercadopago, setClosingMercadopago] = useState('');
+  const [closingEnvios, setClosingEnvios] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [closedSession, setClosedSession] = useState<Session | null>(null);
@@ -44,11 +59,19 @@ export const CajaPage = () => {
   const cancelOpening = () => {
     setMode('view');
     setError(null);
+    setOpeningBalance('');
+    setOpeningPosnet('');
+    setOpeningMercadopago('');
+    setOpeningEnvios('');
   };
 
   const cancelClosing = () => {
     setMode('view');
     setError(null);
+    setClosingBalance('');
+    setClosingPosnet('');
+    setClosingMercadopago('');
+    setClosingEnvios('');
   };
 
   const loadStatus = () => {
@@ -71,7 +94,13 @@ export const CajaPage = () => {
     const res = await fetch('/api/caja/open', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ openingBalance: Number(openingBalance), locationId }),
+      body: JSON.stringify({
+        openingBalance: Number(openingBalance),
+        openingPosnet: openingPosnet !== '' ? Number(openingPosnet) : null,
+        openingMercadopago: openingMercadopago !== '' ? Number(openingMercadopago) : null,
+        openingEnvios: openingEnvios !== '' ? Number(openingEnvios) : null,
+        locationId,
+      }),
     });
     if (res.ok) {
       loadStatus();
@@ -95,6 +124,9 @@ export const CajaPage = () => {
       body: JSON.stringify({
         sessionId: session.id,
         closingBalance: Number(closingBalance),
+        closingPosnet: closingPosnet !== '' ? Number(closingPosnet) : null,
+        closingMercadopago: closingMercadopago !== '' ? Number(closingMercadopago) : null,
+        closingEnvios: closingEnvios !== '' ? Number(closingEnvios) : null,
         notes,
       }),
     });
@@ -115,29 +147,64 @@ export const CajaPage = () => {
   }
 
   if (mode === 'closed_summary' && closedSession) {
-    const diff = Number(closedSession.difference ?? 0);
     return (
       <div className="mx-auto max-w-lg space-y-4">
         <div className="rounded-lg border bg-card p-6 shadow">
           <h2 className="mb-4 text-xl font-bold">Resumen de cierre</h2>
-          <div className="space-y-2 text-sm">
-            <Row label="Fondo inicial" value={fmt(closedSession.openingBalance)} />
-            <Row label="Ventas totales" value={fmt(closedSession.totalSales)} />
-            <Row label="  · Efectivo" value={fmt(closedSession.totalCash)} />
-            <Row label="  · Transferencia" value={fmt(closedSession.totalTransfer)} />
-            <Row label="  · Tarjeta" value={fmt(closedSession.totalCard)} />
-            <hr />
-            <Row label="Efectivo contado" value={fmt(closedSession.closingBalance)} />
-            <div className={`flex justify-between font-bold ${diff === 0 ? '' : diff > 0 ? 'text-green-600' : 'text-red-600'}`}>
-              <span>Diferencia</span>
-              <span>
-                {diff >= 0 ? '+' : ''}
-                {fmt(closedSession.difference)}
-              </span>
+          <div className="space-y-4 text-sm">
+
+            {/* Ventas del día */}
+            <div className="space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ventas del día</p>
+              <Row label="Total" value={fmt(closedSession.totalSales)} />
+              <Row label="  · Efectivo" value={fmt(closedSession.totalCash)} />
+              <Row label="  · Tarjeta (Posnet)" value={fmt(closedSession.totalCard)} />
+              <Row label="  · Transferencia (MP)" value={fmt(closedSession.totalTransfer)} />
             </div>
+
+            <hr />
+
+            {/* Efectivo */}
+            <MethodBlock
+              label="Efectivo"
+              opening={closedSession.openingBalance}
+              closing={closedSession.closingBalance}
+              difference={closedSession.difference}
+            />
+
+            {/* Posnet */}
+            {closedSession.closingPosnet != null && (
+              <MethodBlock
+                label="Posnet"
+                opening={closedSession.openingPosnet}
+                closing={closedSession.closingPosnet}
+                difference={closedSession.differencePosnet}
+              />
+            )}
+
+            {/* MercadoPago */}
+            {closedSession.closingMercadopago != null && (
+              <MethodBlock
+                label="MercadoPago"
+                opening={closedSession.openingMercadopago}
+                closing={closedSession.closingMercadopago}
+                difference={closedSession.differenceMercadopago}
+              />
+            )}
+
+            {/* Envíos */}
+            {closedSession.closingEnvios != null && (
+              <MethodBlock
+                label="Plataforma de envíos"
+                opening={closedSession.openingEnvios}
+                closing={closedSession.closingEnvios}
+                difference={closedSession.differenceEnvios}
+              />
+            )}
           </div>
+
           {closedSession.notes && (
-            <p className="mt-3 text-xs text-muted-foreground">{closedSession.notes}</p>
+            <p className="mt-4 text-xs text-muted-foreground">{closedSession.notes}</p>
           )}
         </div>
         <Button
@@ -164,8 +231,11 @@ export const CajaPage = () => {
           {error && (
             <p className="rounded bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
           )}
+          <p className="text-xs text-muted-foreground">
+            Ingresá el saldo inicial de cada medio de pago. Dejá en 0 los que no usás.
+          </p>
           <div>
-            <Label>Fondo inicial ($)</Label>
+            <Label>Efectivo ($)</Label>
             <Input
               type="number"
               min="0"
@@ -173,9 +243,36 @@ export const CajaPage = () => {
               value={openingBalance}
               onChange={e => setOpeningBalance(e.target.value)}
             />
-            <p className="mt-1 text-xs text-muted-foreground">
-              El dinero que tenés en la caja antes de empezar el día.
-            </p>
+          </div>
+          <div>
+            <Label>Posnet ($)</Label>
+            <Input
+              type="number"
+              min="0"
+              placeholder="0.00"
+              value={openingPosnet}
+              onChange={e => setOpeningPosnet(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>MercadoPago ($)</Label>
+            <Input
+              type="number"
+              min="0"
+              placeholder="0.00"
+              value={openingMercadopago}
+              onChange={e => setOpeningMercadopago(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Plataforma de envíos ($)</Label>
+            <Input
+              type="number"
+              min="0"
+              placeholder="0.00"
+              value={openingEnvios}
+              onChange={e => setOpeningEnvios(e.target.value)}
+            />
           </div>
           <Button
             className="w-full"
@@ -200,8 +297,11 @@ export const CajaPage = () => {
           {error && (
             <p className="rounded bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
           )}
+          <p className="text-xs text-muted-foreground">
+            Contá el saldo final de cada medio de pago.
+          </p>
           <div>
-            <Label>Efectivo contado en caja ($)</Label>
+            <Label>Efectivo ($)</Label>
             <Input
               type="number"
               min="0"
@@ -209,9 +309,36 @@ export const CajaPage = () => {
               value={closingBalance}
               onChange={e => setClosingBalance(e.target.value)}
             />
-            <p className="mt-1 text-xs text-muted-foreground">
-              Contá el efectivo físico que tenés ahora en la caja.
-            </p>
+          </div>
+          <div>
+            <Label>Posnet ($)</Label>
+            <Input
+              type="number"
+              min="0"
+              placeholder="0.00"
+              value={closingPosnet}
+              onChange={e => setClosingPosnet(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>MercadoPago ($)</Label>
+            <Input
+              type="number"
+              min="0"
+              placeholder="0.00"
+              value={closingMercadopago}
+              onChange={e => setClosingMercadopago(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Plataforma de envíos ($)</Label>
+            <Input
+              type="number"
+              min="0"
+              placeholder="0.00"
+              value={closingEnvios}
+              onChange={e => setClosingEnvios(e.target.value)}
+            />
           </div>
           <div>
             <Label>Notas (opcional)</Label>
@@ -289,6 +416,34 @@ function Row({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between">
       <span className="text-muted-foreground">{label}</span>
       <span>{value}</span>
+    </div>
+  );
+}
+
+function MethodBlock({
+  label,
+  opening,
+  closing,
+  difference,
+}: {
+  label: string;
+  opening: string | null;
+  closing: string | null;
+  difference: string | null;
+}) {
+  const diff = Number(difference ?? 0);
+  return (
+    <div className="space-y-1">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <Row label="Saldo inicial" value={fmt(opening)} />
+      <Row label="Saldo contado" value={fmt(closing)} />
+      <div className={`flex justify-between font-bold ${diff === 0 ? '' : diff > 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <span>Diferencia</span>
+        <span>
+          {diff >= 0 ? '+' : ''}
+          {fmt(difference)}
+        </span>
+      </div>
     </div>
   );
 }

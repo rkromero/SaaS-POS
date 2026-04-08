@@ -17,7 +17,13 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { openingBalance, locationId: bodyLocationId } = body;
+  const {
+    openingBalance,
+    openingPosnet,
+    openingMercadopago,
+    openingEnvios,
+    locationId: bodyLocationId,
+  } = body;
 
   if (openingBalance === undefined || openingBalance === null) {
     return NextResponse.json({ error: 'openingBalance es requerido' }, { status: 400 });
@@ -88,6 +94,9 @@ export async function POST(request: Request) {
       locationId: resolvedLocationId,
       userId,
       openingBalance: String(openingBalance),
+      openingPosnet: openingPosnet != null ? String(openingPosnet) : null,
+      openingMercadopago: openingMercadopago != null ? String(openingMercadopago) : null,
+      openingEnvios: openingEnvios != null ? String(openingEnvios) : null,
       status: 'open',
     })
     .returning();

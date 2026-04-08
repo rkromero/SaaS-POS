@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { sessionId, closingBalance, notes } = body;
+  const { sessionId, closingBalance, closingPosnet, closingMercadopago, closingEnvios, notes } = body;
 
   if (!sessionId || closingBalance === undefined) {
     return NextResponse.json(
@@ -57,9 +57,25 @@ export async function POST(request: Request) {
   const totalTransfer = totalsResult[0]?.totalTransfer ?? '0';
   const totalCard = totalsResult[0]?.totalCard ?? '0';
 
-  // difference = lo que hay en caja (contado) - (fondo inicial + ventas en efectivo)
+  // Diferencias por método:
+  // Efectivo: contado - (fondo inicial + ventas en efectivo)
   const expectedCash = Number(session.openingBalance) + Number(totalCash);
   const difference = Number(closingBalance) - expectedCash;
+
+  // Posnet: contado - (fondo inicial + ventas con tarjeta debit/credit)
+  const differencePosnet = closingPosnet != null
+    ? Number(closingPosnet) - (Number(session.openingPosnet ?? 0) + Number(totalCard))
+    : null;
+
+  // MercadoPago: contado - (fondo inicial + ventas por transferencia)
+  const differenceMercadopago = closingMercadopago != null
+    ? Number(closingMercadopago) - (Number(session.openingMercadopago ?? 0) + Number(totalTransfer))
+    : null;
+
+  // Envíos: contado - fondo inicial (no hay método de venta mapeado)
+  const differenceEnvios = closingEnvios != null
+    ? Number(closingEnvios) - Number(session.openingEnvios ?? 0)
+    : null;
 
   const [closed] = await db
     .update(cashRegisterSessionSchema)
@@ -67,11 +83,17 @@ export async function POST(request: Request) {
       status: 'closed',
       closedByUserId: userId,
       closingBalance: String(closingBalance),
+      closingPosnet: closingPosnet != null ? String(closingPosnet) : null,
+      closingMercadopago: closingMercadopago != null ? String(closingMercadopago) : null,
+      closingEnvios: closingEnvios != null ? String(closingEnvios) : null,
       totalSales,
       totalCash,
       totalTransfer,
       totalCard,
       difference: String(difference.toFixed(2)),
+      differencePosnet: differencePosnet != null ? String(differencePosnet.toFixed(2)) : null,
+      differenceMercadopago: differenceMercadopago != null ? String(differenceMercadopago.toFixed(2)) : null,
+      differenceEnvios: differenceEnvios != null ? String(differenceEnvios.toFixed(2)) : null,
       notes: notes || null,
       closedAt: new Date(),
     })
