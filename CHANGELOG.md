@@ -1,3 +1,10 @@
+# [1.24.0](https://github.com/rkromero/SaaS-POS/compare/v1.23.0...v1.24.0) (2026-04-08)
+
+
+### Features
+
+* módulo Control MP con OAuth de Mercado Pago ([aa8deed](https://github.com/rkromero/SaaS-POS/commit/aa8deed0658eb8680320a760a14cfec6783f5b24))
+
 # [1.23.0](https://github.com/rkromero/SaaS-POS/compare/v1.22.2...v1.23.0) (2026-04-08)
 
 
