@@ -34,8 +34,14 @@ export const SuperAdminOrgsPage = () => {
 
   useEffect(() => {
     fetch('/api/super-admin/orgs')
-      .then(r => r.json())
-      .then((data) => {
+      .then(async (r) => {
+        const text = await r.text();
+        if (!r.ok) {
+          setError(`Error ${r.status}: ${text.slice(0, 300)}`);
+          setLoading(false);
+          return;
+        }
+        const data = JSON.parse(text);
         if (data.error) {
           setError(data.error);
         } else {
@@ -43,8 +49,8 @@ export const SuperAdminOrgsPage = () => {
         }
         setLoading(false);
       })
-      .catch(() => {
-        setError('No se pudo cargar la lista de clientes.');
+      .catch((err) => {
+        setError(`Fetch error: ${err?.message ?? 'desconocido'}`);
         setLoading(false);
       });
   }, []);
