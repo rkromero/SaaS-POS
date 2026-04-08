@@ -24,6 +24,8 @@ export const planTypeEnum = pgEnum('plan_type', [
   'enterprise',
 ]);
 
+export const licenseTypeEnum = pgEnum('license_type', ['none', 'becada']);
+
 export const organizationSchema = pgTable(
   'organization',
   {
@@ -41,6 +43,8 @@ export const organizationSchema = pgTable(
     mpPreapprovalId: text('mp_preapproval_id'),
     mpPlanStatus: text('mp_plan_status'), // authorized | paused | cancelled | pending
     planExpiresAt: timestamp('plan_expires_at', { mode: 'date' }),
+    // Super admin license — overrides plan restrictions
+    licenseType: licenseTypeEnum('license_type').default('none').notNull(),
     updatedAt: timestamp('updated_at', { mode: 'date' })
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -467,6 +471,27 @@ export const cashRegisterSessionSchema = pgTable(
       table.locationId,
       table.status,
     ),
+  }),
+);
+
+// ---------------------------------------------------------------------------
+// Org modules — feature flags por cliente (super admin)
+// ---------------------------------------------------------------------------
+
+export const orgModuleSchema = pgTable(
+  'org_module',
+  {
+    id: serial('id').primaryKey(),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizationSchema.id, { onDelete: 'cascade' }),
+    moduleName: text('module_name').notNull(),
+    enabledByUserId: text('enabled_by_user_id').notNull(),
+    enabledAt: timestamp('enabled_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => ({
+    orgModuleOrgIdx: index('org_module_org_idx').on(table.orgId),
+    orgModuleUniqueIdx: uniqueIndex('org_module_unique_idx').on(table.orgId, table.moduleName),
   }),
 );
 

@@ -4,19 +4,17 @@ import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
 import type { PlanType } from '@/libs/Plans';
+import { isSuperAdmin } from '@/libs/SuperAdmin';
 import { organizationSchema } from '@/models/Schema';
 
 // POST /api/billing/admin/assign — manually assign a plan to an org (super admin only)
-// Used for the "Socio" plan and other manual assignments
 export async function POST(request: Request) {
-  const { userId, orgRole } = await auth();
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Only org admins can assign plans manually
-  // In production you'd add a super-admin check here
-  if (orgRole !== 'org:admin') {
+  if (!isSuperAdmin(userId)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
