@@ -78,8 +78,16 @@ export const CajaPage = () => {
     fetch('/api/caja/status')
       .then(r => r.json())
       .then((data) => {
-        setSession(data.session);
-        setLocationId(data.locationId);
+        if (data.error) {
+          setError(data.error);
+        } else {
+          setSession(data.session);
+          setLocationId(data.locationId);
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('No se pudo cargar el estado de la caja. Recargá la página.');
         setLoading(false);
       });
   };
@@ -144,6 +152,14 @@ export const CajaPage = () => {
 
   if (loading) {
     return <div className="h-40 animate-pulse rounded-lg bg-muted" />;
+  }
+
+  if (error && mode === 'view' && !session) {
+    return (
+      <div className="rounded-lg border border-destructive bg-destructive/10 p-6 text-sm text-destructive">
+        {error}
+      </div>
+    );
   }
 
   if (mode === 'closed_summary' && closedSession) {
