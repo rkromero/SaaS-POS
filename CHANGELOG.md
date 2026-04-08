@@ -1,3 +1,11 @@
+## [1.24.1](https://github.com/rkromero/SaaS-POS/compare/v1.24.0...v1.24.1) (2026-04-08)
+
+
+### Bug Fixes
+
+* mostrar error real en super admin orgs page para diagnóstico ([c19c803](https://github.com/rkromero/SaaS-POS/commit/c19c803ac690ebcc67ce1d05241570d60d705d96))
+* select explícito en super-admin orgs para evitar error por columnas nuevas ([031a0b8](https://github.com/rkromero/SaaS-POS/commit/031a0b877bdff22c4d5983a230efa72f92a8399e))
+
 # [1.24.0](https://github.com/rkromero/SaaS-POS/compare/v1.23.0...v1.24.0) (2026-04-08)
 
 
