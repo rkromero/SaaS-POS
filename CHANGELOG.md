@@ -1,3 +1,10 @@
+# [1.22.0](https://github.com/rkromero/SaaS-POS/compare/v1.21.0...v1.22.0) (2026-04-08)
+
+
+### Features
+
+* sistema de onboarding guiado paso a paso ([5d04e0f](https://github.com/rkromero/SaaS-POS/commit/5d04e0fbe838935cab64b5733d7b96ca4b9806f3))
+
 # [1.21.0](https://github.com/rkromero/SaaS-POS/compare/v1.20.3...v1.21.0) (2026-04-08)
 
 
