@@ -1,3 +1,10 @@
+## [1.24.3](https://github.com/rkromero/SaaS-POS/compare/v1.24.2...v1.24.3) (2026-04-09)
+
+
+### Bug Fixes
+
+* select explícito en OrgAccess y manejo de error en mp-control mientras migración pendiente ([1a46167](https://github.com/rkromero/SaaS-POS/commit/1a461678bd30676dcd0d6d6f6023c0a09bfcd342))
+
 ## [1.24.2](https://github.com/rkromero/SaaS-POS/compare/v1.24.1...v1.24.2) (2026-04-08)
 
 
