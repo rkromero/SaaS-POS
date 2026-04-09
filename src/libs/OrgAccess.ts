@@ -49,7 +49,11 @@ export type OrgAccess = {
 export async function getOrgAccess(orgId: string): Promise<OrgAccess> {
   // Fetch org record + módulos en paralelo
   const [orgRows, moduleRows] = await Promise.all([
-    db.select().from(organizationSchema).where(eq(organizationSchema.id, orgId)),
+    db.select({
+      planType: organizationSchema.planType,
+      licenseType: organizationSchema.licenseType,
+      planExpiresAt: organizationSchema.planExpiresAt,
+    }).from(organizationSchema).where(eq(organizationSchema.id, orgId)),
     db.select({ moduleName: orgModuleSchema.moduleName }).from(orgModuleSchema).where(eq(orgModuleSchema.orgId, orgId)),
   ]);
 

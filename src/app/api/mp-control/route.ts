@@ -18,28 +18,33 @@ export async function GET() {
     return NextResponse.json({ error: 'Módulo no disponible' }, { status: 403 });
   }
 
-  const [org] = await db
-    .select({
-      mpOauthUserId: organizationSchema.mpOauthUserId,
-      mpOauthAccessToken: organizationSchema.mpOauthAccessToken,
-    })
-    .from(organizationSchema)
-    .where(eq(organizationSchema.id, orgId));
+  try {
+    const [org] = await db
+      .select({
+        mpOauthUserId: organizationSchema.mpOauthUserId,
+        mpOauthAccessToken: organizationSchema.mpOauthAccessToken,
+      })
+      .from(organizationSchema)
+      .where(eq(organizationSchema.id, orgId));
 
-  const isConnected = Boolean(org?.mpOauthAccessToken);
+    const isConnected = Boolean(org?.mpOauthAccessToken);
 
-  if (!isConnected) {
-    return NextResponse.json({ isConnected: false, notifications: [] });
+    if (!isConnected) {
+      return NextResponse.json({ isConnected: false, notifications: [] });
+    }
+
+    const notifications = await db
+      .select()
+      .from(mpNotificationSchema)
+      .where(eq(mpNotificationSchema.orgId, orgId))
+      .orderBy(desc(mpNotificationSchema.createdAt))
+      .limit(100);
+
+    return NextResponse.json({ isConnected: true, mpUserId: org?.mpOauthUserId, notifications });
+  } catch {
+    // Las columnas OAuth o la tabla mp_notification aún no existen en prod (migración pendiente)
+    return NextResponse.json({ isConnected: false, notifications: [], migrationPending: true });
   }
-
-  const notifications = await db
-    .select()
-    .from(mpNotificationSchema)
-    .where(eq(mpNotificationSchema.orgId, orgId))
-    .orderBy(desc(mpNotificationSchema.createdAt))
-    .limit(100);
-
-  return NextResponse.json({ isConnected: true, mpUserId: org?.mpOauthUserId, notifications });
 }
 
 // DELETE /api/mp-control — desconectar la cuenta de MP
