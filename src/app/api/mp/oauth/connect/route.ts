@@ -34,6 +34,7 @@ export async function GET() {
   mpAuthUrl.searchParams.set('client_id', appId);
   mpAuthUrl.searchParams.set('response_type', 'code');
   mpAuthUrl.searchParams.set('platform_id', 'mp');
+  mpAuthUrl.searchParams.set('scope', 'read write offline_access');
   mpAuthUrl.searchParams.set('state', state);
   mpAuthUrl.searchParams.set('redirect_uri', callbackUrl);
 
