@@ -1,3 +1,10 @@
+## [1.24.4](https://github.com/rkromero/SaaS-POS/compare/v1.24.3...v1.24.4) (2026-04-10)
+
+
+### Bug Fixes
+
+* normalizar NEXT_PUBLIC_APP_URL eliminando barra final para OAuth de MP ([d284028](https://github.com/rkromero/SaaS-POS/commit/d2840280bbc995aa79e4fa72ec76138a2883d0a0))
+
 ## [1.24.3](https://github.com/rkromero/SaaS-POS/compare/v1.24.2...v1.24.3) (2026-04-09)
 
 
