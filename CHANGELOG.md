@@ -1,3 +1,10 @@
+## [1.24.7](https://github.com/rkromero/SaaS-POS/compare/v1.24.6...v1.24.7) (2026-04-10)
+
+
+### Bug Fixes
+
+* capturar error real en POST /modules para diagnosticar 500 ([5917b18](https://github.com/rkromero/SaaS-POS/commit/5917b18f640d9488edfda58c9e59a2b084087ee8))
+
 ## [1.24.6](https://github.com/rkromero/SaaS-POS/compare/v1.24.5...v1.24.6) (2026-04-10)
 
 
