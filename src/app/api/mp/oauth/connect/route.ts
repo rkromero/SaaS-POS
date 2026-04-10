@@ -20,7 +20,7 @@ export async function GET() {
   }
 
   const appId = process.env.MP_APP_ID;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
 
   if (!appId || !appUrl) {
     return NextResponse.json({ error: 'Configuración de MP incompleta' }, { status: 500 });
