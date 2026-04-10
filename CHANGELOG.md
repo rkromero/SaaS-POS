@@ -1,3 +1,10 @@
+## [1.24.5](https://github.com/rkromero/SaaS-POS/compare/v1.24.4...v1.24.5) (2026-04-10)
+
+
+### Bug Fixes
+
+* agregar scope read/write/offline_access en OAuth connect de MP ([c1309e7](https://github.com/rkromero/SaaS-POS/commit/c1309e763a187890e9a6a7b271ba390f53bab885))
+
 ## [1.24.4](https://github.com/rkromero/SaaS-POS/compare/v1.24.3...v1.24.4) (2026-04-10)
 
 
