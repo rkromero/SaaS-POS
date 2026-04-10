@@ -35,6 +35,13 @@ export default function middleware(
     || isProtectedRoute(request)
   ) {
     return clerkMiddleware(async (auth, req) => {
+      // Las rutas API manejan su propia autenticación internamente.
+      // Nunca redirigimos a sign-in desde el middleware para APIs — devolvemos
+      // NextResponse.next() y dejamos que el handler retorne 401/403 si corresponde.
+      if (req.nextUrl.pathname.startsWith('/api/')) {
+        return NextResponse.next();
+      }
+
       if (isProtectedRoute(req)) {
         const locale
           = req.nextUrl.pathname.match(/(\/.*)\/dashboard/)?.at(1) ?? '';
@@ -61,11 +68,6 @@ export default function middleware(
         );
 
         return NextResponse.redirect(orgSelection);
-      }
-
-      // Skip intl middleware for API routes — they don't need locale prefixing
-      if (req.nextUrl.pathname.startsWith('/api/')) {
-        return NextResponse.next();
       }
 
       return intlMiddleware(req);
