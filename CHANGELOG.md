@@ -1,3 +1,10 @@
+## [1.24.6](https://github.com/rkromero/SaaS-POS/compare/v1.24.5...v1.24.6) (2026-04-10)
+
+
+### Bug Fixes
+
+* upsert org antes de activar módulo desde super-admin ([f1a9871](https://github.com/rkromero/SaaS-POS/commit/f1a987180c00c2f5a9814689ac0f9aa70bf2f8db))
+
 ## [1.24.5](https://github.com/rkromero/SaaS-POS/compare/v1.24.4...v1.24.5) (2026-04-10)
 
 
