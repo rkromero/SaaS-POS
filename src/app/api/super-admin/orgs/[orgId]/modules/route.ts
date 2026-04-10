@@ -42,18 +42,22 @@ export async function POST(
     return NextResponse.json({ error: 'moduleName es requerido' }, { status: 400 });
   }
 
-  // Garantizar que la org existe en nuestra DB (puede no estar si nunca pasó por onboarding).
-  // onConflictDoNothing evita error si ya existe.
-  await db
-    .insert(organizationSchema)
-    .values({ id: orgId, planType: 'free' })
-    .onConflictDoNothing();
+  try {
+    // Garantizar que la org existe en nuestra DB (puede no estar si nunca pasó por onboarding).
+    await db
+      .insert(organizationSchema)
+      .values({ id: orgId, planType: 'free' })
+      .onConflictDoNothing();
 
-  // INSERT OR IGNORE (unique constraint handles duplicates)
-  await db
-    .insert(orgModuleSchema)
-    .values({ orgId, moduleName, enabledByUserId: userId })
-    .onConflictDoNothing();
+    // INSERT OR IGNORE (unique constraint handles duplicates)
+    await db
+      .insert(orgModuleSchema)
+      .values({ orgId, moduleName, enabledByUserId: userId })
+      .onConflictDoNothing();
 
-  return NextResponse.json({ success: true, moduleName });
+    return NextResponse.json({ success: true, moduleName });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
