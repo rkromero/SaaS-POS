@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
 import { isSuperAdmin } from '@/libs/SuperAdmin';
-import { orgModuleSchema } from '@/models/Schema';
+import { organizationSchema, orgModuleSchema } from '@/models/Schema';
 
 // GET /api/super-admin/orgs/[orgId]/modules — módulos activos del cliente
 export async function GET(
@@ -41,6 +41,13 @@ export async function POST(
   if (!moduleName) {
     return NextResponse.json({ error: 'moduleName es requerido' }, { status: 400 });
   }
+
+  // Garantizar que la org existe en nuestra DB (puede no estar si nunca pasó por onboarding).
+  // onConflictDoNothing evita error si ya existe.
+  await db
+    .insert(organizationSchema)
+    .values({ id: orgId, planType: 'free' })
+    .onConflictDoNothing();
 
   // INSERT OR IGNORE (unique constraint handles duplicates)
   await db
