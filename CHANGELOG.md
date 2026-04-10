@@ -1,3 +1,10 @@
+## [1.24.8](https://github.com/rkromero/SaaS-POS/compare/v1.24.7...v1.24.8) (2026-04-10)
+
+
+### Bug Fixes
+
+* excluir rutas /api del auth.protect en middleware ([2ecb023](https://github.com/rkromero/SaaS-POS/commit/2ecb023f552826511caa57316263f56048ae33d2))
+
 ## [1.24.7](https://github.com/rkromero/SaaS-POS/compare/v1.24.6...v1.24.7) (2026-04-10)
 
 
