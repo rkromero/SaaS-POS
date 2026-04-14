@@ -52,6 +52,16 @@ export default withSentryConfig(
         experimental: {
           serverComponentsExternalPackages: ['@electric-sql/pglite'],
         },
+        images: {
+          remotePatterns: [
+            // Imágenes subidas a Cloudinary
+            { protocol: 'https', hostname: 'res.cloudinary.com' },
+            // Imágenes de Open Food Facts (búsqueda automática por código de barras)
+            { protocol: 'https', hostname: 'images.openfoodfacts.org' },
+            { protocol: 'https', hostname: 'static.openfoodfacts.org' },
+            { protocol: 'https', hostname: 'world.openfoodfacts.org' },
+          ],
+        },
       }),
     ),
   ),
