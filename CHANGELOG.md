@@ -1,3 +1,10 @@
+# [1.25.0](https://github.com/rkromero/SaaS-POS/compare/v1.24.8...v1.25.0) (2026-04-14)
+
+
+### Features
+
+* imagen de productos con upload a Cloudinary y auto-fetch por código de barras ([809c568](https://github.com/rkromero/SaaS-POS/commit/809c568265b3c83367947fe0afb2c57fcde68417))
+
 ## [1.24.8](https://github.com/rkromero/SaaS-POS/compare/v1.24.7...v1.24.8) (2026-04-10)
 
 
