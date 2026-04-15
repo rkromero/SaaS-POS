@@ -1,3 +1,10 @@
+## [1.31.2](https://github.com/rkromero/SaaS-POS/compare/v1.31.1...v1.31.2) (2026-04-15)
+
+
+### Bug Fixes
+
+* **design:** scrollbar del sidebar integrada a la estética navy ([9dab4a3](https://github.com/rkromero/SaaS-POS/commit/9dab4a35b28873778b69868439ae519a217730e9))
+
 ## [1.31.1](https://github.com/rkromero/SaaS-POS/compare/v1.31.0...v1.31.1) (2026-04-15)
 
 
