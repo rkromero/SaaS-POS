@@ -1,3 +1,10 @@
+# [1.31.0](https://github.com/rkromero/SaaS-POS/compare/v1.30.0...v1.31.0) (2026-04-15)
+
+
+### Features
+
+* **design:** sidebar navy oscuro + tipografía Lora en títulos ([6bed6c0](https://github.com/rkromero/SaaS-POS/commit/6bed6c054e64769c7decdf6e4846baf3426cb84d)), closes [#0f172](https://github.com/rkromero/SaaS-POS/issues/0f172)
+
 # [1.30.0](https://github.com/rkromero/SaaS-POS/compare/v1.29.0...v1.30.0) (2026-04-15)
 
 
