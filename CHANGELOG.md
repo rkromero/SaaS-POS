@@ -1,3 +1,10 @@
+# [1.28.0](https://github.com/rkromero/SaaS-POS/compare/v1.27.0...v1.28.0) (2026-04-15)
+
+
+### Features
+
+* **sidebar:** pestaña de colapso rectangular estilo fichero ([f075d62](https://github.com/rkromero/SaaS-POS/commit/f075d62d1a064a1bfbbbfa0c7cd4c6249c9c6935))
+
 # [1.27.0](https://github.com/rkromero/SaaS-POS/compare/v1.26.0...v1.27.0) (2026-04-15)
 
 
