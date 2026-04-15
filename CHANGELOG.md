@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/rkromero/SaaS-POS/compare/v1.26.0...v1.27.0) (2026-04-15)
+
+
+### Features
+
+* **sidebar:** sidebar colapsable con pestaña en el borde ([c7006c1](https://github.com/rkromero/SaaS-POS/commit/c7006c11968ac34d6b0a6c666d3151764c0e66e1))
+
 # [1.26.0](https://github.com/rkromero/SaaS-POS/compare/v1.25.0...v1.26.0) (2026-04-15)
 
 
