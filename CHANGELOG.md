@@ -1,3 +1,10 @@
+# [1.29.0](https://github.com/rkromero/SaaS-POS/compare/v1.28.0...v1.29.0) (2026-04-15)
+
+
+### Features
+
+* **landing:** rediseño paleta navy+esmeralda y fix OAuth MP ([5ce5b06](https://github.com/rkromero/SaaS-POS/commit/5ce5b06fde1db61f6171c39f59b07939206223ed))
+
 # [1.28.0](https://github.com/rkromero/SaaS-POS/compare/v1.27.0...v1.28.0) (2026-04-15)
 
 
