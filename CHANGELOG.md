@@ -1,3 +1,10 @@
+# [1.26.0](https://github.com/rkromero/SaaS-POS/compare/v1.25.0...v1.26.0) (2026-04-15)
+
+
+### Features
+
+* **pos:** pantalla completa y imagen en tarjetas de productos ([dd257a5](https://github.com/rkromero/SaaS-POS/commit/dd257a584d36796d54d7e7a084882e13730db05a))
+
 # [1.25.0](https://github.com/rkromero/SaaS-POS/compare/v1.24.8...v1.25.0) (2026-04-14)
 
 
