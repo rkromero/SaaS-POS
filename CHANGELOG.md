@@ -1,3 +1,10 @@
+## [1.31.1](https://github.com/rkromero/SaaS-POS/compare/v1.31.0...v1.31.1) (2026-04-15)
+
+
+### Bug Fixes
+
+* **design:** sidebar dark armonioso — CSS vars scoped + tipografía limpia ([fa0df85](https://github.com/rkromero/SaaS-POS/commit/fa0df858d6284da505721c82f4c81c99daa80cff))
+
 # [1.31.0](https://github.com/rkromero/SaaS-POS/compare/v1.30.0...v1.31.0) (2026-04-15)
 
 
