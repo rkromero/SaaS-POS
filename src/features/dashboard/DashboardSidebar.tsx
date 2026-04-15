@@ -263,16 +263,16 @@ export const DashboardSidebar = ({ enabledModules = EMPTY_MODULES }: { enabledMo
       >
         <SidebarContent enabledModules={enabledModules} collapsed={collapsed} />
 
-        {/* Pestaña de colapso — tab flotante en el borde derecho */}
+        {/* Pestaña de colapso — forma de fichero, anclada arriba a la altura del primer grupo */}
         <button
           type="button"
           aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
           onClick={() => setCollapsed(c => !c)}
-          className="absolute -right-3 top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground"
+          className="absolute left-full top-24 z-10 flex h-12 w-4 items-center justify-center rounded-r-md border border-l-0 bg-background text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground"
         >
           {collapsed
-            ? <ChevronRight className="size-3.5" />
-            : <ChevronLeft className="size-3.5" />}
+            ? <ChevronRight className="size-3" />
+            : <ChevronLeft className="size-3" />}
         </button>
       </aside>
 
