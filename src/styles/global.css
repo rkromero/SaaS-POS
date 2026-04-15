@@ -119,6 +119,26 @@
   --ring: 160 84% 39%;
 }
 
+/* ─── Scrollbar del sidebar ─────────────────────────────────────────────── */
+.sidebar-dark ::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-dark ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-dark ::-webkit-scrollbar-thumb {
+  background: hsl(215 25% 28%); /* n700 — visible pero discreto */
+  border-radius: 99px;
+}
+.sidebar-dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(215 20% 40%); /* n600 — un poco más claro al hacer hover */
+}
+/* Firefox */
+.sidebar-dark nav {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(215 25% 28%) transparent;
+}
+
 /* ─── Sidebar collapse — main content transition ────────────────────────── */
 @media (min-width: 1024px) {
   .sidebar-main {
