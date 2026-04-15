@@ -94,6 +94,17 @@
   }
 }
 
+/* ─── Sidebar collapse — main content transition ────────────────────────── */
+@media (min-width: 1024px) {
+  .sidebar-main {
+    padding-left: 14rem; /* w-56 expanded */
+    transition: padding-left 300ms ease;
+  }
+  .sidebar-collapsed .sidebar-main {
+    padding-left: 3.5rem; /* w-14 collapsed */
+  }
+}
+
 /* ─── driver.js onboarding popover — TuCaja theme ───────────────────────── */
 .tucaja-onboarding-popover.driver-popover {
   background: hsl(var(--background));

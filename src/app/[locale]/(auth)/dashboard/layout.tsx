@@ -40,7 +40,7 @@ export default async function DashboardLayout(props: { children: React.ReactNode
       <OnboardingProvider>
         <div className="min-h-screen bg-muted">
           <DashboardSidebar enabledModules={enabledModules} />
-          <main className="lg:pl-56">
+          <main className="sidebar-main">
             <div className="px-4 pb-16 pt-6 sm:px-6">
               {props.children}
             </div>
