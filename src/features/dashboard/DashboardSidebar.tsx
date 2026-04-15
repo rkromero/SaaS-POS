@@ -122,8 +122,8 @@ function NavLink({
         collapsed ? 'justify-center px-2' : 'gap-2.5 px-3'
       } ${
         isActive
-          ? 'bg-primary font-medium text-primary-foreground'
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          ? 'bg-e600 font-medium text-white'
+          : 'text-n400 hover:bg-n800 hover:text-n100'
       }`}
     >
       {item.icon}
@@ -158,11 +158,11 @@ function SidebarContent({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Logo + org name */}
-      <div className={`border-b py-3 ${collapsed ? 'px-2' : 'px-4'}`}>
+      <div className={`border-b border-n800 py-3 ${collapsed ? 'px-2' : 'px-4'}`}>
         {collapsed
           ? (
               <Link href="/dashboard" className="flex justify-center">
-                <div className="flex size-8 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
+                <div className="flex size-8 items-center justify-center rounded-md bg-e600 text-sm font-bold text-white">
                   {(branding?.businessName ?? organization?.name ?? 'A').charAt(0).toUpperCase()}
                 </div>
               </Link>
@@ -179,11 +179,11 @@ function SidebarContent({
                           <img src={organization.imageUrl} alt="" className="size-5 rounded-full object-cover" />
                         )
                       : (
-                          <div className="flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                          <div className="flex size-5 items-center justify-center rounded-full bg-e600 text-[10px] font-bold text-white">
                             {organization.name.charAt(0).toUpperCase()}
                           </div>
                         )}
-                    <span className="truncate text-sm font-medium">{organization.name}</span>
+                    <span className="truncate text-sm font-medium text-n100">{organization.name}</span>
                   </div>
                 )}
               </>
@@ -198,10 +198,10 @@ function SidebarContent({
               {collapsed
                 ? (
                     /* Divider between groups when collapsed */
-                    <div className="mb-1.5 h-px bg-border" />
+                    <div className="mb-1.5 h-px bg-n800" />
                   )
                 : (
-                    <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+                    <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wider text-n600">
                       {group.label}
                     </p>
                   )}
@@ -219,7 +219,7 @@ function SidebarContent({
       {!collapsed && <OnboardingChecklist />}
 
       {/* Bottom: user + locale */}
-      <div className={`border-t py-3 ${collapsed ? 'px-2' : 'px-4'}`}>
+      <div className={`border-t border-n800 py-3 ${collapsed ? 'px-2' : 'px-4'}`}>
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
           <UserButton
             userProfileMode="navigation"
@@ -257,7 +257,7 @@ export const DashboardSidebar = ({ enabledModules = EMPTY_MODULES }: { enabledMo
     <>
       {/* Desktop sidebar — always visible, width transitions on collapse */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 hidden border-r bg-background transition-[width] duration-300 lg:flex lg:flex-col ${
+        className={`fixed inset-y-0 left-0 z-30 hidden border-r border-n800 bg-n900 transition-[width] duration-300 lg:flex lg:flex-col ${
           collapsed ? 'w-14' : 'w-56'
         }`}
       >
@@ -268,7 +268,7 @@ export const DashboardSidebar = ({ enabledModules = EMPTY_MODULES }: { enabledMo
           type="button"
           aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
           onClick={() => setCollapsed(c => !c)}
-          className="absolute left-full top-24 z-10 flex h-12 w-4 items-center justify-center rounded-r-md border border-l-0 bg-background text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground"
+          className="absolute left-full top-24 z-10 flex h-12 w-4 items-center justify-center rounded-r-md border border-l-0 border-n800 bg-n900 text-n500 shadow-sm transition-colors hover:bg-n800 hover:text-n200"
         >
           {collapsed
             ? <ChevronRight className="size-3" />
@@ -302,12 +302,12 @@ export const DashboardSidebar = ({ enabledModules = EMPTY_MODULES }: { enabledMo
             onClick={() => setOpen(false)}
           />
           {/* Drawer */}
-          <aside className="fixed inset-y-0 left-0 z-50 w-64 border-r bg-background lg:hidden">
+          <aside className="fixed inset-y-0 left-0 z-50 w-64 border-r border-n800 bg-n900 lg:hidden">
             <div className="absolute right-3 top-3">
               <button
                 type="button"
                 aria-label="Cerrar menú"
-                className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"
+                className="rounded-md p-1.5 text-n400 hover:bg-n800"
                 onClick={() => setOpen(false)}
               >
                 <X className="size-4" />
