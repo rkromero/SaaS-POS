@@ -12,7 +12,28 @@ const config = {
         mono: ['var(--font-space-mono)', 'monospace'],
       },
       colors: {
-        // ─── TuCaja Brand Palette (manual de marca v1.0) ─────────────────────
+        // ─── TuCaja Brand Palette — Navy + Esmeralda (v2.0) ──────────────────
+        // Navy (confianza / autoridad)
+        'n950': '#020617',
+        'n900': '#0f172a',
+        'n800': '#1e293b',
+        'n700': '#334155',
+        'n600': '#475569',
+        'n500': '#64748b',
+        'n400': '#94a3b8',
+        'n300': '#cbd5e1',
+        'n200': '#e2e8f0',
+        'n100': '#f1f5f9',
+        'n50': '#f8fafc',
+        // Esmeralda (dinero / crecimiento)
+        'e700': '#047857',
+        'e600': '#059669',
+        'e500': '#10b981',
+        'e400': '#34d399',
+        'e200': '#a7f3d0',
+        'e100': '#d1fae5',
+        'e50': '#ecfdf5',
+        // Legado verde (mantenido para no romper componentes existentes)
         'g950': '#040e07',
         'g900': '#0d2318',
         'g800': '#1a5c2a',

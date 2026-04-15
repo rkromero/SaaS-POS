@@ -4,74 +4,76 @@
 
 @layer base {
   :root {
-    /* ─── TuCaja Brand Palette ────────────────────────────────────────────── */
+    /* ─── TuCaja Brand Palette — Navy + Esmeralda ────────────────────────── */
+    /* Navy = confianza / autoridad. Esmeralda = dinero / crecimiento.        */
 
-    /* Backgrounds */
-    --background: 0 0% 100%; /* blanco puro — sidebar, cards */
-    --foreground: 150 46% 9%; /* #0d2318 verde oscuro */
+    /* Fondo general — n50 #f8fafc */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%; /* n900 #0f172a */
 
+    /* Cards y popovers sobre blanco puro */
     --card: 0 0% 100%;
-    --card-foreground: 150 46% 9%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 150 46% 9%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Verde principal — botones, links activos, elementos de acción */
-    --primary: 135 60% 30%; /* #1e7a35 green-700 */
+    /* Esmeralda principal — botones, links activos, elementos de acción */
+    --primary: 161 93% 30%; /* e600 #059669 */
     --primary-foreground: 0 0% 100%;
 
-    /* Verde suave — fondos secundarios, hover states */
-    --secondary: 139 56% 97%; /* #f3fdf6 green-50 */
-    --secondary-foreground: 135 56% 23%; /* #1a5c2a green-800 */
+    /* Navy suave — fondos secundarios, hover states */
+    --secondary: 210 40% 96%; /* n100 #f1f5f9 */
+    --secondary-foreground: 215 28% 17%; /* n800 #1e293b */
 
-    /* Crema cálida — fondo del área de contenido del dashboard */
-    --muted: 44 41% 97%; /* #faf8f3 cream */
-    --muted-foreground: 143 20% 30%; /* #3d5c49 text-secondary */
+    /* Navy muy suave — fondos de contenido, áreas neutras */
+    --muted: 210 40% 96%; /* n100 #f1f5f9 */
+    --muted-foreground: 215 16% 47%; /* n500 #64748b */
 
-    /* Verde menta — chips, badges, highlights */
-    --accent: 133 44% 91%; /* #dcf5e3 green-100 */
-    --accent-foreground: 135 56% 23%; /* #1a5c2a green-800 */
+    /* Esmeralda muy suave — chips, badges, highlights positivos */
+    --accent: 152 81% 96%; /* e50 #ecfdf5 */
+    --accent-foreground: 161 94% 24%; /* e700 #047857 */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Bordes y inputs — crema oscura */
-    --border: 42 11% 87%; /* #e8e2d4 cream-dark */
-    --input: 42 11% 87%;
-    --ring: 135 60% 30%; /* green-700 */
+    /* Bordes e inputs — n200 #e2e8f0 */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 161 93% 30%; /* e600 */
 
-    --radius: 0.5rem;
+    --radius: 0.625rem; /* 10px — consistente con la landing */
   }
 
-  /* ─── Dark mode (reservado para uso futuro) ──────────────────────────────── */
+  /* ─── Dark mode ──────────────────────────────────────────────────────────── */
   .dark {
-    --background: 150 46% 9%; /* #0d2318 green-900 */
-    --foreground: 133 56% 97%; /* #f3fdf6 green-50 */
+    --background: 222 47% 11%; /* n900 #0f172a */
+    --foreground: 210 40% 98%; /* n50 #f8fafc */
 
-    --card: 136 42% 13%; /* #0f2e1c */
-    --card-foreground: 133 56% 97%;
+    --card: 215 28% 17%; /* n800 #1e293b */
+    --card-foreground: 210 40% 98%;
 
-    --popover: 136 42% 13%;
-    --popover-foreground: 133 56% 97%;
+    --popover: 215 28% 17%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 136 52% 47%; /* #3ab55a green-500 */
-    --primary-foreground: 150 46% 9%;
+    --primary: 160 84% 39%; /* e500 #10b981 */
+    --primary-foreground: 222 47% 11%;
 
-    --secondary: 136 42% 16%;
-    --secondary-foreground: 133 56% 97%;
+    --secondary: 215 28% 17%; /* n800 */
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 136 42% 16%;
-    --muted-foreground: 133 45% 71%; /* #8ddfa0 green-300 */
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 20% 65%; /* n400 #94a3b8 */
 
-    --accent: 136 42% 16%;
-    --accent-foreground: 133 56% 97%;
+    --accent: 215 25% 27%; /* n700 #334155 */
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 136 42% 18%;
-    --input: 136 42% 18%;
-    --ring: 136 52% 47%;
+    --border: 215 25% 27%; /* n700 */
+    --input: 215 25% 27%;
+    --ring: 160 84% 39%; /* e500 */
   }
 }
 
