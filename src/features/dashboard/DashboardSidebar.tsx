@@ -156,7 +156,7 @@ function SidebarContent({
     .filter(g => g.items.length > 0);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div className="sidebar-dark flex h-full flex-col overflow-hidden text-n100">
       {/* Logo + org name */}
       <div className={`border-b border-n800 py-3 ${collapsed ? 'px-2' : 'px-4'}`}>
         {collapsed

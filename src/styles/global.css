@@ -96,6 +96,29 @@
   }
 }
 
+/* ─── Sidebar dark context — redefinición de variables para el sidebar navy ─ */
+/* Cualquier componente que use hsl(var(--*)) dentro del sidebar se adapta     */
+/* automáticamente sin necesidad de clases adicionales.                         */
+.sidebar-dark {
+  --background: 215 28% 15%; /* n800 suavizado — cards dentro del sidebar */
+  --foreground: 210 40% 96%; /* n100 — texto principal */
+  --card: 215 28% 15%;
+  --card-foreground: 210 40% 96%;
+  --popover: 222 47% 11%; /* n900 */
+  --popover-foreground: 210 40% 96%;
+  --primary: 160 84% 39%; /* e500 — esmeralda más viva en oscuro */
+  --primary-foreground: 222 47% 11%;
+  --secondary: 222 47% 11%; /* n900 */
+  --secondary-foreground: 210 40% 96%;
+  --muted: 222 47% 11%; /* n900 — hover oscuro */
+  --muted-foreground: 215 20% 58%; /* entre n400 y n500 */
+  --accent: 215 25% 20%; /* n800 oscurecido */
+  --accent-foreground: 210 40% 96%;
+  --border: 215 25% 22%; /* n800 */
+  --input: 215 25% 22%;
+  --ring: 160 84% 39%;
+}
+
 /* ─── Sidebar collapse — main content transition ────────────────────────── */
 @media (min-width: 1024px) {
   .sidebar-main {
