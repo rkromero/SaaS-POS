@@ -1,3 +1,10 @@
+# [1.30.0](https://github.com/rkromero/SaaS-POS/compare/v1.29.0...v1.30.0) (2026-04-15)
+
+
+### Features
+
+* **design:** aplica paleta navy+esmeralda al SaaS completo ([a33c4b8](https://github.com/rkromero/SaaS-POS/commit/a33c4b85115e3df5889ed63318c2c908a4934352)), closes [#059669](https://github.com/rkromero/SaaS-POS/issues/059669) [#f8](https://github.com/rkromero/SaaS-POS/issues/f8) [#0f172](https://github.com/rkromero/SaaS-POS/issues/0f172)
+
 # [1.29.0](https://github.com/rkromero/SaaS-POS/compare/v1.28.0...v1.29.0) (2026-04-15)
 
 
