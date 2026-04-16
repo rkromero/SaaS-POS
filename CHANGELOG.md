@@ -1,3 +1,10 @@
+# [1.32.0](https://github.com/rkromero/SaaS-POS/compare/v1.31.3...v1.32.0) (2026-04-16)
+
+
+### Features
+
+* **arca:** gate facturación ARCA a plan Pro/Empresa con override super admin ([aa5e6d5](https://github.com/rkromero/SaaS-POS/commit/aa5e6d5e24ed6c60a797814a10a6cad65a4c2dbc))
+
 ## [1.31.3](https://github.com/rkromero/SaaS-POS/compare/v1.31.2...v1.31.3) (2026-04-16)
 
 
