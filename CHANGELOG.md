@@ -1,3 +1,10 @@
+## [1.31.3](https://github.com/rkromero/SaaS-POS/compare/v1.31.2...v1.31.3) (2026-04-16)
+
+
+### Bug Fixes
+
+* **landing:** rediseño profesional de sección antes/después sin emojis ([69bf01d](https://github.com/rkromero/SaaS-POS/commit/69bf01deb88d95390762e321b4b6acd3fa020fba))
+
 ## [1.31.2](https://github.com/rkromero/SaaS-POS/compare/v1.31.1...v1.31.2) (2026-04-15)
 
 
