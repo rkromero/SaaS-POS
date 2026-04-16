@@ -7,7 +7,8 @@ import { DashboardSidebar } from '@/features/dashboard/DashboardSidebar';
 import { OnboardingProvider } from '@/features/onboarding/OnboardingContext';
 import { OnboardingTour } from '@/features/onboarding/OnboardingTour';
 import { db } from '@/libs/DB';
-import { brandingSchema, orgModuleSchema } from '@/models/Schema';
+import { getOrgAccess } from '@/libs/OrgAccess';
+import { brandingSchema } from '@/models/Schema';
 
 export async function generateMetadata(props: { params: { locale: string } }) {
   const t = await getTranslations({
@@ -27,12 +28,17 @@ export default async function DashboardLayout(props: { children: React.ReactNode
   let branding = null;
   let enabledModules: string[] = [];
   if (orgId) {
-    const [brandingResult, modulesResult] = await Promise.all([
+    const [brandingResult, access] = await Promise.all([
       db.select().from(brandingSchema).where(eq(brandingSchema.organizationId, orgId)),
-      db.select({ moduleName: orgModuleSchema.moduleName }).from(orgModuleSchema).where(eq(orgModuleSchema.orgId, orgId)),
+      getOrgAccess(orgId),
     ]);
     branding = brandingResult[0] ?? null;
-    enabledModules = modulesResult.map(m => m.moduleName);
+
+    // Módulos activados manualmente + módulos incluidos por plan
+    // Arca está disponible en Pro y Empresa sin activación manual
+    enabledModules = access.isProOrBetter && !access.modules.includes('arca')
+      ? [...access.modules, 'arca']
+      : access.modules;
   }
 
   return (

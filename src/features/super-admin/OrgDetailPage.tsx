@@ -251,27 +251,53 @@ export const OrgDetailPage = ({ orgId }: Props) => {
         <div>
           <h2 className="font-semibold text-zinc-200">Módulos activados manualmente</h2>
           <p className="mt-1 text-xs text-zinc-500">
-            Los módulos activos siempre están disponibles, sin importar el plan.
+            Activar un módulo manualmente lo habilita sin importar el plan. Los módulos marcados como
+            {' '}
+            <span className="text-emerald-500">incluidos en plan</span>
+            {' '}
+            ya están disponibles para la organización si tiene el plan correspondiente.
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {MODULES.map((mod) => {
             const isEnabled = org.enabledModules.includes(mod.id);
             const isSavingThis = saving === `mod_${mod.id}`;
+
+            // Módulos que se activan automáticamente por plan (sin override manual)
+            const includedInPlan: Partial<Record<string, string>> = {
+              arca: 'Pro / Empresa',
+            };
+            const planLabel = includedInPlan[mod.id];
+            const activeByPlan = planLabel
+              && (org.planType === 'pro' || org.planType === 'enterprise')
+              && !['free', 'basic', 'socio'].includes(org.planType);
+
             return (
               <div
                 key={mod.id}
                 className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
                   isEnabled
                     ? 'border-indigo-800 bg-indigo-950'
-                    : 'border-zinc-700 bg-zinc-800'
+                    : activeByPlan
+                      ? 'border-emerald-900 bg-emerald-950/40'
+                      : 'border-zinc-700 bg-zinc-800'
                 }`}
               >
-                <div>
-                  <p className={`text-sm font-medium ${isEnabled ? 'text-indigo-300' : 'text-zinc-400'}`}>
-                    {mod.name}
-                  </p>
+                <div className="min-w-0 flex-1 pr-3">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <p className={`text-sm font-medium ${isEnabled ? 'text-indigo-300' : activeByPlan ? 'text-emerald-300' : 'text-zinc-400'}`}>
+                      {mod.name}
+                    </p>
+                    {planLabel && (
+                      <span className="rounded bg-emerald-900 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
+                        {planLabel}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-zinc-600">{mod.description}</p>
+                  {activeByPlan && !isEnabled && (
+                    <p className="mt-0.5 text-xs text-emerald-700">Activo por plan actual</p>
+                  )}
                 </div>
                 <Button
                   size="sm"

@@ -89,7 +89,7 @@ const navGroups: NavGroup[] = [
       { href: '/dashboard/locations', label: 'Locales', icon: <Store className={iconClass} />, tourId: 'nav-locations' },
       { href: '/dashboard/members', label: 'Miembros', icon: <Users className={iconClass} /> },
       { href: '/dashboard/billing', label: 'Planes', icon: <CreditCard className={iconClass} /> },
-      { href: '/dashboard/arca', label: 'Facturación ARCA', icon: <FileText className={iconClass} /> },
+      { href: '/dashboard/arca', label: 'Facturación ARCA', icon: <FileText className={iconClass} />, moduleRequired: 'arca' },
       { href: '/dashboard/branding', label: 'Personalización', icon: <Palette className={iconClass} /> },
       { href: '/dashboard/organization-profile', label: 'Configuración', icon: <Building2 className={iconClass} /> },
     ],
