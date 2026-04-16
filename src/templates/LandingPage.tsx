@@ -2,7 +2,7 @@
 
 import { DM_Sans, Lora, Space_Mono } from 'next/font/google';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 
 // ─── Fonts ───────────────────────────────────────────────────────────────────
 const lora = Lora({ subsets: ['latin'], variable: '--font-lora', display: 'swap' });
@@ -484,9 +484,9 @@ export const LandingPage = () => {
       </div>
 
       {/* ══ ANTES / DESPUÉS ═════════════════════════════════════════════════ */}
-      <section id="funciones" style={{ background: C.white, paddingTop: 96, paddingBottom: 0 }}>
+      <section id="funciones" style={{ background: C.white, paddingTop: 96, paddingBottom: 96 }}>
         <div style={wrap}>
-          <div style={{ textAlign: 'center', paddingBottom: 56 }}>
+          <div style={{ textAlign: 'center', paddingBottom: 64 }}>
             <R><Tag>El cambio que buscás</Tag></R>
             <R delay={80}>
               <h2 style={h2base}>
@@ -501,77 +501,127 @@ export const LandingPage = () => {
               </p>
             </R>
           </div>
-        </div>
-        <div data-ad-grid>
-          {/* ANTES */}
-          <div style={{ background: '#fffbf9', padding: '52px 20px' }}>
-            <div style={{ maxWidth: 480, margin: '0 auto' }}>
-              <R>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#fee2e2', borderRadius: 100, padding: '5px 14px', marginBottom: 22 }}>
-                  <span style={{ fontSize: 11 }}>❌</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#991b1b' }}>Sin sistema</span>
-                </div>
-              </R>
-              <R delay={60}>
-                <h3 style={{ fontFamily: 'var(--font-lora)', fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 700, color: '#450a0a', marginBottom: 28 }}>
-                  El caos silencioso de todos los días
-                </h3>
-              </R>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {[
-                  ['📓', 'Anotás las ventas en un cuaderno y al final del día no cierra'],
-                  ['🤷', 'No sabés cuánto stock te queda hasta que se te acaba'],
-                  ['🔢', 'Cerrás la caja haciendo cuentas a mano y siempre falta o sobra'],
-                  ['📱', 'El fiado lo manejás de memoria y hay clientes que "se olvidaron"'],
-                  ['😰', 'No sabés qué productos te conviene tener ni cuáles no se mueven'],
-                  ['⏰', 'Perdés tiempo buscando precios, anotando, calculando — todos los días'],
-                ].map(([icon, text], i) => (
-                  <R key={text as string} delay={i * 50}>
-                    <li style={{ display: 'flex', alignItems: 'flex-start', gap: 12, fontSize: 14, color: '#7f1d1d', lineHeight: 1.65 }}>
-                      <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{icon}</span>
-                      {text}
-                    </li>
-                  </R>
-                ))}
-              </ul>
-            </div>
-          </div>
 
-          {/* DESPUÉS */}
-          <div style={{ background: C.e50, padding: '52px 20px' }}>
-            <div style={{ maxWidth: 480, margin: '0 auto' }}>
-              <R>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.e100, borderRadius: 100, padding: '5px 14px', marginBottom: 22 }}>
-                  <span style={{ fontSize: 11 }}>✓</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: C.e700 }}>Con TuCaja</span>
-                </div>
-              </R>
-              <R delay={60}>
-                <h3 style={{ fontFamily: 'var(--font-lora)', fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 700, color: C.n900, marginBottom: 28 }}>
-                  Control real desde el primer día
-                </h3>
-              </R>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {[
-                  'Cada venta queda registrada automáticamente, con número de comprobante',
-                  'Recibís una alerta antes de quedarte sin stock, no cuando ya se acabó',
-                  'El cierre de caja te dice cuánto deberías tener y la diferencia exacta',
-                  'El fiado queda en el sistema: quién debe, cuánto y desde cuándo',
-                  'Ves en tiempo real cuáles son tus productos más rentables',
-                  'Cobrás en segundos — el sistema hace todo el resto solo',
-                ].map((text, i) => (
-                  <R key={text} delay={i * 50}>
-                    <li style={{ display: 'flex', alignItems: 'flex-start', gap: 12, fontSize: 14, color: C.textMid, lineHeight: 1.65 }}>
-                      <span style={{ color: C.e500, flexShrink: 0, fontWeight: 700, fontSize: 16, marginTop: 1 }}>✓</span>
-                      {text}
-                    </li>
-                  </R>
-                ))}
-              </ul>
+          {/* Tabla comparativa */}
+          <div data-compare-table style={{ gap: 0, borderRadius: 18, overflow: 'hidden', border: `1px solid ${C.border}`, boxShadow: '0 8px 40px rgba(15,23,42,.07)' }}>
+
+            {/* Cabeceras */}
+            <div data-compare-header style={{ background: '#1e1412', padding: '24px 36px', borderRight: '1px solid rgba(255,255,255,.06)' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.22)', borderRadius: 6, padding: '4px 12px', marginBottom: 16 }}>
+                <span style={{ display: 'block', width: 7, height: 7, borderRadius: '50%', background: '#f87171', flexShrink: 0 }} />
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#fca5a5' }}>Sin sistema</span>
+              </div>
+              <h3 style={{ fontFamily: 'var(--font-lora)', fontSize: 'clamp(1.1rem, 2.4vw, 1.35rem)', fontWeight: 700, color: '#fef2f2', lineHeight: 1.3, margin: 0 }}>
+                El caos silencioso
+                <br />
+                de todos los días
+              </h3>
             </div>
+            <div data-compare-header style={{ background: C.n900, padding: '24px 36px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(16,185,129,.12)', border: `1px solid rgba(16,185,129,.22)`, borderRadius: 6, padding: '4px 12px', marginBottom: 16 }}>
+                <span style={{ display: 'block', width: 7, height: 7, borderRadius: '50%', background: C.e400, flexShrink: 0 }} />
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: C.e400 }}>Con TuCaja</span>
+              </div>
+              <h3 style={{ fontFamily: 'var(--font-lora)', fontSize: 'clamp(1.1rem, 2.4vw, 1.35rem)', fontWeight: 700, color: C.white, lineHeight: 1.3, margin: 0 }}>
+                Control real
+                <br />
+                desde el primer día
+              </h3>
+            </div>
+
+            {/* Filas */}
+            {[
+              [
+                'Anotás las ventas en un cuaderno y al final del día no cierra',
+                'Cada venta queda registrada automáticamente, con número de comprobante',
+              ],
+              [
+                'No sabés cuánto stock te queda hasta que se te acaba',
+                'Recibís una alerta antes de quedarte sin stock, no cuando ya se acabó',
+              ],
+              [
+                'Cerrás la caja haciendo cuentas a mano y siempre falta o sobra',
+                'El cierre de caja te dice cuánto deberías tener y la diferencia exacta',
+              ],
+              [
+                'El fiado lo manejás de memoria y hay clientes que "se olvidaron"',
+                'El fiado queda en el sistema: quién debe, cuánto y desde cuándo',
+              ],
+              [
+                'No sabés qué productos te conviene tener ni cuáles no se mueven',
+                'Ves en tiempo real cuáles son tus productos más rentables',
+              ],
+              [
+                'Perdés tiempo buscando precios, anotando, calculando — todos los días',
+                'Cobrás en segundos — el sistema hace todo el resto solo',
+              ],
+            ].map(([bad, good], i) => (
+              <Fragment key={i}>
+                <R delay={i * 40}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 14,
+                    padding: '20px 36px',
+                    background: i % 2 === 0 ? '#fafafa' : C.white,
+                    borderTop: `1px solid ${C.border}`,
+                    borderRight: `1px solid ${C.border}`,
+                  }}
+                  >
+                    <span style={{
+                      flexShrink: 0,
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      background: '#fee2e2',
+                      border: '1px solid #fecaca',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginTop: 1,
+                    }}
+                    >
+                      <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                        <path d="M1 1l6 6M7 1L1 7" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                    <span style={{ fontSize: 14, color: '#6b2b2b', lineHeight: 1.65 }}>{bad}</span>
+                  </div>
+                </R>
+                <R delay={i * 40 + 20}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 14,
+                    padding: '20px 36px',
+                    background: i % 2 === 0 ? '#f0fdf8' : C.e50,
+                    borderTop: `1px solid ${C.e200}`,
+                  }}
+                  >
+                    <span style={{
+                      flexShrink: 0,
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      background: C.e100,
+                      border: `1px solid ${C.e200}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginTop: 1,
+                    }}
+                    >
+                      <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
+                        <path d="M1 3.5l2.5 2.5L8 1" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                    <span style={{ fontSize: 14, color: C.textMid, lineHeight: 1.65 }}>{good}</span>
+                  </div>
+                </R>
+              </Fragment>
+            ))}
           </div>
         </div>
-        <div style={{ height: 80 }} />
       </section>
 
       {/* ══ LO QUE GANÁS ════════════════════════════════════════════════════ */}
@@ -1072,6 +1122,9 @@ export const LandingPage = () => {
         [data-hero-ctas] a   { text-align: center; justify-content: center; }
         [data-trust-signals] { display: flex; flex-direction: column; gap: 6px; margin-top: 20px; }
         [data-ad-grid]       { display: flex; flex-direction: column; }
+        [data-compare-table] { display: grid; grid-template-columns: 1fr 1fr; }
+        [data-compare-table] [data-compare-header] { padding: 20px 18px !important; }
+        [data-compare-table] > div { padding: 16px 18px !important; }
         [data-benefits-grid] { display: flex; flex-direction: column; gap: 16px; }
         [data-metrics-grid]  { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         [data-db-row]        { display: flex; flex-direction: column; gap: 12px; }
@@ -1104,6 +1157,9 @@ export const LandingPage = () => {
         @media (min-width: 900px) {
           [data-hero-grid]     { display: grid; grid-template-columns: clamp(300px, 50%, 540px) 1fr; gap: 64px; align-items: center; padding: 80px 0 100px; }
           [data-ad-grid]       { display: grid; grid-template-columns: 1fr 1fr; }
+          [data-compare-table] { display: grid; grid-template-columns: 1fr 1fr; }
+          [data-compare-table] [data-compare-header] { padding: 24px 36px !important; }
+          [data-compare-table] > div { padding: 20px 36px !important; }
           [data-benefits-grid] { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
           [data-db-row]        { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
           [data-pricing-grid]  { grid-template-columns: repeat(4, 1fr); }
