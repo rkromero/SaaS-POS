@@ -1,3 +1,10 @@
+# [1.35.0](https://github.com/rkromero/SaaS-POS/compare/v1.34.0...v1.35.0) (2026-04-17)
+
+
+### Features
+
+* **pos:** combos visibles directamente en el grid de productos ([c1636b7](https://github.com/rkromero/SaaS-POS/commit/c1636b71e725df5394ecc66868f223cc73bd171b))
+
 # [1.34.0](https://github.com/rkromero/SaaS-POS/compare/v1.33.1...v1.34.0) (2026-04-17)
 
 
