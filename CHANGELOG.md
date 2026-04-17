@@ -1,3 +1,10 @@
+# [1.34.0](https://github.com/rkromero/SaaS-POS/compare/v1.33.1...v1.34.0) (2026-04-17)
+
+
+### Features
+
+* **promotions:** módulo completo de promociones y combos ([f69d0c7](https://github.com/rkromero/SaaS-POS/commit/f69d0c778bd24d1ca5aea39cb9b8b20ea0b69a22))
+
 ## [1.33.1](https://github.com/rkromero/SaaS-POS/compare/v1.33.0...v1.33.1) (2026-04-17)
 
 
