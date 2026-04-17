@@ -1,3 +1,10 @@
+## [1.39.2](https://github.com/rkromero/SaaS-POS/compare/v1.39.1...v1.39.2) (2026-04-17)
+
+
+### Bug Fixes
+
+* **ticket:** escape cierra el modal e inicia nueva venta ([e058c16](https://github.com/rkromero/SaaS-POS/commit/e058c1684a13d43ded4593ef3f1832af372b4dff))
+
 ## [1.39.1](https://github.com/rkromero/SaaS-POS/compare/v1.39.0...v1.39.1) (2026-04-17)
 
 
