@@ -157,6 +157,8 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const [modalLoyaltySearching, setModalLoyaltySearching] = useState(false);
   const [modalLoyaltyError, setModalLoyaltyError] = useState('');
   const [modalPaymentIdx, setModalPaymentIdx] = useState(MERCADOPAGO_IDX);
+  // Cliente encontrado/creado en Modal 1 — usado como cliente fiado si se elige ese método
+  const [modalFoundCustomer, setModalFoundCustomer] = useState<FiadoCustomer | null>(null);
 
   // Escucha cambios de fullscreen (también el ESC del browser)
   useEffect(() => {
@@ -474,10 +476,13 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
 
     const effectivePm = overridePaymentMethod ?? paymentMethod;
 
+    // Para fiado: acepta tanto el cliente del sidebar como el cliente encontrado en Modal 1
+    const effectiveFiadoCustomer = fiadoCustomer ?? modalFoundCustomer;
+
     // Validación extra para fiado
     if (effectivePm === 'fiado') {
-      if (!fiadoCustomer) {
-        setCheckoutError('Buscá y seleccioná un cliente por WhatsApp para registrar el fiado');
+      if (!effectiveFiadoCustomer) {
+        setCheckoutError('Ingresá el teléfono del cliente en el primer paso o buscalo en el campo Fiado');
         return;
       }
     } else if (!customerName.trim()) {
@@ -489,9 +494,9 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     setSubmitting(true);
 
     // Para fiado, usamos los datos del cliente encontrado
-    const effectiveCustomerName = effectivePm === 'fiado' ? fiadoCustomer!.name : customerName;
-    const effectiveCustomerWhatsapp = effectivePm === 'fiado' ? fiadoCustomer!.whatsapp : customerWhatsapp;
-    const effectiveCustomerId = effectivePm === 'fiado' ? fiadoCustomer!.id : undefined;
+    const effectiveCustomerName = effectivePm === 'fiado' ? effectiveFiadoCustomer!.name : customerName;
+    const effectiveCustomerWhatsapp = effectivePm === 'fiado' ? effectiveFiadoCustomer!.whatsapp : customerWhatsapp;
+    const effectiveCustomerId = effectivePm === 'fiado' ? effectiveFiadoCustomer!.id : undefined;
 
     try {
       const response = await fetch('/api/sales', {
@@ -506,7 +511,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
             .filter(i => i.type === 'combo')
             .map(i => ({ comboId: (i as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id, quantity: i.quantity })),
           customerName: effectiveCustomerName,
-          customerEmail: effectivePm === 'fiado' ? (fiadoCustomer!.email || null) : (customerEmail || null),
+          customerEmail: effectivePm === 'fiado' ? (effectiveFiadoCustomer!.email || null) : (customerEmail || null),
           customerWhatsapp: effectiveCustomerWhatsapp || null,
           paymentMethod: effectivePm,
           ...(effectiveCustomerId !== undefined && { customerId: effectiveCustomerId }),
@@ -559,7 +564,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     } finally {
       setSubmitting(false);
     }
-  }, [cart, paymentMethod, fiadoCustomer, customerName, customerEmail, customerWhatsapp, selectedLocationId, loyaltyCustomerId, loyaltyRewardId, emitirFactura, arcaActive, buyerType, buyerCuit]);
+  }, [cart, paymentMethod, fiadoCustomer, modalFoundCustomer, customerName, customerEmail, customerWhatsapp, selectedLocationId, loyaltyCustomerId, loyaltyRewardId, emitirFactura, arcaActive, buyerType, buyerCuit]);
 
   // openCheckoutFlow: abre el flujo de cobro por teclado (Modal 1 → Modal 2 → checkout)
   const openCheckoutFlow = useCallback(() => {
@@ -585,12 +590,12 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     try {
       const res = await fetch(`/api/customers/search?whatsapp=${encodeURIComponent(digits)}`);
       const customer = await res.json();
-      let cid: number;
+      let found: FiadoCustomer;
       if (customer?.id) {
-        cid = customer.id;
-        setCustomerWhatsapp(customer.whatsapp ?? digits);
-        if (customer.name && customer.name !== 'Consumidor final') {
-          setCustomerName(customer.name);
+        found = { id: customer.id, name: customer.name, whatsapp: customer.whatsapp ?? digits, email: customer.email ?? null };
+        setCustomerWhatsapp(found.whatsapp ?? digits);
+        if (found.name && found.name !== 'Consumidor final') {
+          setCustomerName(found.name);
         }
       } else {
         // Cliente no existe: crearlo con el teléfono como nombre provisional
@@ -605,10 +610,12 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
           return;
         }
         const nc = await cr.json();
-        cid = nc.id;
+        found = { id: nc.id, name: nc.name, whatsapp: digits, email: null };
         setCustomerWhatsapp(digits);
       }
-      setLoyaltyCustomerId(cid);
+      setLoyaltyCustomerId(found.id);
+      // Guardar el cliente completo por si se elige Fiado en Modal 2
+      setModalFoundCustomer(found);
       setCheckoutFlowStep('payment');
     } catch {
       setModalLoyaltyError('Error de conexión');
@@ -621,6 +628,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     setCheckoutFlowStep('idle');
     setModalLoyaltyPhone('');
     setModalLoyaltyError('');
+    setModalFoundCustomer(null);
   }, []);
 
   // El ref siempre apunta a openCheckoutFlow para el listener global de doble Enter
@@ -642,6 +650,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     setBuyerCuit('');
     setLoyaltyCustomerId(null);
     setLoyaltyRewardId(null);
+    setModalFoundCustomer(null);
     setLoyaltyDiscount(0);
     fetchProducts(true); // fuerza refetch para mostrar stock actualizado tras la venta
     setTimeout(() => searchRef.current?.focus(), 100);
