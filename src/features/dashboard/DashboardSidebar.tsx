@@ -17,6 +17,7 @@ import {
   Palette,
   PieChart,
   ShoppingCart,
+  Star,
   Store,
   Truck,
   Users,
@@ -66,6 +67,7 @@ const navGroups: NavGroup[] = [
       { href: '/dashboard/sales', label: 'Ventas', icon: <BarChart3 className={iconClass} /> },
       { href: '/dashboard/expenses', label: 'Gastos', icon: <MinusCircle className={iconClass} /> },
       { href: '/dashboard/mp-control', label: 'Control MP', icon: <CreditCard className={iconClass} />, moduleRequired: 'mp_control' },
+      { href: '/dashboard/loyalty', label: 'Fidelización', icon: <Star className={iconClass} />, moduleRequired: 'loyalty' },
     ],
   },
   {

@@ -662,6 +662,149 @@ export const purchaseOrderItemSchema = pgTable(
 );
 
 // ---------------------------------------------------------------------------
+// Loyalty — Fidelización de clientes
+// ---------------------------------------------------------------------------
+
+export const loyaltyTransactionTypeEnum = pgEnum('loyalty_transaction_type', [
+  'earn', // puntos ganados por compra
+  'redeem', // puntos canjeados
+  'expire', // puntos vencidos
+  'adjust', // ajuste manual por admin
+]);
+
+export const loyaltyRewardTypeEnum = pgEnum('loyalty_reward_type', [
+  'product', // producto del inventario gratis
+  'discount_fixed', // descuento fijo en pesos
+  'discount_percent', // descuento porcentual
+]);
+
+// Configuración del programa de puntos por organización (1 registro por org)
+export const loyaltyConfigSchema = pgTable('loyalty_config', {
+  organizationId: text('organization_id').primaryKey(),
+  isActive: boolean('is_active').default(false).notNull(),
+  // Cada cuántos pesos se gana 1 punto. Ej: 1000 → 1 punto por cada $1.000
+  pesosPerPoint: numeric('pesos_per_point', { precision: 10, scale: 2 }).default('1000').notNull(),
+  // Mínimo de puntos requeridos para poder hacer un canje
+  minPointsToRedeem: integer('min_points_to_redeem').default(0).notNull(),
+  // Días hasta que los puntos vencen desde la fecha de acumulación (null = no vencen)
+  pointsExpiryDays: integer('points_expiry_days'),
+  // Auditoría: quién hizo el último cambio de configuración
+  updatedByUserId: text('updated_by_user_id'),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+// Movimientos de puntos: cada acumulación o canje registra una fila.
+// points > 0 = crédito (earn, adjust+)
+// points < 0 = débito (redeem, expire, adjust-)
+// Balance del cliente = SUM(points) WHERE customerId = X
+export const loyaltyTransactionSchema = pgTable(
+  'loyalty_transaction',
+  {
+    id: serial('id').primaryKey(),
+    organizationId: text('organization_id').notNull(),
+    customerId: integer('customer_id')
+      .notNull()
+      .references(() => customerSchema.id, { onDelete: 'cascade' }),
+    type: loyaltyTransactionTypeEnum('type').notNull(),
+    points: integer('points').notNull(),
+    // Venta que originó el movimiento
+    saleId: integer('sale_id').references(() => saleSchema.id, {
+      onDelete: 'set null',
+    }),
+    // ID del canje que originó el débito (solo para type='redeem')
+    redemptionId: integer('redemption_id'),
+    description: text('description'),
+    userId: text('user_id').notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => ({
+    // Balance por cliente: SUM filtrado por customerId
+    loyaltyTxCustomerIdx: index('loyalty_tx_customer_idx').on(
+      table.customerId,
+      table.createdAt,
+    ),
+    // Reporte por org: puntos emitidos vs canjeados en rango de fechas
+    loyaltyTxOrgIdx: index('loyalty_tx_org_idx').on(
+      table.organizationId,
+      table.createdAt,
+    ),
+    // Reversa en anulación de venta
+    loyaltyTxSaleIdx: index('loyalty_tx_sale_idx').on(table.saleId),
+  }),
+);
+
+// Catálogo de premios canjeables por organización
+export const loyaltyRewardSchema = pgTable(
+  'loyalty_reward',
+  {
+    id: serial('id').primaryKey(),
+    organizationId: text('organization_id').notNull(),
+    name: text('name').notNull(),
+    description: text('description'),
+    type: loyaltyRewardTypeEnum('type').notNull(),
+    pointsCost: integer('points_cost').notNull(),
+    // discount_fixed: monto fijo en pesos | discount_percent: valor 0-100
+    discountValue: numeric('discount_value', { precision: 10, scale: 2 }),
+    // product: producto del inventario a entregar sin cargo
+    productId: integer('product_id').references(() => productSchema.id, {
+      onDelete: 'set null',
+    }),
+    // Stock de canjes disponibles (null = ilimitado)
+    stock: integer('stock'),
+    isActive: boolean('is_active').default(true).notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'date' })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => ({
+    loyaltyRewardOrgIdx: index('loyalty_reward_org_idx').on(
+      table.organizationId,
+      table.isActive,
+    ),
+  }),
+);
+
+// Registro de cada canje realizado
+export const loyaltyRedemptionSchema = pgTable(
+  'loyalty_redemption',
+  {
+    id: serial('id').primaryKey(),
+    organizationId: text('organization_id').notNull(),
+    customerId: integer('customer_id')
+      .notNull()
+      .references(() => customerSchema.id, { onDelete: 'cascade' }),
+    customerName: text('customer_name').notNull(), // denormalizado para preservar historia
+    rewardId: integer('reward_id').references(() => loyaltyRewardSchema.id, {
+      onDelete: 'set null',
+    }),
+    rewardName: text('reward_name').notNull(), // denormalizado
+    pointsSpent: integer('points_spent').notNull(),
+    // Descuento efectivo en pesos aplicado a la venta (0 si es tipo product)
+    discountApplied: numeric('discount_applied', { precision: 10, scale: 2 })
+      .default('0')
+      .notNull(),
+    saleId: integer('sale_id').references(() => saleSchema.id, {
+      onDelete: 'set null',
+    }),
+    userId: text('user_id').notNull(),
+    // completed | cancelled (se cancela cuando se anula la venta asociada)
+    status: text('status').default('completed').notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => ({
+    loyaltyRedemptionCustomerIdx: index('loyalty_redemption_customer_idx').on(
+      table.customerId,
+    ),
+    loyaltyRedemptionOrgIdx: index('loyalty_redemption_org_idx').on(
+      table.organizationId,
+      table.createdAt,
+    ),
+  }),
+);
+
+// ---------------------------------------------------------------------------
 // MP Notifications — notificaciones de Mercado Pago por organización
 // ---------------------------------------------------------------------------
 

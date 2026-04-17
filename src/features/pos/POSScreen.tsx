@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+import { LoyaltyCustomerPanel } from '../loyalty/LoyaltyCustomerPanel';
 import { Ticket } from './Ticket';
 
 type POSProduct = {
@@ -110,6 +111,12 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const [buyerType, setBuyerType] = useState<'consumidor_final' | 'con_cuit'>('consumidor_final');
   const [buyerCuit, setBuyerCuit] = useState('');
 
+  // Loyalty — fidelización de clientes
+  const [loyaltyActive, setLoyaltyActive] = useState(false);
+  const [loyaltyCustomerId, setLoyaltyCustomerId] = useState<number | null>(null);
+  const [loyaltyRewardId, setLoyaltyRewardId] = useState<number | null>(null);
+  const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
+
   // Escucha cambios de fullscreen (también el ESC del browser)
   useEffect(() => {
     const handleChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -125,16 +132,19 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     }
   };
 
-  // Load ARCA config
+  // Load ARCA config + loyalty config en paralelo
   useEffect(() => {
-    fetch('/api/arca/config')
-      .then(r => r.json())
-      .then((data: any) => {
-        if (data?.isActive) {
-          setArcaActive(true);
-        }
-      })
-      .catch(() => {});
+    Promise.all([
+      fetch('/api/arca/config').then(r => r.json()).catch(() => null),
+      fetch('/api/loyalty/config').then(r => r.json()).catch(() => null),
+    ]).then(([arca, loyalty]) => {
+      if (arca?.isActive) {
+        setArcaActive(true);
+      }
+      if (loyalty?.isActive) {
+        setLoyaltyActive(true);
+      }
+    });
   }, []);
 
   // Load locations
@@ -202,10 +212,11 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     }
   };
 
-  const total = cart.reduce(
+  const rawTotal = cart.reduce(
     (sum, item) => sum + Number(item.product.price) * item.quantity,
     0,
   );
+  const total = Math.max(0, rawTotal - loyaltyDiscount);
 
   // Category list from products
   const categories = [...new Map(
@@ -286,6 +297,9 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
           customerWhatsapp: effectiveCustomerWhatsapp || null,
           paymentMethod,
           ...(effectiveCustomerId !== undefined && { customerId: effectiveCustomerId }),
+          // Loyalty
+          ...(loyaltyCustomerId && { loyaltyCustomerId }),
+          ...(loyaltyRewardId && { loyaltyRewardId }),
         }),
       });
 
@@ -348,6 +362,9 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     setEmitirFactura(false);
     setBuyerType('consumidor_final');
     setBuyerCuit('');
+    setLoyaltyCustomerId(null);
+    setLoyaltyRewardId(null);
+    setLoyaltyDiscount(0);
     fetchProducts(true); // fuerza refetch para mostrar stock actualizado tras la venta
     setTimeout(() => searchRef.current?.focus(), 100);
   };
@@ -735,6 +752,29 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
                   ))}
                 </div>
               </div>
+
+              {/* Loyalty — fidelización de clientes */}
+              {loyaltyActive && (
+                <LoyaltyCustomerPanel
+                  cartTotal={rawTotal}
+                  onCustomerChange={id => setLoyaltyCustomerId(id)}
+                  onRewardChange={(rewardId, discount) => {
+                    setLoyaltyRewardId(rewardId);
+                    setLoyaltyDiscount(discount);
+                  }}
+                />
+              )}
+
+              {/* Descuento de fidelización aplicado */}
+              {loyaltyDiscount > 0 && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Descuento fidelización</span>
+                  <span>
+                    -$
+                    {loyaltyDiscount.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              )}
 
               {/* ARCA — factura electrónica */}
               {arcaActive && (

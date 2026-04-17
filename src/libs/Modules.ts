@@ -9,7 +9,8 @@ export type ModuleId =
   | 'exports'
   | 'integrations'
   | 'ai_features'
-  | 'mp_control';
+  | 'mp_control'
+  | 'loyalty';
 
 export type Module = {
   id: ModuleId;
@@ -57,6 +58,11 @@ export const MODULES: Module[] = [
     id: 'mp_control',
     name: 'Control Mercado Pago',
     description: 'Notificaciones de cobros, depósitos y transferencias en tiempo real',
+  },
+  {
+    id: 'loyalty',
+    name: 'Fidelización de Clientes',
+    description: 'Programa de puntos y canjes para premiar a clientes frecuentes',
   },
 ];
 

@@ -8,6 +8,10 @@ import {
   customerSchema,
   debtTransactionSchema,
   locationSchema,
+  loyaltyConfigSchema,
+  loyaltyRedemptionSchema,
+  loyaltyRewardSchema,
+  loyaltyTransactionSchema,
   productSchema,
   saleItemSchema,
   saleSchema,
@@ -72,7 +76,19 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { locationId, items, customerName, customerEmail, customerWhatsapp, paymentMethod, customerId: bodyCustomerId } = body;
+  const {
+    locationId,
+    items,
+    customerName,
+    customerEmail,
+    customerWhatsapp,
+    paymentMethod,
+    customerId: bodyCustomerId,
+    // Loyalty: cliente identificado para acumular puntos
+    loyaltyCustomerId: bodyLoyaltyCustomerId,
+    // Loyalty: ID del premio a canjear en esta venta
+    loyaltyRewardId: bodyLoyaltyRewardId,
+  } = body;
 
   if (!locationId || !items?.length || !customerName || !paymentMethod) {
     return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
@@ -107,7 +123,10 @@ export async function POST(request: Request) {
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const [productsResult, stocksResult, countResult, monthlySalesResult, access] = await Promise.all([
+  const loyaltyCustomerId = bodyLoyaltyCustomerId ? Number(bodyLoyaltyCustomerId) : null;
+  const loyaltyRewardId = bodyLoyaltyRewardId ? Number(bodyLoyaltyRewardId) : null;
+
+  const [productsResult, stocksResult, countResult, monthlySalesResult, access, loyaltyConfig] = await Promise.all([
     // Trae todos los productos del carrito en una sola query
     db.select().from(productSchema).where(
       and(
@@ -136,6 +155,9 @@ export async function POST(request: Request) {
 
     // Plan y límites de la org
     getOrgAccess(orgId),
+
+    // Config del programa de fidelización (si existe)
+    db.select().from(loyaltyConfigSchema).where(eq(loyaltyConfigSchema.organizationId, orgId)).limit(1).then(r => r[0] ?? null),
   ]);
 
   // ── Verificar límite mensual de ventas según el plan ─────────────────────
@@ -176,11 +198,65 @@ export async function POST(request: Request) {
     enrichedItems.push({ product, stock, quantity: item.quantity });
   }
 
-  // Calculate total
-  const total = enrichedItems.reduce(
+  // Calculate total from cart items
+  const rawTotal = enrichedItems.reduce(
     (sum, { product, quantity }) => sum + Number(product.price) * quantity,
     0,
   );
+
+  // ── Loyalty: validar y calcular descuento por canje ──────────────────────
+  let loyaltyDiscount = 0;
+  let loyaltyReward: typeof loyaltyRewardSchema.$inferSelect | null = null;
+
+  if (loyaltyRewardId && loyaltyCustomerId && loyaltyConfig?.isActive) {
+    // Cargar el premio y el balance del cliente en paralelo
+    const [rewardRows, balanceRows] = await Promise.all([
+      db.select().from(loyaltyRewardSchema)
+        .where(and(eq(loyaltyRewardSchema.id, loyaltyRewardId), eq(loyaltyRewardSchema.organizationId, orgId)))
+        .limit(1),
+      db.select({ balance: sql<number>`COALESCE(SUM(${loyaltyTransactionSchema.points}), 0)` })
+        .from(loyaltyTransactionSchema)
+        .where(and(
+          eq(loyaltyTransactionSchema.customerId, loyaltyCustomerId),
+          eq(loyaltyTransactionSchema.organizationId, orgId),
+        )),
+    ]);
+
+    loyaltyReward = rewardRows[0] ?? null;
+    const availablePoints = Number(balanceRows[0]?.balance ?? 0);
+
+    if (!loyaltyReward || !loyaltyReward.isActive) {
+      return NextResponse.json({ error: 'Premio de fidelización no encontrado o inactivo' }, { status: 400 });
+    }
+    if (availablePoints < loyaltyReward.pointsCost) {
+      return NextResponse.json(
+        { error: `Puntos insuficientes. Disponibles: ${availablePoints}, requeridos: ${loyaltyReward.pointsCost}` },
+        { status: 400 },
+      );
+    }
+    if (loyaltyConfig.minPointsToRedeem > 0 && availablePoints < loyaltyConfig.minPointsToRedeem) {
+      return NextResponse.json(
+        { error: `Se requieren al menos ${loyaltyConfig.minPointsToRedeem} puntos para canjear` },
+        { status: 400 },
+      );
+    }
+    // Verificar stock del premio
+    if (loyaltyReward.stock !== null && loyaltyReward.stock <= 0) {
+      return NextResponse.json({ error: 'Este premio ya no tiene stock disponible' }, { status: 400 });
+    }
+
+    // Calcular descuento según tipo de premio
+    if (loyaltyReward.type === 'discount_fixed') {
+      loyaltyDiscount = Math.min(Number(loyaltyReward.discountValue ?? 0), rawTotal);
+    } else if (loyaltyReward.type === 'discount_percent') {
+      loyaltyDiscount = rawTotal * (Number(loyaltyReward.discountValue ?? 0) / 100);
+    }
+    // type === 'product': descuento monetario 0, el producto se entrega aparte
+  }
+
+  // Total efectivo después de aplicar descuento de fidelización
+  const total = Math.max(0, rawTotal - loyaltyDiscount);
+  // ─────────────────────────────────────────────────────────────────────────
 
   const salesCount = countResult[0]?.salesCount ?? 0;
   const receiptNumber = `${orgId.slice(-6).toUpperCase()}-${String(salesCount + 1).padStart(6, '0')}`;
@@ -293,11 +369,89 @@ export async function POST(request: Request) {
     }
   }
 
+  // ── Loyalty: acumular y/o canjear puntos ─────────────────────────────────
+  // El cliente de fidelización puede ser el mismo que el cliente de la venta
+  // o uno diferente (ej: el comprador no tiene fiado pero sí tarjeta de puntos).
+  const effectiveLoyaltyCustomerId = loyaltyCustomerId ?? customerId;
+
+  if (loyaltyConfig?.isActive && effectiveLoyaltyCustomerId) {
+    // 1. Procesar canje si se solicitó un premio
+    if (loyaltyReward && loyaltyRewardId) {
+      // Insertar registro del canje y luego el débito de puntos de forma secuencial
+      // (el débito necesita el ID del canje creado)
+      const [redemption] = await db.insert(loyaltyRedemptionSchema).values({
+        organizationId: orgId,
+        customerId: effectiveLoyaltyCustomerId,
+        customerName: customerName.trim(),
+        rewardId: loyaltyRewardId,
+        rewardName: loyaltyReward.name,
+        pointsSpent: loyaltyReward.pointsCost,
+        discountApplied: String(loyaltyDiscount.toFixed(2)),
+        saleId: sale!.id,
+        userId,
+        status: 'completed',
+      }).returning();
+
+      const redeemOps: Promise<unknown>[] = [
+        db.insert(loyaltyTransactionSchema).values({
+          organizationId: orgId,
+          customerId: effectiveLoyaltyCustomerId,
+          type: 'redeem',
+          points: -loyaltyReward.pointsCost,
+          saleId: sale!.id,
+          redemptionId: redemption!.id,
+          description: `Canje: ${loyaltyReward.name} (${receiptNumber})`,
+          userId,
+        }),
+      ];
+
+      // Decrementar stock del premio si tiene límite
+      if (loyaltyReward.stock !== null) {
+        redeemOps.push(
+          db.update(loyaltyRewardSchema)
+            .set({ stock: sql`${loyaltyRewardSchema.stock} - 1` })
+            .where(eq(loyaltyRewardSchema.id, loyaltyRewardId)),
+        );
+      }
+
+      await Promise.all(redeemOps);
+    }
+
+    // 2. Acumular puntos por la compra (sobre el total después del descuento)
+    const pesosPerPoint = Number(loyaltyConfig.pesosPerPoint);
+    const pointsEarned = Math.floor(total / pesosPerPoint);
+    if (pointsEarned > 0) {
+      await db.insert(loyaltyTransactionSchema).values({
+        organizationId: orgId,
+        customerId: effectiveLoyaltyCustomerId,
+        type: 'earn',
+        points: pointsEarned,
+        saleId: sale!.id,
+        description: `Compra ${receiptNumber}`,
+        userId,
+      });
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   // Return full sale with items for ticket printing
   const saleItems = await db
     .select()
     .from(saleItemSchema)
     .where(eq(saleItemSchema.saleId, sale!.id));
 
-  return NextResponse.json({ sale, items: saleItems }, { status: 201 });
+  // Calcular puntos ganados para devolver en la respuesta (info para el ticket)
+  const loyaltyPointsEarned = (loyaltyConfig?.isActive && effectiveLoyaltyCustomerId)
+    ? Math.floor(total / Number(loyaltyConfig.pesosPerPoint))
+    : 0;
+
+  return NextResponse.json({
+    sale,
+    items: saleItems,
+    loyalty: {
+      pointsEarned: loyaltyPointsEarned,
+      pointsRedeemed: loyaltyReward?.pointsCost ?? 0,
+      discountApplied: loyaltyDiscount,
+    },
+  }, { status: 201 });
 }
