@@ -19,7 +19,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const access = await getOrgAccess(orgId);
+  let access;
+  try {
+    access = await getOrgAccess(orgId);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: `getOrgAccess falló: ${msg}` }, { status: 500 });
+  }
+
   if (!access.hasModule('stock_expiration')) {
     return NextResponse.json({ error: 'Módulo no disponible en tu plan' }, { status: 403 });
   }
@@ -29,10 +36,17 @@ export async function GET(request: Request) {
   const status = searchParams.get('status') ?? 'expiring';
 
   // Resolve look-ahead window
-  const configRows = await db
-    .select()
-    .from(expirationAlertConfigSchema)
-    .where(eq(expirationAlertConfigSchema.organizationId, orgId));
+  type ConfigRow = { id: number; organizationId: string; thresholdDays: number; emailEnabled: boolean; inAppEnabled: boolean; createdAt: Date };
+  let configRows: ConfigRow[] = [];
+  try {
+    configRows = await db
+      .select()
+      .from(expirationAlertConfigSchema)
+      .where(eq(expirationAlertConfigSchema.organizationId, orgId));
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: `configRows query falló: ${msg}` }, { status: 500 });
+  }
 
   const daysParam = searchParams.get('days');
   let lookAheadDays = daysParam ? Number(daysParam) : 30;
