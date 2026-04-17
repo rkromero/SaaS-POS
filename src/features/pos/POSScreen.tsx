@@ -361,20 +361,18 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
       .map(p => [p.categoryId, { id: p.categoryId!, name: p.categoryName! }]),
   ).values()];
 
-  // filterCategory === 'combos' shows the combos tab
-  const filteredProducts = filterCategory === 'combos'
-    ? []
-    : products.filter((p) => {
-      const matchSearch
-          = search === ''
-          || p.name.toLowerCase().includes(search.toLowerCase())
-          || (p.sku ?? '').toLowerCase().includes(search.toLowerCase());
-      const matchCategory
-          = filterCategory === '' || String(p.categoryId) === filterCategory;
-      return matchSearch && matchCategory;
-    });
+  const filteredProducts = products.filter((p) => {
+    const matchSearch
+        = search === ''
+        || p.name.toLowerCase().includes(search.toLowerCase())
+        || (p.sku ?? '').toLowerCase().includes(search.toLowerCase());
+    const matchCategory
+        = filterCategory === '' || String(p.categoryId) === filterCategory;
+    return matchSearch && matchCategory;
+  });
 
-  const filteredCombos = filterCategory === 'combos' && combos.length > 0
+  // Combos shown alongside products when no category filter is active (or always when searching)
+  const filteredCombos = filterCategory === ''
     ? combos.filter(c => search === '' || c.name.toLowerCase().includes(search.toLowerCase()))
     : [];
 
@@ -629,9 +627,6 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
               {categories.map(cat => (
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
-              {combos.length > 0 && (
-                <option value="combos">🎁 Combos</option>
-              )}
             </select>
 
             {/* Botón fullscreen */}
@@ -741,7 +736,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
                       );
                     })}
 
-                    {filteredProducts.length === 0 && filterCategory !== 'combos' && (
+                    {filteredProducts.length === 0 && filteredCombos.length === 0 && (
                       <p className="col-span-full text-sm text-muted-foreground">
                         Sin productos para mostrar.
                       </p>
