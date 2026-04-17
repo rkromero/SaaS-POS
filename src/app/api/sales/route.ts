@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
 import { getOrgAccess } from '@/libs/OrgAccess';
+import { deductBatchesFEFO } from '@/libs/StockBatchFEFO';
 import {
   customerSchema,
   debtTransactionSchema,
@@ -372,6 +373,7 @@ async function handlePost(request: Request) {
   // ── Aplicar promos de descuento con lógica de acumulación ─────────────────
   // Solo aplica si el módulo está habilitado
   const promotionsEnabled = access.isProOrBetter || access.hasModule('promotions');
+  const hasStockExpiration = access.hasModule('stock_expiration');
   let promoDiscount = 0;
 
   if (promotionsEnabled && activeDiscountPromos.length > 0) {
@@ -567,6 +569,10 @@ async function handlePost(request: Request) {
           userId,
           notes: `Venta ${receiptNumber}`,
         });
+        // FEFO: descontar del lote que vence antes
+        if (hasStockExpiration) {
+          await deductBatchesFEFO(stock!.id, quantity);
+        }
       }),
 
     // Stock movements for combo components
@@ -585,6 +591,10 @@ async function handlePost(request: Request) {
             userId,
             notes: `Combo - Venta ${receiptNumber}`,
           });
+          // FEFO: descontar del lote que vence antes
+          if (hasStockExpiration) {
+            await deductBatchesFEFO(stockRecord.id, needed);
+          }
         }),
     ),
   ]);

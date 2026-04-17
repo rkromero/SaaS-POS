@@ -1,9 +1,10 @@
 import { auth } from '@clerk/nextjs/server';
-import { and, asc, eq, gt, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
 import { getOrgAccess } from '@/libs/OrgAccess';
+import { deductBatchesFEFO } from '@/libs/StockBatchFEFO';
 import {
   locationSchema,
   stockBatchSchema,
@@ -120,36 +121,7 @@ export async function POST(request: Request) {
         notes: notes?.trim() || null,
       });
     } else {
-      // FEFO: consume batches ordered by expirationDate ASC NULLS LAST
-      // Expired-first, then by earliest expiration, then batches without expiration
-      const batches = await db
-        .select()
-        .from(stockBatchSchema)
-        .where(
-          and(
-            eq(stockBatchSchema.stockId, stock.id),
-            gt(stockBatchSchema.quantity, 0),
-          ),
-        )
-        // NULL dates (no expira) van al final: primero los que vencen antes
-        .orderBy(
-          sql`${stockBatchSchema.expirationDate} ASC NULLS LAST`,
-          asc(stockBatchSchema.id),
-        );
-
-      let remaining = qty;
-      for (const batch of batches) {
-        if (remaining <= 0) {
-          break;
-        }
-        const consume = Math.min(batch.quantity, remaining);
-        remaining -= consume;
-        const newQty = batch.quantity - consume;
-        await db
-          .update(stockBatchSchema)
-          .set({ quantity: newQty })
-          .where(eq(stockBatchSchema.id, batch.id));
-      }
+      await deductBatchesFEFO(stock.id, qty);
     }
   }
 
