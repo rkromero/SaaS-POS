@@ -112,6 +112,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const searchRef = useRef<HTMLInputElement>(null);
   const lastKeyTime = useRef<number>(0);
   const barcodeBuffer = useRef<string>('');
+  const lastEnterTime = useRef<number>(0);
 
   // Checkout form
   const [customerName, setCustomerName] = useState('Consumidor final');
@@ -523,6 +524,18 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     lastKeyTime.current = now;
 
     if (e.key === 'Enter') {
+      const now2 = Date.now();
+      const sinceLastEnter = now2 - lastEnterTime.current;
+      lastEnterTime.current = now2;
+
+      // Doble Enter (< 500ms entre dos Enter): confirmar venta si hay carrito
+      if (sinceLastEnter < 500 && cart.length > 0 && !submitting) {
+        e.preventDefault();
+        barcodeBuffer.current = '';
+        handleCheckout();
+        return;
+      }
+
       const sku = barcodeBuffer.current || search;
       barcodeBuffer.current = '';
 
