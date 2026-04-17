@@ -1,3 +1,10 @@
+## [1.38.2](https://github.com/rkromero/SaaS-POS/compare/v1.38.1...v1.38.2) (2026-04-17)
+
+
+### Bug Fixes
+
+* **expiration:** reemplazar raw SQL por operadores Drizzle tipados y mejorar error handling ([949e5af](https://github.com/rkromero/SaaS-POS/commit/949e5af1923300a85aeae8628aa85f16e303c372))
+
 ## [1.38.1](https://github.com/rkromero/SaaS-POS/compare/v1.38.0...v1.38.1) (2026-04-17)
 
 
