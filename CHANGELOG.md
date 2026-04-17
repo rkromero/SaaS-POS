@@ -1,3 +1,11 @@
+## [1.38.4](https://github.com/rkromero/SaaS-POS/compare/v1.38.3...v1.38.4) (2026-04-17)
+
+
+### Bug Fixes
+
+* **expiration:** filtro 'Todos' muestra todos los lotes sin límite de fecha ([9dc2e72](https://github.com/rkromero/SaaS-POS/commit/9dc2e729a95012f9439a5aff09c7c0b213899792))
+* **stock:** fefo al vender desde el POS y al registrar egresos manuales ([a1e2b96](https://github.com/rkromero/SaaS-POS/commit/a1e2b966e2129389b2ba0bff06a3be913d78d652))
+
 ## [1.38.3](https://github.com/rkromero/SaaS-POS/compare/v1.38.2...v1.38.3) (2026-04-17)
 
 
