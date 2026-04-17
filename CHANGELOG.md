@@ -1,3 +1,10 @@
+## [1.38.1](https://github.com/rkromero/SaaS-POS/compare/v1.38.0...v1.38.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* **super-admin:** remover restricción de plan en activación de módulos ([fa30d4d](https://github.com/rkromero/SaaS-POS/commit/fa30d4d1c4870b5e73ae23366b60b5e821c8645b))
+
 # [1.38.0](https://github.com/rkromero/SaaS-POS/compare/v1.37.0...v1.38.0) (2026-04-17)
 
 
