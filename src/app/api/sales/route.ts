@@ -72,6 +72,16 @@ export async function GET(request: Request) {
 
 // POST /api/sales — register a complete sale
 export async function POST(request: Request) {
+  try {
+    return await handlePost(request);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[POST /api/sales] unhandled error:', message);
+    return NextResponse.json({ error: `Error interno: ${message}` }, { status: 500 });
+  }
+}
+
+async function handlePost(request: Request) {
   const { userId, orgId } = await auth();
   if (!userId || !orgId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
