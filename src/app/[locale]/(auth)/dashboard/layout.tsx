@@ -39,6 +39,10 @@ export default async function DashboardLayout(props: { children: React.ReactNode
     enabledModules = access.isProOrBetter && !access.modules.includes('arca')
       ? [...access.modules, 'arca']
       : access.modules;
+
+    // DEBUG — quitar después de resolver
+    // eslint-disable-next-line no-console
+    console.log('[layout] orgId:', orgId, '| plan:', access.planType, '| modules:', access.modules, '| enabledModules:', enabledModules);
   }
 
   return (
