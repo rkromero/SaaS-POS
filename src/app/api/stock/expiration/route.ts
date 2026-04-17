@@ -1,5 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
-import { and, asc, eq, gte, isNotNull, lte, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, gte, isNotNull, lt, lte } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
@@ -12,8 +12,7 @@ import {
   stockSchema,
 } from '@/models/Schema';
 
-// GET /api/stock/expiration?days=30&locationId=1&status=expiring|expired
-// Lista lotes próximos a vencer o ya vencidos para esta organización.
+// GET /api/stock/expiration?status=expiring|expired|all&days=30&locationId=1
 export async function GET(request: Request) {
   const { userId, orgId } = await auth();
   if (!userId || !orgId) {
@@ -27,19 +26,17 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const locationId = searchParams.get('locationId') ? Number(searchParams.get('locationId')) : null;
-  const status = searchParams.get('status') ?? 'expiring'; // 'expiring' | 'expired' | 'all'
+  const status = searchParams.get('status') ?? 'expiring';
 
-  // Resolve the threshold: use the smallest configured threshold, or default 30 days
+  // Resolve look-ahead window
   const configRows = await db
     .select()
     .from(expirationAlertConfigSchema)
     .where(eq(expirationAlertConfigSchema.organizationId, orgId));
 
-  // Use configured thresholds or default 30 days for display
   const daysParam = searchParams.get('days');
   let lookAheadDays = daysParam ? Number(daysParam) : 30;
   if (configRows.length > 0 && !daysParam) {
-    // Use the maximum threshold to show everything that's in any alert window
     lookAheadDays = Math.max(...configRows.map(r => r.thresholdDays));
   }
 
@@ -48,25 +45,27 @@ export async function GET(request: Request) {
   const cutoffDate = new Date(today);
   cutoffDate.setDate(cutoffDate.getDate() + lookAheadDays);
 
-  // Build date filter based on status
+  // Build date filter
   let dateFilter;
   if (status === 'expired') {
-    // Already expired: expirationDate < today
-    dateFilter = sql`${stockBatchSchema.expirationDate} < ${today.toISOString().slice(0, 10)}`;
+    dateFilter = lt(stockBatchSchema.expirationDate, today);
   } else if (status === 'expiring') {
-    // Expiring soon: today <= expirationDate <= cutoff (not yet expired)
     dateFilter = and(
       gte(stockBatchSchema.expirationDate, today),
       lte(stockBatchSchema.expirationDate, cutoffDate),
     );
   } else {
-    // all: today <= expirationDate <= cutoff OR already expired
+    // all: expired + expiring soon
     dateFilter = lte(stockBatchSchema.expirationDate, cutoffDate);
   }
 
-  const locationFilter = locationId
-    ? eq(locationSchema.id, locationId)
-    : undefined;
+  const baseConditions = and(
+    eq(locationSchema.organizationId, orgId),
+    isNotNull(stockBatchSchema.expirationDate),
+    gt(stockBatchSchema.quantity, 0),
+    dateFilter,
+    ...(locationId ? [eq(locationSchema.id, locationId)] : []),
+  );
 
   const rows = await db
     .select({
@@ -87,18 +86,9 @@ export async function GET(request: Request) {
     .innerJoin(stockSchema, eq(stockBatchSchema.stockId, stockSchema.id))
     .innerJoin(productSchema, eq(stockSchema.productId, productSchema.id))
     .innerJoin(locationSchema, eq(stockSchema.locationId, locationSchema.id))
-    .where(
-      and(
-        eq(locationSchema.organizationId, orgId),
-        isNotNull(stockBatchSchema.expirationDate),
-        sql`${stockBatchSchema.quantity} > 0`,
-        dateFilter,
-        ...(locationFilter ? [locationFilter] : []),
-      ),
-    )
+    .where(baseConditions)
     .orderBy(asc(stockBatchSchema.expirationDate));
 
-  // Enrich with days until expiration
   const todayMs = today.getTime();
   const result = rows.map((row) => {
     const expMs = row.expirationDate ? new Date(row.expirationDate).getTime() : null;

@@ -92,15 +92,21 @@ export function ExpirationPage() {
     setError('');
     try {
       const res = await fetch(`/api/stock/expiration?status=${statusFilter}`);
-      if (!res.ok) {
-        const body = await res.json();
-        setError(body.error ?? 'Error al cargar');
+      const text = await res.text();
+      let json: ExpirationData | { error: string };
+      try {
+        json = JSON.parse(text) as ExpirationData | { error: string };
+      } catch {
+        setError(`Error del servidor: ${text.slice(0, 200)}`);
         return;
       }
-      const json = await res.json() as ExpirationData;
-      setData(json);
-    } catch {
-      setError('Error de conexión');
+      if (!res.ok) {
+        setError((json as { error: string }).error ?? 'Error al cargar');
+        return;
+      }
+      setData(json as ExpirationData);
+    } catch (e) {
+      setError(`Error de conexión: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setLoading(false);
     }
