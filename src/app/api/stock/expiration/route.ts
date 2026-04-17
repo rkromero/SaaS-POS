@@ -1,5 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
-import { and, asc, eq, gt, gte, isNotNull, lt, lte } from 'drizzle-orm';
+import { and, asc, eq, gt, isNotNull, sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
@@ -45,60 +45,69 @@ export async function GET(request: Request) {
   const cutoffDate = new Date(today);
   cutoffDate.setDate(cutoffDate.getDate() + lookAheadDays);
 
-  // Build date filter
+  // Use ISO date strings — Drizzle date columns accept 'YYYY-MM-DD' strings
+  const todayStr = today.toISOString().slice(0, 10);
+  const cutoffStr = cutoffDate.toISOString().slice(0, 10);
+
+  // Build date filter using sql template to avoid Drizzle date serialization issues
   let dateFilter;
   if (status === 'expired') {
-    dateFilter = lt(stockBatchSchema.expirationDate, today);
+    dateFilter = sql`${stockBatchSchema.expirationDate} < ${todayStr}`;
   } else if (status === 'expiring') {
-    dateFilter = and(
-      gte(stockBatchSchema.expirationDate, today),
-      lte(stockBatchSchema.expirationDate, cutoffDate),
-    );
+    dateFilter = sql`${stockBatchSchema.expirationDate} >= ${todayStr} AND ${stockBatchSchema.expirationDate} <= ${cutoffStr}`;
   } else {
     // all: expired + expiring soon
-    dateFilter = lte(stockBatchSchema.expirationDate, cutoffDate);
+    dateFilter = sql`${stockBatchSchema.expirationDate} <= ${cutoffStr}`;
   }
 
-  const baseConditions = and(
+  // Build conditions array to avoid spread issues in and()
+  const conditions = [
     eq(locationSchema.organizationId, orgId),
     isNotNull(stockBatchSchema.expirationDate),
     gt(stockBatchSchema.quantity, 0),
     dateFilter,
-    ...(locationId ? [eq(locationSchema.id, locationId)] : []),
-  );
+  ];
+  if (locationId) {
+    conditions.push(eq(locationSchema.id, locationId));
+  }
 
-  const rows = await db
-    .select({
-      batchId: stockBatchSchema.id,
-      batchNumber: stockBatchSchema.batchNumber,
-      batchQuantity: stockBatchSchema.quantity,
-      expirationDate: stockBatchSchema.expirationDate,
-      batchNotes: stockBatchSchema.notes,
-      batchCreatedAt: stockBatchSchema.createdAt,
-      stockId: stockSchema.id,
-      productId: productSchema.id,
-      productName: productSchema.name,
-      productSku: productSchema.sku,
-      locationId: locationSchema.id,
-      locationName: locationSchema.name,
-    })
-    .from(stockBatchSchema)
-    .innerJoin(stockSchema, eq(stockBatchSchema.stockId, stockSchema.id))
-    .innerJoin(productSchema, eq(stockSchema.productId, productSchema.id))
-    .innerJoin(locationSchema, eq(stockSchema.locationId, locationSchema.id))
-    .where(baseConditions)
-    .orderBy(asc(stockBatchSchema.expirationDate));
+  try {
+    const rows = await db
+      .select({
+        batchId: stockBatchSchema.id,
+        batchNumber: stockBatchSchema.batchNumber,
+        batchQuantity: stockBatchSchema.quantity,
+        expirationDate: stockBatchSchema.expirationDate,
+        batchNotes: stockBatchSchema.notes,
+        batchCreatedAt: stockBatchSchema.createdAt,
+        stockId: stockSchema.id,
+        productId: productSchema.id,
+        productName: productSchema.name,
+        productSku: productSchema.sku,
+        locationId: locationSchema.id,
+        locationName: locationSchema.name,
+      })
+      .from(stockBatchSchema)
+      .innerJoin(stockSchema, eq(stockBatchSchema.stockId, stockSchema.id))
+      .innerJoin(productSchema, eq(stockSchema.productId, productSchema.id))
+      .innerJoin(locationSchema, eq(stockSchema.locationId, locationSchema.id))
+      .where(and(...conditions))
+      .orderBy(asc(stockBatchSchema.expirationDate));
 
-  const todayMs = today.getTime();
-  const result = rows.map((row) => {
-    const expMs = row.expirationDate ? new Date(row.expirationDate).getTime() : null;
-    const daysUntilExpiration = expMs != null ? Math.ceil((expMs - todayMs) / 86400000) : null;
-    return {
-      ...row,
-      daysUntilExpiration,
-      isExpired: daysUntilExpiration != null && daysUntilExpiration < 0,
-    };
-  });
+    const todayMs = today.getTime();
+    const result = rows.map((row) => {
+      const expMs = row.expirationDate ? new Date(row.expirationDate).getTime() : null;
+      const daysUntilExpiration = expMs != null ? Math.ceil((expMs - todayMs) / 86400000) : null;
+      return {
+        ...row,
+        daysUntilExpiration,
+        isExpired: daysUntilExpiration != null && daysUntilExpiration < 0,
+      };
+    });
 
-  return NextResponse.json({ batches: result, lookAheadDays, thresholds: configRows });
+    return NextResponse.json({ batches: result, lookAheadDays, thresholds: configRows });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: `Error en la consulta: ${message}` }, { status: 500 });
+  }
 }
