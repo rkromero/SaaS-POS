@@ -1,3 +1,10 @@
+## [1.36.1](https://github.com/rkromero/SaaS-POS/compare/v1.36.0...v1.36.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* **sales:** capturar y exponer error interno en POST /api/sales ([eea5a5a](https://github.com/rkromero/SaaS-POS/commit/eea5a5a6022a3e3b9a462a2352c81bc8b25a9ca4))
+
 # [1.36.0](https://github.com/rkromero/SaaS-POS/compare/v1.35.0...v1.36.0) (2026-04-17)
 
 
