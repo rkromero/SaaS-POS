@@ -1,3 +1,11 @@
+## [1.38.3](https://github.com/rkromero/SaaS-POS/compare/v1.38.2...v1.38.3) (2026-04-17)
+
+
+### Bug Fixes
+
+* **expiration:** envolver todas las queries en try/catch para exponer el error real ([df4ed2d](https://github.com/rkromero/SaaS-POS/commit/df4ed2db08ab731cd6b430d19399bda1344ce85a))
+* **expiration:** usar strings ISO para comparar fechas y agregar try/catch en query ([65ede54](https://github.com/rkromero/SaaS-POS/commit/65ede547b0bd1f3a450a0c7e165bf976def259ff))
+
 ## [1.38.2](https://github.com/rkromero/SaaS-POS/compare/v1.38.1...v1.38.2) (2026-04-17)
 
 
