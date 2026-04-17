@@ -375,6 +375,8 @@ export const saleItemSchema = pgTable(
     productId: integer('product_id').references(() => productSchema.id, {
       onDelete: 'set null',
     }),
+    // promotionId links a sale item to a combo/promo (null for regular products)
+    promotionId: integer('promotion_id'),
     // Product name and price stored at time of sale to preserve history
     productName: text('product_name').notNull(),
     quantity: integer('quantity').notNull(),
@@ -834,5 +836,91 @@ export const mpNotificationSchema = pgTable(
   table => ({
     mpNotifOrgIdx: index('mp_notif_org_idx').on(table.orgId),
     mpNotifUniqueIdx: uniqueIndex('mp_notif_unique_idx').on(table.orgId, table.mpNotificationId),
+  }),
+);
+
+// ---------------------------------------------------------------------------
+// Promotions — promociones, descuentos y combos de productos
+// ---------------------------------------------------------------------------
+
+export const promotionTypeEnum = pgEnum('promotion_type', [
+  'product_price', // precio especial para un producto específico
+  'discount', // descuento por porcentaje o monto fijo
+  'combo', // combo de productos con precio especial
+]);
+
+export const promoDiscountTypeEnum = pgEnum('promotion_discount_type', [
+  'percent', // porcentaje sobre el total/producto/categoría
+  'fixed', // monto fijo en pesos
+]);
+
+export const promoDiscountScopeEnum = pgEnum('promotion_discount_scope', [
+  'product', // aplica solo al producto indicado
+  'category', // aplica a todos los productos de una categoría
+  'total', // aplica al total de la venta
+]);
+
+export const promotionSchema = pgTable(
+  'promotion',
+  {
+    id: serial('id').primaryKey(),
+    organizationId: text('organization_id').notNull(),
+    name: text('name').notNull(),
+    description: text('description'),
+    type: promotionTypeEnum('type').notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+    // Si false, esta promo no se combina con ninguna otra en la misma venta
+    isStackable: boolean('is_stackable').default(false).notNull(),
+    startsAt: timestamp('starts_at', { mode: 'date' }),
+    endsAt: timestamp('ends_at', { mode: 'date' }),
+    // product_price + discount(scope=product): producto objetivo
+    targetProductId: integer('target_product_id').references(
+      () => productSchema.id,
+      { onDelete: 'cascade' },
+    ),
+    // product_price: precio promocional (reemplaza al precio normal)
+    promoPrice: numeric('promo_price', { precision: 10, scale: 2 }),
+    // discount: tipo y valor del descuento
+    discountType: promoDiscountTypeEnum('discount_type'),
+    discountValue: numeric('discount_value', { precision: 10, scale: 2 }),
+    discountScope: promoDiscountScopeEnum('discount_scope'),
+    // discount(scope=category): categoría objetivo
+    targetCategoryId: integer('target_category_id').references(
+      () => categorySchema.id,
+      { onDelete: 'set null' },
+    ),
+    // combo: precio fijo del combo
+    comboPrice: numeric('combo_price', { precision: 10, scale: 2 }),
+    updatedAt: timestamp('updated_at', { mode: 'date' })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => ({
+    promotionOrgIdx: index('promotion_org_idx').on(table.organizationId),
+    promotionOrgActiveIdx: index('promotion_org_active_idx').on(
+      table.organizationId,
+      table.isActive,
+    ),
+  }),
+);
+
+// Productos que componen un combo (relación N:N entre promo y productos)
+export const promotionComboItemSchema = pgTable(
+  'promotion_combo_item',
+  {
+    id: serial('id').primaryKey(),
+    promotionId: integer('promotion_id')
+      .notNull()
+      .references(() => promotionSchema.id, { onDelete: 'cascade' }),
+    productId: integer('product_id')
+      .notNull()
+      .references(() => productSchema.id, { onDelete: 'cascade' }),
+    quantity: integer('quantity').notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => ({
+    comboItemPromotionIdx: index('combo_item_promotion_idx').on(table.promotionId),
   }),
 );

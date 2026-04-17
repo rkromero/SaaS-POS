@@ -266,6 +266,7 @@ export const OrgDetailPage = ({ orgId }: Props) => {
             // Módulos que se activan automáticamente por plan (sin override manual)
             const includedInPlan: Partial<Record<string, string>> = {
               arca: 'Pro / Empresa',
+              promotions: 'Pro / Empresa',
             };
             const planLabel = includedInPlan[mod.id];
             const activeByPlan = planLabel

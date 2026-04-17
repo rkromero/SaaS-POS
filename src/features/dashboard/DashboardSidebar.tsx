@@ -19,6 +19,7 @@ import {
   ShoppingCart,
   Star,
   Store,
+  Tag,
   Truck,
   Users,
   Wallet,
@@ -68,6 +69,7 @@ const navGroups: NavGroup[] = [
       { href: '/dashboard/expenses', label: 'Gastos', icon: <MinusCircle className={iconClass} /> },
       { href: '/dashboard/mp-control', label: 'Control MP', icon: <CreditCard className={iconClass} />, moduleRequired: 'mp_control' },
       { href: '/dashboard/loyalty', label: 'Fidelización', icon: <Star className={iconClass} />, moduleRequired: 'loyalty' },
+      { href: '/dashboard/promotions', label: 'Promociones', icon: <Tag className={iconClass} />, moduleRequired: 'promotions' },
     ],
   },
   {

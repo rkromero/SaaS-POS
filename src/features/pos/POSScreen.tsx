@@ -16,6 +16,10 @@ type POSProduct = {
   name: string;
   description: string | null;
   price: string;
+  // Set when an active product_price promo applies
+  promoPrice: string | null;
+  promoName: string | null;
+  promoId: number | null;
   sku: string | null;
   barcode: string | null;
   imageUrl: string | null;
@@ -24,10 +28,29 @@ type POSProduct = {
   stock: number | null;
 };
 
-type CartItem = {
-  product: POSProduct;
-  quantity: number;
+type POSCombo = {
+  id: number;
+  name: string;
+  description: string | null;
+  comboPrice: string;
+  isStackable: boolean;
+  items: { productId: number; productName: string; quantity: number; stock: number | null }[];
 };
+
+type ActivePromoDiscount = {
+  id: number;
+  name: string;
+  isStackable: boolean;
+  discountType: 'percent' | 'fixed' | null;
+  discountValue: string | null;
+  discountScope: 'product' | 'category' | 'total' | null;
+  targetProductId: number | null;
+  targetCategoryId: number | null;
+};
+
+type CartItem =
+  | { type: 'product'; product: POSProduct; quantity: number }
+  | { type: 'combo'; combo: POSCombo; quantity: number };
 
 type Location = { id: number; name: string };
 
@@ -74,6 +97,8 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const [products, setProducts] = useState<POSProduct[]>([]);
+  const [combos, setCombos] = useState<POSCombo[]>([]);
+  const [activePromoDiscounts, setActivePromoDiscounts] = useState<ActivePromoDiscount[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
@@ -174,7 +199,16 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
         force ? { cache: 'no-store' } : undefined,
       );
       const data = await res.json();
-      setProducts(data);
+      // API returns { products, combos, promotions } when module is enabled, or products[] otherwise
+      if (Array.isArray(data)) {
+        setProducts(data);
+        setCombos([]);
+        setActivePromoDiscounts([]);
+      } else {
+        setProducts(data.products ?? []);
+        setCombos(data.combos ?? []);
+        setActivePromoDiscounts(data.promotions ?? []);
+      }
       setTimeout(() => searchRef.current?.focus(), 50);
     } finally {
       setLoading(false);
@@ -188,35 +222,137 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   // Cart operations
   const addToCart = (product: POSProduct) => {
     setCart((prev) => {
-      const existing = prev.find(i => i.product.id === product.id);
+      const existing = prev.find(i => i.type === 'product' && i.product.id === product.id);
       if (existing) {
         return prev.map(i =>
-          i.product.id === product.id
+          i.type === 'product' && i.product.id === product.id
             ? { ...i, quantity: i.quantity + 1 }
             : i,
         );
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { type: 'product' as const, product, quantity: 1 }];
     });
   };
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const addComboToCart = (combo: POSCombo) => {
+    // Verify each component has enough stock considering what's already in the cart
+    for (const component of combo.items) {
+      const available = component.stock ?? 0;
+      const usedByProducts = cart
+        .filter(i => i.type === 'product' && i.product.id === component.productId)
+        .reduce((s, i) => s + i.quantity, 0);
+      const usedByCombos = cart
+        .filter(i => i.type === 'combo')
+        .reduce((s, i) => {
+          const found = (i as { type: 'combo'; combo: POSCombo; quantity: number }).combo.items.find(
+            ci => ci.productId === component.productId,
+          );
+          return s + (found ? found.quantity * i.quantity : 0);
+        }, 0);
+      const alreadyInComboCart = cart
+        .filter(i => i.type === 'combo' && (i as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id === combo.id)
+        .reduce((s, i) => s + i.quantity, 0);
+      const needed = component.quantity * (alreadyInComboCart + 1);
+      if (usedByProducts + usedByCombos - (component.quantity * alreadyInComboCart) + needed > available) {
+        setCheckoutError(`Stock insuficiente para "${component.productName}" en el combo "${combo.name}".`);
+        return;
+      }
+    }
+    setCheckoutError('');
+    setCart((prev) => {
+      const existing = prev.find(i => i.type === 'combo' && (i as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id === combo.id);
+      if (existing) {
+        return prev.map(i =>
+          i.type === 'combo' && (i as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id === combo.id
+            ? { ...i, quantity: i.quantity + 1 }
+            : i,
+        );
+      }
+      return [...prev, { type: 'combo' as const, combo, quantity: 1 }];
+    });
+  };
+
+  const updateQuantity = (key: string, quantity: number) => {
     if (quantity <= 0) {
-      setCart(prev => prev.filter(i => i.product.id !== productId));
+      setCart(prev => prev.filter((i) => {
+        const itemKey = i.type === 'product' ? `p-${i.product.id}` : `c-${(i as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id}`;
+        return itemKey !== key;
+      }));
     } else {
       setCart(prev =>
-        prev.map(i =>
-          i.product.id === productId ? { ...i, quantity } : i,
-        ),
+        prev.map((i) => {
+          const itemKey = i.type === 'product' ? `p-${i.product.id}` : `c-${(i as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id}`;
+          return itemKey === key ? { ...i, quantity } : i;
+        }),
       );
     }
   };
 
-  const rawTotal = cart.reduce(
-    (sum, item) => sum + Number(item.product.price) * item.quantity,
-    0,
-  );
-  const total = Math.max(0, rawTotal - loyaltyDiscount);
+  // Compute applicable discount from active promo discounts (preview; backend is authoritative)
+  const computePromoDiscount = (subtotal: number): number => {
+    if (activePromoDiscounts.length === 0) {
+      return 0;
+    }
+
+    const withAmounts = activePromoDiscounts.map((promo) => {
+      const val = Number(promo.discountValue ?? 0);
+      if (promo.discountScope === 'total') {
+        return {
+          promo,
+          amount: promo.discountType === 'percent' ? subtotal * (val / 100) : Math.min(val, subtotal),
+        };
+      }
+      if (promo.discountScope === 'product') {
+        const item = cart.find(i => i.type === 'product' && i.product.id === promo.targetProductId);
+        if (!item || item.type !== 'product') {
+          return { promo, amount: 0 };
+        }
+        const base = Number(item.product.promoPrice ?? item.product.price) * item.quantity;
+        return {
+          promo,
+          amount: promo.discountType === 'percent' ? base * (val / 100) : Math.min(val * item.quantity, base),
+        };
+      }
+      if (promo.discountScope === 'category') {
+        const categoryItems = cart.filter(
+          i => i.type === 'product' && i.product.categoryId === promo.targetCategoryId,
+        );
+        if (categoryItems.length === 0) {
+          return { promo, amount: 0 };
+        }
+        const base = categoryItems.reduce((s, i) => {
+          if (i.type !== 'product') {
+            return s;
+          }
+          return s + Number(i.product.promoPrice ?? i.product.price) * i.quantity;
+        }, 0);
+        return {
+          promo,
+          amount: promo.discountType === 'percent' ? base * (val / 100) : Math.min(val * categoryItems.length, base),
+        };
+      }
+      return { promo, amount: 0 };
+    }).filter(x => x.amount > 0);
+
+    if (withAmounts.length === 0) {
+      return 0;
+    }
+    const hasNonStackable = withAmounts.some(x => !x.promo.isStackable);
+    return hasNonStackable
+      ? Math.max(...withAmounts.map(x => x.amount))
+      : withAmounts.reduce((s, x) => s + x.amount, 0);
+  };
+
+  const rawTotal = cart.reduce((sum, item) => {
+    if (item.type === 'combo') {
+      return sum + Number((item as { type: 'combo'; combo: POSCombo; quantity: number }).combo.comboPrice) * item.quantity;
+    }
+    const p = (item as { type: 'product'; product: POSProduct; quantity: number }).product;
+    return sum + Number(p.promoPrice ?? p.price) * item.quantity;
+  }, 0);
+
+  const promoDiscount = computePromoDiscount(rawTotal);
+  const total = Math.max(0, rawTotal - promoDiscount - loyaltyDiscount);
 
   // Category list from products
   const categories = [...new Map(
@@ -225,15 +361,22 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
       .map(p => [p.categoryId, { id: p.categoryId!, name: p.categoryName! }]),
   ).values()];
 
-  const filteredProducts = products.filter((p) => {
-    const matchSearch
-      = search === ''
-      || p.name.toLowerCase().includes(search.toLowerCase())
-      || (p.sku ?? '').toLowerCase().includes(search.toLowerCase());
-    const matchCategory
-      = filterCategory === '' || String(p.categoryId) === filterCategory;
-    return matchSearch && matchCategory;
-  });
+  // filterCategory === 'combos' shows the combos tab
+  const filteredProducts = filterCategory === 'combos'
+    ? []
+    : products.filter((p) => {
+      const matchSearch
+          = search === ''
+          || p.name.toLowerCase().includes(search.toLowerCase())
+          || (p.sku ?? '').toLowerCase().includes(search.toLowerCase());
+      const matchCategory
+          = filterCategory === '' || String(p.categoryId) === filterCategory;
+      return matchSearch && matchCategory;
+    });
+
+  const filteredCombos = filterCategory === 'combos' && combos.length > 0
+    ? combos.filter(c => search === '' || c.name.toLowerCase().includes(search.toLowerCase()))
+    : [];
 
   const searchFiadoCustomer = async (phone: string) => {
     const digits = phone.replace(/\D/g, '');
@@ -291,7 +434,12 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           locationId: Number(selectedLocationId),
-          items: cart.map(i => ({ productId: i.product.id, quantity: i.quantity })),
+          items: cart
+            .filter(i => i.type === 'product')
+            .map(i => ({ productId: (i as { type: 'product'; product: POSProduct; quantity: number }).product.id, quantity: i.quantity })),
+          comboItems: cart
+            .filter(i => i.type === 'combo')
+            .map(i => ({ comboId: (i as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id, quantity: i.quantity })),
           customerName: effectiveCustomerName,
           customerEmail: paymentMethod === 'fiado' ? (fiadoCustomer!.email || null) : (customerEmail || null),
           customerWhatsapp: effectiveCustomerWhatsapp || null,
@@ -481,6 +629,9 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
               {categories.map(cat => (
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
+              {combos.length > 0 && (
+                <option value="combos">🎁 Combos</option>
+              )}
             </select>
 
             {/* Botón fullscreen */}
@@ -504,7 +655,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
               : (
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                     {filteredProducts.map((product) => {
-                      const inCart = cart.find(i => i.product.id === product.id);
+                      const inCart = cart.find(i => i.type === 'product' && (i as { type: 'product'; product: POSProduct; quantity: number }).product.id === product.id);
                       const outOfStock = (product.stock ?? 0) === 0;
 
                       return (
@@ -560,12 +711,28 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
                             <p className="line-clamp-2 text-xs font-medium leading-tight">
                               {product.name}
                             </p>
-                            <p className="mt-1 text-sm font-bold text-primary">
-                              $
-                              {Number(product.price).toLocaleString('es-AR', {
-                                minimumFractionDigits: 2,
-                              })}
-                            </p>
+                            {product.promoPrice
+                              ? (
+                                  <div className="mt-1 space-y-0.5">
+                                    <p className="text-xs text-muted-foreground line-through">
+                                      $
+                                      {Number(product.price).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                                    </p>
+                                    <p className="text-sm font-bold text-emerald-600">
+                                      $
+                                      {Number(product.promoPrice).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                                    </p>
+                                    <p className="text-[9px] font-semibold uppercase text-emerald-500">
+                                      {product.promoName}
+                                    </p>
+                                  </div>
+                                )
+                              : (
+                                  <p className="mt-1 text-sm font-bold text-primary">
+                                    $
+                                    {Number(product.price).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                                  </p>
+                                )}
                             {outOfStock && (
                               <p className="text-xs text-destructive">Sin stock</p>
                             )}
@@ -574,11 +741,53 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
                       );
                     })}
 
-                    {filteredProducts.length === 0 && (
+                    {filteredProducts.length === 0 && filterCategory !== 'combos' && (
                       <p className="col-span-full text-sm text-muted-foreground">
                         Sin productos para mostrar.
                       </p>
                     )}
+
+                    {/* Combo cards */}
+                    {filteredCombos.map((combo) => {
+                      const inCart = cart.find(
+                        i => i.type === 'combo' && (i as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id === combo.id,
+                      );
+                      const hasStock = combo.items.every(c => (c.stock ?? 0) >= c.quantity);
+
+                      return (
+                        <button
+                          key={`combo-${combo.id}`}
+                          type="button"
+                          disabled={!hasStock}
+                          onClick={() => addComboToCart(combo)}
+                          className={`relative flex flex-col rounded-lg border bg-card p-3 text-left shadow-sm transition-all hover:shadow-md active:scale-95 ${
+                            !hasStock ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:border-violet-500'
+                          } ${inCart ? 'border-violet-500 ring-1 ring-violet-500' : 'border-violet-900/40'}`}
+                        >
+                          {inCart && (
+                            <span className="absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full bg-violet-600 text-xs font-bold text-white">
+                              {inCart.quantity}
+                            </span>
+                          )}
+                          <span className="mb-1.5 self-start rounded bg-violet-900 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-violet-300">
+                            Combo
+                          </span>
+                          <p className="line-clamp-2 text-xs font-medium leading-tight text-zinc-200">
+                            {combo.name}
+                          </p>
+                          <p className="mt-1 text-xs text-zinc-500">
+                            {combo.items.map(i => `${i.quantity}x ${i.productName}`).join(' + ')}
+                          </p>
+                          <p className="mt-1.5 text-sm font-bold text-violet-400">
+                            $
+                            {Number(combo.comboPrice).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                          </p>
+                          {!hasStock && (
+                            <p className="text-xs text-destructive">Sin stock</p>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
           </div>
@@ -596,42 +805,76 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
                     Tocá un producto para agregarlo.
                   </p>
                 )
-              : cart.map(item => (
-                <div key={item.product.id} className="flex items-center gap-2 rounded-md border px-2 py-1.5">
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium">{item.product.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      $
-                      {Number(item.product.price).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+              : cart.map((item) => {
+                const isCombo = item.type === 'combo';
+                const label = isCombo
+                  ? (item as { type: 'combo'; combo: POSCombo; quantity: number }).combo.name
+                  : (item as { type: 'product'; product: POSProduct; quantity: number }).product.name;
+                const unitPrice = isCombo
+                  ? Number((item as { type: 'combo'; combo: POSCombo; quantity: number }).combo.comboPrice)
+                  : Number(
+                    (item as { type: 'product'; product: POSProduct; quantity: number }).product.promoPrice
+                    ?? (item as { type: 'product'; product: POSProduct; quantity: number }).product.price,
+                  );
+                const origPrice = isCombo
+                  ? null
+                  : (item as { type: 'product'; product: POSProduct; quantity: number }).product.promoPrice
+                      ? Number((item as { type: 'product'; product: POSProduct; quantity: number }).product.price)
+                      : null;
+                const itemKey = isCombo
+                  ? `c-${(item as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id}`
+                  : `p-${(item as { type: 'product'; product: POSProduct; quantity: number }).product.id}`;
+
+                return (
+                  <div key={itemKey} className="flex items-center gap-2 rounded-md border px-2 py-1.5">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 truncate">
+                        {isCombo && (
+                          <span className="shrink-0 rounded bg-violet-900 px-1 py-0.5 text-[9px] font-semibold uppercase text-violet-300">
+                            Combo
+                          </span>
+                        )}
+                        <span className="truncate text-sm font-medium">{label}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        {origPrice !== null && (
+                          <span className="line-through opacity-50">
+                            $
+                            {origPrice.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                          </span>
+                        )}
+                        <span className={origPrice !== null ? 'font-medium text-emerald-500' : ''}>
+                          $
+                          {unitPrice.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
                     </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="size-6 p-0 text-xs"
+                        onClick={() => updateQuantity(itemKey, item.quantity - 1)}
+                      >
+                        −
+                      </Button>
+                      <span className="w-5 text-center text-sm">{item.quantity}</span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="size-6 p-0 text-xs"
+                        onClick={() => updateQuantity(itemKey, item.quantity + 1)}
+                      >
+                        +
+                      </Button>
+                    </div>
+                    <span className="w-16 text-right text-sm font-semibold">
+                      $
+                      {(unitPrice * item.quantity).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="size-6 p-0 text-xs"
-                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                    >
-                      −
-                    </Button>
-                    <span className="w-5 text-center text-sm">{item.quantity}</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="size-6 p-0 text-xs"
-                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                    >
-                      +
-                    </Button>
-                  </div>
-                  <span className="w-16 text-right text-sm font-semibold">
-                    $
-                    {(Number(item.product.price) * item.quantity).toLocaleString('es-AR', {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
           </div>
 
           {/* Customer + payment */}
@@ -763,6 +1006,17 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
                     setLoyaltyDiscount(discount);
                   }}
                 />
+              )}
+
+              {/* Descuento de promociones */}
+              {promoDiscount > 0 && (
+                <div className="flex justify-between text-sm text-indigo-500">
+                  <span>Descuento promoción</span>
+                  <span>
+                    -$
+                    {promoDiscount.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
               )}
 
               {/* Descuento de fidelización aplicado */}

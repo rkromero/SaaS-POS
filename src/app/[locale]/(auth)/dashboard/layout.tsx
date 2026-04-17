@@ -35,10 +35,16 @@ export default async function DashboardLayout(props: { children: React.ReactNode
     branding = brandingResult[0] ?? null;
 
     // Módulos activados manualmente + módulos incluidos por plan
-    // Arca está disponible en Pro y Empresa sin activación manual
-    enabledModules = access.isProOrBetter && !access.modules.includes('arca')
-      ? [...access.modules, 'arca']
-      : access.modules;
+    // Arca y Promociones están disponibles en Pro y Empresa sin activación manual
+    enabledModules = [...access.modules];
+    if (access.isProOrBetter) {
+      if (!enabledModules.includes('arca')) {
+        enabledModules.push('arca');
+      }
+      if (!enabledModules.includes('promotions')) {
+        enabledModules.push('promotions');
+      }
+    }
 
     // DEBUG — quitar después de resolver
     // eslint-disable-next-line no-console

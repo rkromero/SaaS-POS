@@ -10,7 +10,8 @@ export type ModuleId =
   | 'integrations'
   | 'ai_features'
   | 'mp_control'
-  | 'loyalty';
+  | 'loyalty'
+  | 'promotions';
 
 export type Module = {
   id: ModuleId;
@@ -63,6 +64,11 @@ export const MODULES: Module[] = [
     id: 'loyalty',
     name: 'Fidelización de Clientes',
     description: 'Programa de puntos y canjes para premiar a clientes frecuentes',
+  },
+  {
+    id: 'promotions',
+    name: 'Promociones y Combos',
+    description: 'Precios promocionales, descuentos automáticos y combos de productos en el POS',
   },
 ];
 
