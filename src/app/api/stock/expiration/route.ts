@@ -63,27 +63,25 @@ export async function GET(request: Request) {
   const todayStr = today.toISOString().slice(0, 10);
   const cutoffStr = cutoffDate.toISOString().slice(0, 10);
 
-  // Build date filter using sql template to avoid Drizzle date serialization issues
+  // Build date filter
   let dateFilter;
   if (status === 'expired') {
+    // Vencidos: fecha < hoy
     dateFilter = sql`${stockBatchSchema.expirationDate} < ${todayStr}`;
   } else if (status === 'expiring') {
+    // Por vencer: hoy <= fecha <= cutoff
     dateFilter = sql`${stockBatchSchema.expirationDate} >= ${todayStr} AND ${stockBatchSchema.expirationDate} <= ${cutoffStr}`;
-  } else {
-    // all: expired + expiring soon
-    dateFilter = sql`${stockBatchSchema.expirationDate} <= ${cutoffStr}`;
   }
+  // status === 'all': sin filtro de fecha — muestra todos los lotes con fecha de vencimiento
 
-  // Build conditions array to avoid spread issues in and()
+  // Build conditions array
   const conditions = [
     eq(locationSchema.organizationId, orgId),
     isNotNull(stockBatchSchema.expirationDate),
     gt(stockBatchSchema.quantity, 0),
-    dateFilter,
+    ...(dateFilter ? [dateFilter] : []),
+    ...(locationId ? [eq(locationSchema.id, locationId)] : []),
   ];
-  if (locationId) {
-    conditions.push(eq(locationSchema.id, locationId));
-  }
 
   try {
     const rows = await db

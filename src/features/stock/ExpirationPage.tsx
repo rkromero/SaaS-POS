@@ -140,11 +140,12 @@ export function ExpirationPage() {
           </div>
           <p className="mt-1 text-2xl font-bold">{loading ? '—' : expiringCount}</p>
           <p className="text-xs text-muted-foreground">
-            en los próximos
+            próximos
             {' '}
-            {data?.lookAheadDays ?? '…'}
+            {data?.lookAheadDays ?? 30}
             {' '}
             días
+            {(data?.thresholds.length ?? 0) === 0 && ' (configurá umbrales)'}
           </p>
         </div>
         <div className="col-span-2 rounded-lg border bg-card p-4 sm:col-span-1">
@@ -168,9 +169,13 @@ export function ExpirationPage() {
           onChange={e => setStatusFilter(e.target.value as StatusFilter)}
           className="flex h-9 w-44 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
         >
-          <option value="expiring">Por vencer</option>
+          <option value="expiring">
+            Por vencer (próx.
+            {data?.lookAheadDays ?? 30}
+            d)
+          </option>
           <option value="expired">Vencidos</option>
-          <option value="all">Todos</option>
+          <option value="all">Todos los lotes</option>
         </select>
 
         <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
