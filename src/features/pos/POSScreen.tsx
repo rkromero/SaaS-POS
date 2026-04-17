@@ -1,6 +1,6 @@
 'use client';
 
-import { Maximize2, Minimize2, Package } from 'lucide-react';
+import { Maximize2, Minimize2, Package, Star } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -78,9 +78,12 @@ const PAYMENT_METHODS = [
   { value: 'cash', label: 'Efectivo' },
   { value: 'debit', label: 'Débito' },
   { value: 'credit', label: 'Crédito' },
+  { value: 'mercadopago', label: 'Mercado Pago' },
   { value: 'transfer', label: 'Transferencia' },
   { value: 'fiado', label: 'Fiado' },
 ];
+
+const MERCADOPAGO_IDX = PAYMENT_METHODS.findIndex(pm => pm.value === 'mercadopago');
 
 type FiadoCustomer = {
   id: number;
@@ -113,8 +116,11 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const lastKeyTime = useRef<number>(0);
   const barcodeBuffer = useRef<string>('');
   const lastEnterTime = useRef<number>(0);
-  // Ref estable para handleCheckout, permite usarlo en el listener global sin problemas de orden
+  // Ref estable para openCheckoutFlow, permite usarlo en el listener global sin problemas de orden
   const handleCheckoutRef = useRef<() => void>(() => {});
+  // Refs para el foco de los modales del flujo de cobro
+  const modalLoyaltyInputRef = useRef<HTMLInputElement>(null);
+  const modalPaymentListRef = useRef<HTMLDivElement>(null);
 
   // Checkout form
   const [customerName, setCustomerName] = useState('Consumidor final');
@@ -145,6 +151,13 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const [loyaltyRewardId, setLoyaltyRewardId] = useState<number | null>(null);
   const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
 
+  // Flujo de cobro por teclado: 'idle' → 'loyalty' → 'payment' → checkout
+  const [checkoutFlowStep, setCheckoutFlowStep] = useState<'idle' | 'loyalty' | 'payment'>('idle');
+  const [modalLoyaltyPhone, setModalLoyaltyPhone] = useState('');
+  const [modalLoyaltySearching, setModalLoyaltySearching] = useState(false);
+  const [modalLoyaltyError, setModalLoyaltyError] = useState('');
+  const [modalPaymentIdx, setModalPaymentIdx] = useState(MERCADOPAGO_IDX);
+
   // Escucha cambios de fullscreen (también el ESC del browser)
   useEffect(() => {
     const handleChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -152,9 +165,24 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     return () => document.removeEventListener('fullscreenchange', handleChange);
   }, []);
 
-  // Doble Enter global: confirma la venta sin importar dónde esté el foco
+  // Listener global: doble Enter abre el flujo de cobro; Escape cierra cualquier modal activo
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Escape: cancelar el flujo de cobro si hay un modal abierto
+      if (e.key === 'Escape' && checkoutFlowStep !== 'idle') {
+        e.preventDefault();
+        // cancelCheckoutFlow no está disponible aquí por hoisting, seteamos directo
+        setCheckoutFlowStep('idle');
+        setModalLoyaltyPhone('');
+        setModalLoyaltyError('');
+        return;
+      }
+
+      // Mientras el flujo de cobro esté activo, el modal maneja sus propias teclas
+      if (checkoutFlowStep !== 'idle') {
+        return;
+      }
+
       if (e.key !== 'Enter') {
         return;
       }
@@ -175,7 +203,16 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     };
     document.addEventListener('keydown', handleGlobalKeyDown);
     return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
+  }, [checkoutFlowStep]);
+
+  // Foco automático cuando se abre un modal del flujo de cobro
+  useEffect(() => {
+    if (checkoutFlowStep === 'loyalty') {
+      setTimeout(() => modalLoyaltyInputRef.current?.focus(), 50);
+    } else if (checkoutFlowStep === 'payment') {
+      setTimeout(() => modalPaymentListRef.current?.focus(), 50);
+    }
+  }, [checkoutFlowStep]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -430,13 +467,15 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     }
   };
 
-  const handleCheckout = useCallback(async () => {
+  const handleCheckout = useCallback(async (overridePaymentMethod?: string) => {
     if (cart.length === 0) {
       return;
     }
 
+    const effectivePm = overridePaymentMethod ?? paymentMethod;
+
     // Validación extra para fiado
-    if (paymentMethod === 'fiado') {
+    if (effectivePm === 'fiado') {
       if (!fiadoCustomer) {
         setCheckoutError('Buscá y seleccioná un cliente por WhatsApp para registrar el fiado');
         return;
@@ -450,9 +489,9 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     setSubmitting(true);
 
     // Para fiado, usamos los datos del cliente encontrado
-    const effectiveCustomerName = paymentMethod === 'fiado' ? fiadoCustomer!.name : customerName;
-    const effectiveCustomerWhatsapp = paymentMethod === 'fiado' ? fiadoCustomer!.whatsapp : customerWhatsapp;
-    const effectiveCustomerId = paymentMethod === 'fiado' ? fiadoCustomer!.id : undefined;
+    const effectiveCustomerName = effectivePm === 'fiado' ? fiadoCustomer!.name : customerName;
+    const effectiveCustomerWhatsapp = effectivePm === 'fiado' ? fiadoCustomer!.whatsapp : customerWhatsapp;
+    const effectiveCustomerId = effectivePm === 'fiado' ? fiadoCustomer!.id : undefined;
 
     try {
       const response = await fetch('/api/sales', {
@@ -467,9 +506,9 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
             .filter(i => i.type === 'combo')
             .map(i => ({ comboId: (i as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id, quantity: i.quantity })),
           customerName: effectiveCustomerName,
-          customerEmail: paymentMethod === 'fiado' ? (fiadoCustomer!.email || null) : (customerEmail || null),
+          customerEmail: effectivePm === 'fiado' ? (fiadoCustomer!.email || null) : (customerEmail || null),
           customerWhatsapp: effectiveCustomerWhatsapp || null,
-          paymentMethod,
+          paymentMethod: effectivePm,
           ...(effectiveCustomerId !== undefined && { customerId: effectiveCustomerId }),
           // Loyalty
           ...(loyaltyCustomerId && { loyaltyCustomerId }),
@@ -522,8 +561,70 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     }
   }, [cart, paymentMethod, fiadoCustomer, customerName, customerEmail, customerWhatsapp, selectedLocationId, loyaltyCustomerId, loyaltyRewardId, emitirFactura, arcaActive, buyerType, buyerCuit]);
 
-  // Mantener el ref siempre apuntando a la versión más reciente
-  handleCheckoutRef.current = handleCheckout;
+  // openCheckoutFlow: abre el flujo de cobro por teclado (Modal 1 → Modal 2 → checkout)
+  const openCheckoutFlow = useCallback(() => {
+    if (cart.length === 0 || submitting) {
+      return;
+    }
+    setModalLoyaltyPhone('');
+    setModalLoyaltyError('');
+    setModalPaymentIdx(MERCADOPAGO_IDX >= 0 ? MERCADOPAGO_IDX : 0);
+    setCheckoutFlowStep(loyaltyActive ? 'loyalty' : 'payment');
+  }, [cart.length, submitting, loyaltyActive]);
+
+  // handleLoyaltyModalSubmit: busca o crea el cliente por WhatsApp y avanza al Modal 2
+  const handleLoyaltyModalSubmit = useCallback(async () => {
+    const digits = modalLoyaltyPhone.replace(/\D/g, '');
+    if (!digits || digits.length < 6) {
+      // Sin teléfono: avanzar sin asignar cliente de fidelización
+      setCheckoutFlowStep('payment');
+      return;
+    }
+    setModalLoyaltySearching(true);
+    setModalLoyaltyError('');
+    try {
+      const res = await fetch(`/api/customers/search?whatsapp=${encodeURIComponent(digits)}`);
+      const customer = await res.json();
+      let cid: number;
+      if (customer?.id) {
+        cid = customer.id;
+        setCustomerWhatsapp(customer.whatsapp ?? digits);
+        if (customer.name && customer.name !== 'Consumidor final') {
+          setCustomerName(customer.name);
+        }
+      } else {
+        // Cliente no existe: crearlo con el teléfono como nombre provisional
+        const cr = await fetch('/api/customers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: digits, whatsapp: digits }),
+        });
+        if (!cr.ok) {
+          const err = await cr.json();
+          setModalLoyaltyError(err.error ?? 'Error al registrar el cliente');
+          return;
+        }
+        const nc = await cr.json();
+        cid = nc.id;
+        setCustomerWhatsapp(digits);
+      }
+      setLoyaltyCustomerId(cid);
+      setCheckoutFlowStep('payment');
+    } catch {
+      setModalLoyaltyError('Error de conexión');
+    } finally {
+      setModalLoyaltySearching(false);
+    }
+  }, [modalLoyaltyPhone]);
+
+  const cancelCheckoutFlow = useCallback(() => {
+    setCheckoutFlowStep('idle');
+    setModalLoyaltyPhone('');
+    setModalLoyaltyError('');
+  }, []);
+
+  // El ref siempre apunta a openCheckoutFlow para el listener global de doble Enter
+  handleCheckoutRef.current = openCheckoutFlow;
 
   const handleNewSale = () => {
     setCompletedSale(null);
@@ -558,11 +659,11 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
       const sinceLastEnter = now2 - lastEnterTime.current;
       lastEnterTime.current = now2;
 
-      // Doble Enter (< 500ms entre dos Enter): confirmar venta si hay carrito
+      // Doble Enter (< 500ms entre dos Enter): abrir flujo de cobro si hay carrito
       if (sinceLastEnter < 500 && cart.length > 0 && !submitting) {
         e.preventDefault();
         barcodeBuffer.current = '';
-        handleCheckout();
+        openCheckoutFlow();
         return;
       }
 
@@ -1135,7 +1236,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
                   className="w-full"
                   size="lg"
                   disabled={submitting || cart.length === 0}
-                  onClick={handleCheckout}
+                  onClick={openCheckoutFlow}
                 >
                   {submitting ? 'Procesando...' : 'Confirmar venta'}
                 </Button>
@@ -1144,6 +1245,178 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
           )}
         </div>
       </div>
+
+      {/* Flujo de cobro — Modal 1: teléfono para fidelización */}
+      {checkoutFlowStep === 'loyalty' && (
+        <div className="fixed inset-0 z-50">
+          <div
+            role="button"
+            tabIndex={-1}
+            aria-label="Cancelar"
+            className="absolute inset-0 bg-black/60"
+            onClick={cancelCheckoutFlow}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                cancelCheckoutFlow();
+              }
+            }}
+          />
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <div className="relative z-10 w-full max-w-sm rounded-xl border bg-card p-6 shadow-2xl">
+              <div className="mb-3 flex items-center gap-2">
+                <Star className="size-5 fill-amber-400 text-amber-400" />
+                <h2 className="text-base font-semibold">Puntos de fidelización</h2>
+              </div>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Ingresá el WhatsApp del cliente para sumarle puntos.
+                Dejá vacío para saltear.
+              </p>
+              <Input
+                ref={modalLoyaltyInputRef}
+                value={modalLoyaltyPhone}
+                onChange={e => setModalLoyaltyPhone(e.target.value)}
+                placeholder="Ej: 1123456789"
+                disabled={modalLoyaltySearching}
+                className="text-base"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleLoyaltyModalSubmit();
+                  } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setCheckoutFlowStep('idle');
+                    setModalLoyaltyPhone('');
+                    setModalLoyaltyError('');
+                  }
+                }}
+              />
+              {modalLoyaltySearching && (
+                <p className="mt-2 text-xs text-muted-foreground">Buscando cliente...</p>
+              )}
+              {modalLoyaltyError && (
+                <p className="mt-2 text-xs text-destructive">{modalLoyaltyError}</p>
+              )}
+              <p className="mt-4 text-xs text-muted-foreground">
+                <kbd className="rounded border px-1 py-0.5 font-mono text-[10px]">Enter</kbd>
+                {' '}
+                continuar
+                {' · '}
+                <kbd className="rounded border px-1 py-0.5 font-mono text-[10px]">Esc</kbd>
+                {' '}
+                cancelar
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Flujo de cobro — Modal 2: método de pago */}
+      {checkoutFlowStep === 'payment' && (
+        <div className="fixed inset-0 z-50">
+          <div
+            role="button"
+            tabIndex={-1}
+            aria-label="Cancelar"
+            className="absolute inset-0 bg-black/60"
+            onClick={() => setCheckoutFlowStep('idle')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                setCheckoutFlowStep('idle');
+              }
+            }}
+          />
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            {/* El div de diálogo necesita tabIndex y onKeyDown para navegación por teclado */}
+            {/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */}
+            {/* eslint-disable jsx-a11y/no-noninteractive-tabindex */}
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Seleccionar método de pago"
+              ref={modalPaymentListRef}
+              tabIndex={0}
+              className="relative z-10 w-full max-w-sm rounded-xl border bg-card p-6 shadow-2xl outline-none"
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  setModalPaymentIdx(i => Math.min(i + 1, PAYMENT_METHODS.length - 1));
+                } else if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  setModalPaymentIdx(i => Math.max(i - 1, 0));
+                } else if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const pm = PAYMENT_METHODS[modalPaymentIdx];
+                  if (pm) {
+                    setPaymentMethod(pm.value);
+                    setCheckoutFlowStep('idle');
+                    handleCheckout(pm.value);
+                  }
+                } else if (e.key === 'Escape') {
+                  e.preventDefault();
+                  setCheckoutFlowStep('idle');
+                }
+              }}
+            >
+              <h2 className="mb-1 text-base font-semibold">Método de pago</h2>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Total:
+                {' '}
+                <span className="font-bold text-foreground">
+                  $
+                  {total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                </span>
+              </p>
+              <div className="space-y-1.5">
+                {PAYMENT_METHODS.map((pm, i) => (
+                  <button
+                    key={pm.value}
+                    type="button"
+                    onClick={() => {
+                      setPaymentMethod(pm.value);
+                      setCheckoutFlowStep('idle');
+                      handleCheckout(pm.value);
+                    }}
+                    className={`flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-sm font-medium transition-all ${
+                      i === modalPaymentIdx
+                        ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-background hover:bg-muted'
+                    }`}
+                    onMouseEnter={() => setModalPaymentIdx(i)}
+                  >
+                    <span className={`flex size-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold ${
+                      i === modalPaymentIdx
+                        ? 'border-primary-foreground/40 bg-primary-foreground/20 text-primary-foreground'
+                        : 'border-muted-foreground/30 text-muted-foreground'
+                    }`}
+                    >
+                      {i + 1}
+                    </span>
+                    {pm.label}
+                    {i === modalPaymentIdx && (
+                      <span className="ml-auto text-xs font-normal opacity-70">↵</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-4 text-xs text-muted-foreground">
+                <kbd className="rounded border px-1 py-0.5 font-mono text-[10px]">↑↓</kbd>
+                {' '}
+                navegar
+                {' · '}
+                <kbd className="rounded border px-1 py-0.5 font-mono text-[10px]">Enter</kbd>
+                {' '}
+                confirmar
+                {' · '}
+                <kbd className="rounded border px-1 py-0.5 font-mono text-[10px]">Esc</kbd>
+                {' '}
+                cancelar
+              </p>
+            </div>
+            {/* eslint-enable jsx-a11y/no-noninteractive-element-interactions */}
+            {/* eslint-enable jsx-a11y/no-noninteractive-tabindex */}
+          </div>
+        </div>
+      )}
 
       {/* Ticket modal */}
       {completedSale && (

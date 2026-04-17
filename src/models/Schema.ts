@@ -100,6 +100,7 @@ export const paymentMethodEnum = pgEnum('payment_method', [
   'cash', // efectivo
   'debit', // tarjeta de débito
   'credit', // tarjeta de crédito
+  'mercadopago', // Mercado Pago
   'transfer', // transferencia
   'fiado', // cuenta corriente / fiado
 ]);
