@@ -1,3 +1,10 @@
+# [1.33.0](https://github.com/rkromero/SaaS-POS/compare/v1.32.0...v1.33.0) (2026-04-17)
+
+
+### Features
+
+* **loyalty:** módulo completo de fidelización de clientes ([8118cca](https://github.com/rkromero/SaaS-POS/commit/8118ccaa823bb102f36d94d9a7c85b92e112a429))
+
 # [1.32.0](https://github.com/rkromero/SaaS-POS/compare/v1.31.3...v1.32.0) (2026-04-16)
 
 
