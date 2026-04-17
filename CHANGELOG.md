@@ -1,3 +1,10 @@
+## [1.33.1](https://github.com/rkromero/SaaS-POS/compare/v1.33.0...v1.33.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* **loyalty:** limpiar migración — eliminar sentencias de migraciones anteriores ya aplicadas ([89c372d](https://github.com/rkromero/SaaS-POS/commit/89c372df7fecb476da8052c6eaffba8b8e3e20ca))
+
 # [1.33.0](https://github.com/rkromero/SaaS-POS/compare/v1.32.0...v1.33.0) (2026-04-17)
 
 
