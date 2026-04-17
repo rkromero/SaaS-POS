@@ -1,3 +1,10 @@
+# [1.39.0](https://github.com/rkromero/SaaS-POS/compare/v1.38.4...v1.39.0) (2026-04-17)
+
+
+### Features
+
+* **pos:** flujo de cobro con modales secuenciales activado por doble Enter ([f4d1784](https://github.com/rkromero/SaaS-POS/commit/f4d17849a95e8bdbdac48442e81bb763c0912a3b))
+
 ## [1.38.4](https://github.com/rkromero/SaaS-POS/compare/v1.38.3...v1.38.4) (2026-04-17)
 
 
