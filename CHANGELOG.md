@@ -1,3 +1,11 @@
+# [1.38.0](https://github.com/rkromero/SaaS-POS/compare/v1.37.0...v1.38.0) (2026-04-17)
+
+
+### Features
+
+* **stock:** conectar hasExpirationModule a StockList y StockMovementForm ([6b9c913](https://github.com/rkromero/SaaS-POS/commit/6b9c91394f73ea8a677d0eba81323b22867bded6))
+* **stock:** módulo de control de vencimientos con FEFO y alertas ([4f3fb08](https://github.com/rkromero/SaaS-POS/commit/4f3fb0874e7762cc91d77df06a0618de3e5b5bc0))
+
 # [1.37.0](https://github.com/rkromero/SaaS-POS/compare/v1.36.1...v1.37.0) (2026-04-17)
 
 
