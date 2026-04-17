@@ -1,3 +1,10 @@
+# [1.37.0](https://github.com/rkromero/SaaS-POS/compare/v1.36.1...v1.37.0) (2026-04-17)
+
+
+### Features
+
+* **pos:** doble Enter global confirma venta independiente del foco ([a32d255](https://github.com/rkromero/SaaS-POS/commit/a32d255b5fc8ca3bc730ba538521a88c0f42c62a))
+
 ## [1.36.1](https://github.com/rkromero/SaaS-POS/compare/v1.36.0...v1.36.1) (2026-04-17)
 
 
