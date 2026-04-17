@@ -1,3 +1,10 @@
+# [1.36.0](https://github.com/rkromero/SaaS-POS/compare/v1.35.0...v1.36.0) (2026-04-17)
+
+
+### Features
+
+* **pos:** doble Enter en búsqueda confirma la venta ([8f952cd](https://github.com/rkromero/SaaS-POS/commit/8f952cd5851805dec025c3f1aea4724bd0333985))
+
 # [1.35.0](https://github.com/rkromero/SaaS-POS/compare/v1.34.0...v1.35.0) (2026-04-17)
 
 
