@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useBranding } from '@/features/branding/BrandingContext';
@@ -40,6 +40,7 @@ const PAYMENT_LABELS: Record<string, string> = {
   cash: 'Efectivo',
   debit: 'Tarjeta de débito',
   credit: 'Tarjeta de crédito',
+  mercadopago: 'Mercado Pago',
   transfer: 'Transferencia',
   fiado: 'Fiado',
 };
@@ -47,6 +48,18 @@ const PAYMENT_LABELS: Record<string, string> = {
 export const Ticket = ({ sale, items, locationName, orgName, onClose }: TicketProps) => {
   const ticketRef = useRef<HTMLDivElement>(null);
   const branding = useBranding();
+
+  // Escape = nueva venta (equivalente a onClose)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const date = new Date(sale.createdAt);
   const formattedDate = date.toLocaleDateString('es-AR', {
@@ -136,10 +149,16 @@ export const Ticket = ({ sale, items, locationName, orgName, onClose }: TicketPr
                 <div className="text-xs text-gray-500">{branding.receiptAddress}</div>
               )}
               {branding?.receiptPhone && (
-                <div className="text-xs text-gray-500">Tel: {branding.receiptPhone}</div>
+                <div className="text-xs text-gray-500">
+                  Tel:
+                  {branding.receiptPhone}
+                </div>
               )}
               {branding?.receiptCuit && (
-                <div className="text-xs text-gray-500">CUIT: {branding.receiptCuit}</div>
+                <div className="text-xs text-gray-500">
+                  CUIT:
+                  {branding.receiptCuit}
+                </div>
               )}
             </div>
 
@@ -217,7 +236,7 @@ export const Ticket = ({ sale, items, locationName, orgName, onClose }: TicketPr
             </div>
 
             {sale.cae && (
-              <div className="mt-2 border-t border-dashed border-gray-400 pt-2 text-xs space-y-0.5">
+              <div className="mt-2 space-y-0.5 border-t border-dashed border-gray-400 pt-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-gray-500">CAE:</span>
                   <span className="font-mono font-semibold">{sale.cae}</span>
