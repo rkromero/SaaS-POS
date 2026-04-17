@@ -1,3 +1,10 @@
+## [1.39.1](https://github.com/rkromero/SaaS-POS/compare/v1.39.0...v1.39.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* **pos:** conectar cliente de Modal 1 con validación de Fiado en checkout ([178d7ca](https://github.com/rkromero/SaaS-POS/commit/178d7caec42d85e02321745dc523a625950bdef9))
+
 # [1.39.0](https://github.com/rkromero/SaaS-POS/compare/v1.38.4...v1.39.0) (2026-04-17)
 
 
