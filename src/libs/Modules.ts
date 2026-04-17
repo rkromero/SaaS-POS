@@ -11,7 +11,13 @@ export type ModuleId =
   | 'ai_features'
   | 'mp_control'
   | 'loyalty'
-  | 'promotions';
+  | 'promotions'
+  | 'stock_expiration';
+
+// Módulos que requieren plan Pro o Enterprise para poder ser activados
+export const MODULE_PLAN_REQUIREMENTS: Partial<Record<ModuleId, string[]>> = {
+  stock_expiration: ['pro', 'enterprise'],
+};
 
 export type Module = {
   id: ModuleId;
@@ -69,6 +75,12 @@ export const MODULES: Module[] = [
     id: 'promotions',
     name: 'Promociones y Combos',
     description: 'Precios promocionales, descuentos automáticos y combos de productos en el POS',
+  },
+  {
+    id: 'stock_expiration',
+    name: 'Control de Vencimientos',
+    description: 'Gestión de lotes con fechas de vencimiento, alertas automáticas y lógica FEFO',
+    // Requiere plan Pro o Empresa
   },
 ];
 

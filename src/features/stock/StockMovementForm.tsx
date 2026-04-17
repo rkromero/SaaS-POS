@@ -26,6 +26,8 @@ type StockMovementFormProps = {
   currentQuantity: number;
   type: 'in' | 'out';
   onLocationChange?: (locationId: number) => void;
+  /** Si el módulo de vencimientos está activo, muestra campos de lote */
+  hasExpirationModule?: boolean;
 };
 
 const IN_REASONS = [
@@ -52,12 +54,15 @@ export const StockMovementForm = ({
   currentQuantity,
   type,
   onLocationChange,
+  hasExpirationModule = false,
 }: StockMovementFormProps) => {
   const reasons = type === 'in' ? IN_REASONS : OUT_REASONS;
   const [selectedLocationId, setSelectedLocationId] = useState(locationId);
   const [quantity, setQuantity] = useState('');
   const [reason, setReason] = useState(reasons[0]!.value);
   const [notes, setNotes] = useState('');
+  const [expirationDate, setExpirationDate] = useState('');
+  const [batchNumber, setBatchNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -81,7 +86,18 @@ export const StockMovementForm = ({
       const response = await fetch('/api/stock/movement', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, locationId: selectedLocationId, type, quantity: qty, reason, notes }),
+        body: JSON.stringify({
+          productId,
+          locationId: selectedLocationId,
+          type,
+          quantity: qty,
+          reason,
+          notes,
+          ...(hasExpirationModule && type === 'in' && {
+            expirationDate: expirationDate || null,
+            batchNumber: batchNumber || null,
+          }),
+        }),
       });
 
       if (!response.ok) {
@@ -172,6 +188,35 @@ export const StockMovementForm = ({
               placeholder="Observaciones opcionales..."
             />
           </div>
+
+          {/* Campos de lote — solo en ingresos con módulo de vencimientos activo */}
+          {hasExpirationModule && type === 'in' && (
+            <div className="space-y-3 rounded-md border border-border bg-muted/40 p-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Control de vencimiento</p>
+              <div className="space-y-1.5">
+                <Label htmlFor="expirationDate">Fecha de vencimiento</Label>
+                <Input
+                  id="expirationDate"
+                  type="date"
+                  value={expirationDate}
+                  onChange={e => setExpirationDate(e.target.value)}
+                  min={new Date().toISOString().slice(0, 10)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="batchNumber">
+                  Número de lote
+                  <span className="font-normal text-muted-foreground">(opcional)</span>
+                </Label>
+                <Input
+                  id="batchNumber"
+                  value={batchNumber}
+                  onChange={e => setBatchNumber(e.target.value)}
+                  placeholder="Ej: LOT-2024-001"
+                />
+              </div>
+            </div>
+          )}
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 

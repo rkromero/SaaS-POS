@@ -35,7 +35,8 @@ export default async function DashboardLayout(props: { children: React.ReactNode
     branding = brandingResult[0] ?? null;
 
     // Módulos activados manualmente + módulos incluidos por plan
-    // Arca y Promociones están disponibles en Pro y Empresa sin activación manual
+    // Arca y Promociones están disponibles en Pro y Empresa sin activación manual.
+    // stock_expiration requiere activación manual por Super Admin (solo pro/enterprise).
     enabledModules = [...access.modules];
     if (access.isProOrBetter) {
       if (!enabledModules.includes('arca')) {

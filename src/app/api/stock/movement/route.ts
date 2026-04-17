@@ -1,10 +1,12 @@
 import { auth } from '@clerk/nextjs/server';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
+import { getOrgAccess } from '@/libs/OrgAccess';
 import {
   locationSchema,
+  stockBatchSchema,
   stockMovementSchema,
   stockSchema,
 } from '@/models/Schema';
@@ -17,7 +19,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { productId, locationId, type, quantity, reason, notes } = body;
+  const { productId, locationId, type, quantity, reason, notes, expirationDate, batchNumber } = body;
 
   if (!productId || !locationId || !type || !quantity || !reason) {
     return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
@@ -80,6 +82,10 @@ export async function POST(request: Request) {
     );
   }
 
+  // Check if stock_expiration module is active for this org
+  const access = await getOrgAccess(orgId);
+  const hasExpiration = access.hasModule('stock_expiration');
+
   // Update stock quantity atomically
   const delta = type === 'in' ? qty : -qty;
   const [updatedStock] = await db
@@ -100,6 +106,52 @@ export async function POST(request: Request) {
       notes: notes?.trim() || null,
     })
     .returning();
+
+  // Batch tracking (only when expiration module is active)
+  if (hasExpiration) {
+    if (type === 'in') {
+      // Create a new batch for this incoming stock
+      const expDate = expirationDate ? new Date(expirationDate) : null;
+      await db.insert(stockBatchSchema).values({
+        stockId: stock.id,
+        quantity: qty,
+        expirationDate: expDate,
+        batchNumber: batchNumber?.trim() || null,
+        notes: notes?.trim() || null,
+      });
+    } else {
+      // FEFO: consume batches ordered by expirationDate ASC NULLS LAST
+      // Expired-first, then by earliest expiration, then batches without expiration
+      const batches = await db
+        .select()
+        .from(stockBatchSchema)
+        .where(
+          and(
+            eq(stockBatchSchema.stockId, stock.id),
+            gt(stockBatchSchema.quantity, 0),
+          ),
+        )
+        // NULL dates (no expira) van al final: primero los que vencen antes
+        .orderBy(
+          sql`${stockBatchSchema.expirationDate} ASC NULLS LAST`,
+          asc(stockBatchSchema.id),
+        );
+
+      let remaining = qty;
+      for (const batch of batches) {
+        if (remaining <= 0) {
+          break;
+        }
+        const consume = Math.min(batch.quantity, remaining);
+        remaining -= consume;
+        const newQty = batch.quantity - consume;
+        await db
+          .update(stockBatchSchema)
+          .set({ quantity: newQty })
+          .where(eq(stockBatchSchema.id, batch.id));
+      }
+    }
+  }
 
   return NextResponse.json({ stock: updatedStock, movement }, { status: 201 });
 }

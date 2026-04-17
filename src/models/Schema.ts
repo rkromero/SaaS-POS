@@ -1,6 +1,7 @@
 import {
   bigint,
   boolean,
+  date,
   index,
   integer,
   numeric,
@@ -922,5 +923,81 @@ export const promotionComboItemSchema = pgTable(
   },
   table => ({
     comboItemPromotionIdx: index('combo_item_promotion_idx').on(table.promotionId),
+  }),
+);
+
+// ---------------------------------------------------------------------------
+// Stock expiration — control de vencimientos por lote (FEFO)
+// ---------------------------------------------------------------------------
+
+// stock_batch: lotes individuales con fecha de vencimiento por registro de stock
+export const stockBatchSchema = pgTable(
+  'stock_batch',
+  {
+    id: serial('id').primaryKey(),
+    stockId: integer('stock_id')
+      .notNull()
+      .references(() => stockSchema.id, { onDelete: 'cascade' }),
+    quantity: integer('quantity').default(0).notNull(),
+    // NULL = producto sin vencimiento (no perecedero)
+    expirationDate: date('expiration_date', { mode: 'date' }),
+    batchNumber: text('batch_number'),
+    notes: text('notes'),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => ({
+    stockBatchStockIdx: index('stock_batch_stock_idx').on(table.stockId),
+    // FEFO ordering: expiration_date ASC NULLS LAST
+    stockBatchExpirationIdx: index('stock_batch_expiration_idx').on(
+      table.stockId,
+      table.expirationDate,
+    ),
+  }),
+);
+
+// expiration_alert_config: umbrales de alerta por organización
+// Múltiples filas por org = múltiples umbrales (ej: 30 días, 15 días, 7 días)
+export const expirationAlertConfigSchema = pgTable(
+  'expiration_alert_config',
+  {
+    id: serial('id').primaryKey(),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organizationSchema.id, { onDelete: 'cascade' }),
+    // Alertar N días antes del vencimiento
+    thresholdDays: integer('threshold_days').notNull(),
+    emailEnabled: boolean('email_enabled').default(false).notNull(),
+    inAppEnabled: boolean('in_app_enabled').default(true).notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => ({
+    expirationAlertConfigOrgIdx: index('expiration_alert_config_org_idx').on(table.organizationId),
+    // Un threshold por organización (no duplicados)
+    expirationAlertConfigUniqueIdx: uniqueIndex('expiration_alert_config_unique_idx').on(
+      table.organizationId,
+      table.thresholdDays,
+    ),
+  }),
+);
+
+// expiration_alert_log: registro de alertas enviadas para evitar duplicados
+// El índice único (stock_batch_id, threshold_days) garantiza una alerta por lote/umbral
+export const expirationAlertLogSchema = pgTable(
+  'expiration_alert_log',
+  {
+    id: serial('id').primaryKey(),
+    organizationId: text('organization_id').notNull(),
+    stockBatchId: integer('stock_batch_id')
+      .notNull()
+      .references(() => stockBatchSchema.id, { onDelete: 'cascade' }),
+    thresholdDays: integer('threshold_days').notNull(),
+    alertedAt: timestamp('alerted_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => ({
+    expirationAlertLogOrgIdx: index('expiration_alert_log_org_idx').on(table.organizationId),
+    expirationAlertLogUniqueIdx: uniqueIndex('expiration_alert_log_unique_idx').on(
+      table.stockBatchId,
+      table.thresholdDays,
+    ),
   }),
 );

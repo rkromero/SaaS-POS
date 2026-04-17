@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   BarChart3,
   Building2,
+  CalendarClock,
   ChevronLeft,
   ChevronRight,
   CreditCard,
@@ -83,6 +84,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: '/dashboard/products', label: 'Productos', icon: <Package className={iconClass} />, tourId: 'nav-products' },
       { href: '/dashboard/stock', label: 'Stock', icon: <AlertTriangle className={iconClass} />, tourId: 'nav-stock' },
+      { href: '/dashboard/expiration', label: 'Vencimientos', icon: <CalendarClock className={iconClass} />, moduleRequired: 'stock_expiration' },
       { href: '/dashboard/suppliers', label: 'Proveedores', icon: <Truck className={iconClass} /> },
     ],
   },

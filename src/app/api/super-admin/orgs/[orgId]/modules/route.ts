@@ -3,6 +3,8 @@ import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
+import { MODULE_PLAN_REQUIREMENTS } from '@/libs/Modules';
+import { getOrgAccess } from '@/libs/OrgAccess';
 import { isSuperAdmin } from '@/libs/SuperAdmin';
 import { organizationSchema, orgModuleSchema } from '@/models/Schema';
 
@@ -40,6 +42,20 @@ export async function POST(
 
   if (!moduleName) {
     return NextResponse.json({ error: 'moduleName es requerido' }, { status: 400 });
+  }
+
+  // Verificar restricción de plan para módulos que lo requieren
+  const requiredPlans = MODULE_PLAN_REQUIREMENTS[moduleName as keyof typeof MODULE_PLAN_REQUIREMENTS];
+  if (requiredPlans) {
+    const access = await getOrgAccess(orgId);
+    if (!requiredPlans.includes(access.effectivePlanType)) {
+      return NextResponse.json(
+        {
+          error: `El módulo '${moduleName}' requiere plan ${requiredPlans.join(' o ')}. La org tiene plan '${access.effectivePlanType}'.`,
+        },
+        { status: 403 },
+      );
+    }
   }
 
   try {
