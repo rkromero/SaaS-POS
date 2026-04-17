@@ -113,6 +113,8 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const lastKeyTime = useRef<number>(0);
   const barcodeBuffer = useRef<string>('');
   const lastEnterTime = useRef<number>(0);
+  // Ref estable para handleCheckout, permite usarlo en el listener global sin problemas de orden
+  const handleCheckoutRef = useRef<() => void>(() => {});
 
   // Checkout form
   const [customerName, setCustomerName] = useState('Consumidor final');
@@ -148,6 +150,31 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     const handleChange = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handleChange);
     return () => document.removeEventListener('fullscreenchange', handleChange);
+  }, []);
+
+  // Doble Enter global: confirma la venta sin importar dónde esté el foco
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter') {
+        return;
+      }
+      // Ignorar si el foco está en un input/textarea/select (esos tienen su propio comportamiento)
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+        return;
+      }
+
+      const now = Date.now();
+      const sinceLastEnter = now - lastEnterTime.current;
+      lastEnterTime.current = now;
+
+      if (sinceLastEnter < 500) {
+        e.preventDefault();
+        handleCheckoutRef.current();
+      }
+    };
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
   }, []);
 
   const toggleFullscreen = () => {
@@ -403,7 +430,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     }
   };
 
-  const handleCheckout = async () => {
+  const handleCheckout = useCallback(async () => {
     if (cart.length === 0) {
       return;
     }
@@ -493,7 +520,10 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [cart, paymentMethod, fiadoCustomer, customerName, customerEmail, customerWhatsapp, selectedLocationId, loyaltyCustomerId, loyaltyRewardId, emitirFactura, arcaActive, buyerType, buyerCuit]);
+
+  // Mantener el ref siempre apuntando a la versión más reciente
+  handleCheckoutRef.current = handleCheckout;
 
   const handleNewSale = () => {
     setCompletedSale(null);
