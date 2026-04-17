@@ -35,9 +35,10 @@ type Location = { id: number; name: string };
 
 type StockListProps = {
   isAdmin?: boolean;
+  hasExpirationModule?: boolean;
 };
 
-export const StockList = ({ isAdmin }: StockListProps) => {
+export const StockList = ({ isAdmin, hasExpirationModule = false }: StockListProps) => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const [stock, setStock] = useState<StockItem[]>([]);
@@ -252,6 +253,7 @@ export const StockList = ({ isAdmin }: StockListProps) => {
           currentQuantity={movementModal.item.quantity}
           type={movementModal.type}
           onLocationChange={newId => setMovementModal(prev => ({ ...prev, locationId: newId }))}
+          hasExpirationModule={hasExpirationModule}
         />
       )}
 

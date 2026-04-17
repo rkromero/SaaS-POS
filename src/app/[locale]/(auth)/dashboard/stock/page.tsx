@@ -3,10 +3,14 @@ import { auth } from '@clerk/nextjs/server';
 import { TitleBar } from '@/features/dashboard/TitleBar';
 import { StockAlerts } from '@/features/stock/StockAlerts';
 import { StockList } from '@/features/stock/StockList';
+import { getOrgAccess } from '@/libs/OrgAccess';
 
 export default async function StockPage() {
-  const { orgRole } = await auth();
+  const { orgRole, orgId } = await auth();
   const isAdmin = orgRole === 'org:admin';
+  const hasExpirationModule = orgId
+    ? (await getOrgAccess(orgId)).hasModule('stock_expiration')
+    : false;
 
   return (
     <>
@@ -20,7 +24,7 @@ export default async function StockPage() {
           <StockAlerts />
         </div>
         <div className="rounded-md bg-card p-6 shadow-sm">
-          <StockList isAdmin={isAdmin} />
+          <StockList isAdmin={isAdmin} hasExpirationModule={hasExpirationModule} />
         </div>
       </div>
     </>
