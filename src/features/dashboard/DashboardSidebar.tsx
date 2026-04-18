@@ -14,12 +14,14 @@ import {
   LayoutDashboard,
   Menu,
   MinusCircle,
+  Moon,
   Package,
   Palette,
   PieChart,
   ShoppingCart,
   Star,
   Store,
+  Sun,
   Tag,
   Truck,
   Users,
@@ -28,6 +30,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
@@ -138,6 +141,27 @@ function NavLink({
   );
 }
 
+function ThemeToggle({ collapsed }: { collapsed?: boolean }) {
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === 'dark';
+
+  return (
+    <button
+      type="button"
+      title={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      className="flex items-center gap-2 rounded-md px-2 py-1.5 text-n400 transition-colors hover:bg-n800 hover:text-n100"
+    >
+      {isDark
+        ? <Sun className="size-4 shrink-0" />
+        : <Moon className="size-4 shrink-0" />}
+      {!collapsed && (
+        <span className="text-sm">{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
+      )}
+    </button>
+  );
+}
+
 function SidebarContent({
   onLinkClick,
   enabledModules,
@@ -224,9 +248,9 @@ function SidebarContent({
       {/* Onboarding checklist — hidden when collapsed */}
       {!collapsed && <OnboardingChecklist />}
 
-      {/* Bottom: user + locale */}
+      {/* Bottom: user + locale + theme toggle */}
       <div className={`border-t border-n800 py-3 ${collapsed ? 'px-2' : 'px-4'}`}>
-        <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+        <div className={`flex items-center ${collapsed ? 'flex-col gap-2' : 'justify-between'}`}>
           <UserButton
             userProfileMode="navigation"
             userProfileUrl="/dashboard/user-profile"
@@ -234,7 +258,14 @@ function SidebarContent({
               elements: { rootBox: 'py-1' },
             }}
           />
-          {!collapsed && <LocaleSwitcher />}
+          {!collapsed
+            ? (
+                <div className="flex items-center gap-1">
+                  <ThemeToggle />
+                  <LocaleSwitcher />
+                </div>
+              )
+            : <ThemeToggle collapsed />}
         </div>
       </div>
     </div>

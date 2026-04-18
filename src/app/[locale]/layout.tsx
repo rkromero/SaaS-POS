@@ -6,6 +6,7 @@ import { NextIntlClientProvider, useMessages } from 'next-intl';
 import { unstable_setRequestLocale } from 'next-intl/server';
 
 import { DemoBadge } from '@/components/DemoBadge';
+import { ThemeProvider } from '@/components/ThemeProvider';
 import { AllLocales } from '@/utils/AppConfig';
 
 const lora = Lora({
@@ -82,15 +83,16 @@ export default function RootLayout(props: {
         className={`${lora.variable} ${dmSans.variable} ${spaceMono.variable} bg-background font-sans text-foreground antialiased`}
         suppressHydrationWarning
       >
-        {/* PRO: Dark mode support for Shadcn UI */}
-        <NextIntlClientProvider
-          locale={props.params.locale}
-          messages={messages}
-        >
-          {props.children}
+        <ThemeProvider>
+          <NextIntlClientProvider
+            locale={props.params.locale}
+            messages={messages}
+          >
+            {props.children}
 
-          <DemoBadge />
-        </NextIntlClientProvider>
+            <DemoBadge />
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
