@@ -1,3 +1,10 @@
+# [1.40.0](https://github.com/rkromero/SaaS-POS/compare/v1.39.2...v1.40.0) (2026-04-18)
+
+
+### Features
+
+* **ui:** agregar toggle de modo oscuro/claro en sidebar ([1ca82a9](https://github.com/rkromero/SaaS-POS/commit/1ca82a9bb96e99a54a86ae9388e53a308b9e4841))
+
 ## [1.39.2](https://github.com/rkromero/SaaS-POS/compare/v1.39.1...v1.39.2) (2026-04-17)
 
 
