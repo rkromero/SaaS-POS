@@ -34,26 +34,26 @@ const TYPE_CONFIG = {
   product_price: {
     label: 'Precio especial',
     icon: Tag,
-    borderAccent: 'border-l-sky-500',
-    badge: 'bg-sky-900/50 text-sky-300 border border-sky-800/60',
-    iconColor: 'text-sky-400',
-    iconBg: 'bg-sky-900/40',
+    borderAccent: 'border-l-sky-400',
+    badge: 'bg-sky-50 text-sky-700 border border-sky-200',
+    iconColor: 'text-sky-500',
+    iconBg: 'bg-sky-50',
   },
   discount: {
     label: 'Descuento',
     icon: Percent,
-    borderAccent: 'border-l-amber-500',
-    badge: 'bg-amber-900/50 text-amber-300 border border-amber-800/60',
-    iconColor: 'text-amber-400',
-    iconBg: 'bg-amber-900/40',
+    borderAccent: 'border-l-amber-400',
+    badge: 'bg-amber-50 text-amber-700 border border-amber-200',
+    iconColor: 'text-amber-500',
+    iconBg: 'bg-amber-50',
   },
   combo: {
     label: 'Combo',
     icon: Package2,
-    borderAccent: 'border-l-violet-500',
-    badge: 'bg-violet-900/50 text-violet-300 border border-violet-800/60',
-    iconColor: 'text-violet-400',
-    iconBg: 'bg-violet-900/40',
+    borderAccent: 'border-l-violet-400',
+    badge: 'bg-violet-50 text-violet-700 border border-violet-200',
+    iconColor: 'text-violet-500',
+    iconBg: 'bg-violet-50',
   },
 } as const;
 
@@ -67,10 +67,10 @@ function formatDate(d: string | null) {
 function PromotionSummary({ promo }: { promo: Promotion }) {
   if (promo.type === 'product_price') {
     return (
-      <span className="text-sm text-zinc-400">
+      <span className="text-sm text-muted-foreground">
         {promo.targetProductName ?? '—'}
-        <span className="mx-1.5 text-zinc-600">→</span>
-        <span className="font-semibold text-emerald-400">
+        <span className="mx-1.5 text-muted-foreground/40">→</span>
+        <span className="font-semibold text-emerald-600">
           $
           {Number(promo.promoPrice).toLocaleString('es-AR')}
         </span>
@@ -88,18 +88,18 @@ function PromotionSummary({ promo }: { promo: Promotion }) {
         : `en cat. "${promo.targetCategoryName}"`;
     return (
       <span className="text-sm">
-        <span className="font-semibold text-amber-400">{val}</span>
-        <span className="ml-1.5 text-zinc-400">{scope}</span>
+        <span className="font-semibold text-amber-600">{val}</span>
+        <span className="ml-1.5 text-muted-foreground">{scope}</span>
       </span>
     );
   }
   if (promo.type === 'combo') {
     const itemsList = promo.comboItems.map(i => `${i.quantity}× ${i.productName}`).join(' + ');
     return (
-      <span className="text-sm text-zinc-400">
+      <span className="text-sm text-muted-foreground">
         {itemsList}
-        <span className="mx-1.5 text-zinc-600">→</span>
-        <span className="font-semibold text-emerald-400">
+        <span className="mx-1.5 text-muted-foreground/40">→</span>
+        <span className="font-semibold text-emerald-600">
           $
           {Number(promo.comboPrice).toLocaleString('es-AR')}
         </span>
@@ -195,7 +195,7 @@ export const PromotionsPageClient = () => {
     return (
       <div className="space-y-3">
         {[1, 2, 3].map(i => (
-          <div key={i} className="h-20 animate-pulse rounded-xl bg-zinc-800/60" />
+          <div key={i} className="h-20 animate-pulse rounded-xl bg-muted" />
         ))}
       </div>
     );
@@ -203,19 +203,19 @@ export const PromotionsPageClient = () => {
 
   if (showForm || editing) {
     return (
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-        <div className="mb-6 flex items-center gap-3 border-b border-zinc-800 pb-5">
+      <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <div className="mb-6 flex items-center gap-3 border-b pb-5">
           <button
             type="button"
             onClick={() => {
               setShowForm(false);
               setEditing(null);
             }}
-            className="rounded-lg px-2 py-1 text-sm text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300"
+            className="rounded-lg px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             ← Volver
           </button>
-          <h2 className="text-base font-semibold text-zinc-100">
+          <h2 className="text-base font-semibold text-foreground">
             {editing ? 'Editar promoción' : 'Nueva promoción'}
           </h2>
         </div>
@@ -254,20 +254,20 @@ export const PromotionsPageClient = () => {
   return (
     <div className="space-y-5">
       {error && (
-        <div className="rounded-lg border border-red-800 bg-red-950/60 px-4 py-3 text-sm text-red-300">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
 
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-muted-foreground">
           {promotions.length === 0
             ? 'Sin promociones creadas'
             : activeCount > 0
               ? (
                   <>
-                    <span className="font-semibold text-emerald-400">{activeCount}</span>
+                    <span className="font-semibold text-emerald-600">{activeCount}</span>
                     {' '}
                     activa
                     {activeCount !== 1 ? 's' : ''}
@@ -286,7 +286,7 @@ export const PromotionsPageClient = () => {
         </p>
         <Button
           onClick={() => setShowForm(true)}
-          className="shrink-0 bg-emerald-600 text-white shadow-md shadow-emerald-900/40 hover:bg-emerald-500"
+          className="shrink-0 bg-emerald-600 text-white shadow-sm hover:bg-emerald-500"
         >
           <Plus className="mr-1.5 size-4" />
           Nueva promoción
@@ -295,7 +295,7 @@ export const PromotionsPageClient = () => {
 
       {/* Filter tabs */}
       {promotions.length > 0 && (
-        <div className="flex gap-1 rounded-xl bg-zinc-800/50 p-1">
+        <div className="flex gap-1 rounded-xl bg-muted p-1">
           {filterTabs.map(tab => (
             <button
               key={tab.value}
@@ -303,8 +303,8 @@ export const PromotionsPageClient = () => {
               onClick={() => setFilter(tab.value)}
               className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                 filter === tab.value
-                  ? 'bg-zinc-700 text-zinc-100 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-300'
+                  ? 'bg-card text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {tab.label}
@@ -316,12 +316,12 @@ export const PromotionsPageClient = () => {
       {/* Empty state */}
       {promotions.length === 0
         ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 py-16 text-center">
-              <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-zinc-800/80">
-                <Tag className="size-7 text-zinc-600" />
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
+              <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-muted">
+                <Tag className="size-7 text-muted-foreground" />
               </div>
-              <p className="font-semibold text-zinc-200">No hay promociones creadas</p>
-              <p className="mt-1.5 max-w-xs text-sm text-zinc-600">
+              <p className="font-semibold text-foreground">No hay promociones creadas</p>
+              <p className="mt-1.5 max-w-xs text-sm text-muted-foreground">
                 Creá precios especiales, descuentos o combos para aplicar en el POS.
               </p>
               <Button
@@ -335,7 +335,7 @@ export const PromotionsPageClient = () => {
           )
         : filtered.length === 0
           ? (
-              <div className="rounded-xl border border-dashed border-zinc-800 py-10 text-center text-sm text-zinc-600">
+              <div className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">
                 No hay promociones de este tipo.
               </div>
             )
@@ -352,7 +352,7 @@ export const PromotionsPageClient = () => {
                   return (
                     <div
                       key={promo.id}
-                      className={`flex items-center gap-3 rounded-xl border border-l-4 border-zinc-800 bg-zinc-900 px-4 py-3.5 transition-all ${cfg.borderAccent} ${
+                      className={`flex items-center gap-3 rounded-xl border border-l-4 bg-card px-4 py-3.5 shadow-sm transition-all ${cfg.borderAccent} ${
                         !promo.isActive ? 'opacity-50' : ''
                       }`}
                     >
@@ -367,20 +367,20 @@ export const PromotionsPageClient = () => {
                           <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cfg.badge}`}>
                             {cfg.label}
                           </span>
-                          <span className="text-sm font-medium text-zinc-100">{promo.name}</span>
+                          <span className="text-sm font-medium text-foreground">{promo.name}</span>
                           {isVigente && (
-                            <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
-                              <span className="inline-block size-1.5 animate-pulse rounded-full bg-emerald-400" />
+                            <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-600">
+                              <span className="inline-block size-1.5 animate-pulse rounded-full bg-emerald-500" />
                               Vigente
                             </span>
                           )}
                           {isExpired && (
-                            <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-500">
+                            <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-600">
                               Vencida
                             </span>
                           )}
                           {!promo.isActive && (
-                            <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-600">
+                            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                               Inactiva
                             </span>
                           )}
@@ -392,7 +392,7 @@ export const PromotionsPageClient = () => {
                           <PromotionSummary promo={promo} />
                         </div>
                         {(promo.startsAt || promo.endsAt) && (
-                          <p className="mt-0.5 text-xs text-zinc-600">
+                          <p className="mt-0.5 text-xs text-muted-foreground/60">
                             {promo.startsAt ? `Desde ${formatDate(promo.startsAt)}` : ''}
                             {promo.startsAt && promo.endsAt ? ' — ' : ''}
                             {promo.endsAt ? `Hasta ${formatDate(promo.endsAt)}` : ''}
@@ -408,7 +408,7 @@ export const PromotionsPageClient = () => {
                           onClick={() => handleToggleActive(promo)}
                           title={promo.isActive ? 'Desactivar' : 'Activar'}
                           className={`relative h-5 w-9 rounded-full transition-colors focus:outline-none ${
-                            promo.isActive ? 'bg-emerald-600' : 'bg-zinc-700'
+                            promo.isActive ? 'bg-emerald-500' : 'bg-muted-foreground/30'
                           }`}
                         >
                           <span
@@ -421,7 +421,7 @@ export const PromotionsPageClient = () => {
                         <button
                           type="button"
                           onClick={() => setEditing(promo)}
-                          className="rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+                          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         >
                           <Pencil className="size-3.5" />
                         </button>
@@ -432,7 +432,7 @@ export const PromotionsPageClient = () => {
                                 type="button"
                                 onClick={() => handleDelete(promo.id)}
                                 disabled={deleting === promo.id}
-                                className="rounded-lg border border-red-700 bg-red-950 px-2.5 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-900"
+                                className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-100"
                               >
                                 ¿Eliminar?
                               </button>
@@ -442,7 +442,7 @@ export const PromotionsPageClient = () => {
                                 type="button"
                                 onClick={() => handleDelete(promo.id)}
                                 disabled={deleting === promo.id}
-                                className="rounded-lg p-1.5 text-zinc-600 transition-colors hover:bg-red-950/60 hover:text-red-400"
+                                className="rounded-lg p-1.5 text-muted-foreground/50 transition-colors hover:bg-red-50 hover:text-red-500"
                               >
                                 <Trash2 className="size-3.5" />
                               </button>

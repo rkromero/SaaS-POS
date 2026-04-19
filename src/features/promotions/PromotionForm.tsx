@@ -59,30 +59,30 @@ const TYPE_OPTIONS = [
     label: 'Precio especial',
     desc: 'Precio fijo para un producto',
     icon: Tag,
-    active: 'border-sky-600 bg-sky-950/50 text-sky-200',
-    iconActive: 'text-sky-400',
-    inactive: 'border-zinc-700 bg-zinc-800/60 text-zinc-400 hover:border-zinc-600',
-    iconInactive: 'text-zinc-600',
+    active: 'border-sky-400 bg-sky-50 text-sky-700',
+    iconActive: 'text-sky-500',
+    inactive: 'border-border bg-background text-muted-foreground hover:bg-muted/50',
+    iconInactive: 'text-muted-foreground',
   },
   {
     value: 'discount' as const,
     label: 'Descuento',
     desc: '% o monto sobre producto, categoría o total',
     icon: Percent,
-    active: 'border-amber-600 bg-amber-950/50 text-amber-200',
-    iconActive: 'text-amber-400',
-    inactive: 'border-zinc-700 bg-zinc-800/60 text-zinc-400 hover:border-zinc-600',
-    iconInactive: 'text-zinc-600',
+    active: 'border-amber-400 bg-amber-50 text-amber-700',
+    iconActive: 'text-amber-500',
+    inactive: 'border-border bg-background text-muted-foreground hover:bg-muted/50',
+    iconInactive: 'text-muted-foreground',
   },
   {
     value: 'combo' as const,
     label: 'Combo',
     desc: 'Precio especial combinando productos',
     icon: Package2,
-    active: 'border-violet-600 bg-violet-950/50 text-violet-200',
-    iconActive: 'text-violet-400',
-    inactive: 'border-zinc-700 bg-zinc-800/60 text-zinc-400 hover:border-zinc-600',
-    iconInactive: 'text-zinc-600',
+    active: 'border-violet-400 bg-violet-50 text-violet-700',
+    iconActive: 'text-violet-500',
+    inactive: 'border-border bg-background text-muted-foreground hover:bg-muted/50',
+    iconInactive: 'text-muted-foreground',
   },
 ];
 
@@ -94,7 +94,7 @@ type Props = {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+    <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
       {children}
     </p>
   );
@@ -112,7 +112,7 @@ function Toggle({
       type="button"
       onClick={() => onChange(!checked)}
       className={`relative h-5 w-9 rounded-full transition-colors focus:outline-none ${
-        checked ? 'bg-emerald-600' : 'bg-zinc-700'
+        checked ? 'bg-emerald-500' : 'bg-muted-foreground/30'
       }`}
     >
       <span
@@ -213,13 +213,13 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
     }
   };
 
-  const inputClass = 'w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/30 transition-colors';
+  const inputClass = 'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/20 transition-colors';
   const selectClass = inputClass;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="rounded-lg border border-red-800 bg-red-950/60 px-4 py-3 text-sm text-red-300">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -229,7 +229,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
         <SectionLabel>Información general</SectionLabel>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <Label className="mb-1.5 block text-xs text-zinc-400">
+            <Label className="mb-1.5 block text-xs text-muted-foreground">
               Nombre
               {' '}
               <span className="text-emerald-600">*</span>
@@ -243,7 +243,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
             />
           </div>
           <div>
-            <Label className="mb-1.5 block text-xs text-zinc-400">Descripción</Label>
+            <Label className="mb-1.5 block text-xs text-muted-foreground">Descripción</Label>
             <Input
               value={form.description}
               onChange={e => set('description', e.target.value)}
@@ -276,7 +276,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
               >
                 <Icon className={`mb-2 size-5 ${isSelected ? t.iconActive : t.iconInactive}`} />
                 <p className="text-sm font-semibold leading-tight">{t.label}</p>
-                <p className="mt-1 text-[11px] leading-tight opacity-70">{t.desc}</p>
+                <p className="mt-1 text-[11px] leading-tight opacity-60">{t.desc}</p>
               </button>
             );
           })}
@@ -289,7 +289,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
           <SectionLabel>Configuración del precio</SectionLabel>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <Label className="mb-1.5 block text-xs text-zinc-400">
+              <Label className="mb-1.5 block text-xs text-muted-foreground">
                 Producto
                 {' '}
                 <span className="text-emerald-600">*</span>
@@ -313,7 +313,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
               </select>
             </div>
             <div>
-              <Label className="mb-1.5 block text-xs text-zinc-400">
+              <Label className="mb-1.5 block text-xs text-muted-foreground">
                 Precio promocional
                 {' '}
                 <span className="text-emerald-600">*</span>
@@ -338,7 +338,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
           <SectionLabel>Configuración del descuento</SectionLabel>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <Label className="mb-1.5 block text-xs text-zinc-400">
+              <Label className="mb-1.5 block text-xs text-muted-foreground">
                 Tipo de descuento
                 {' '}
                 <span className="text-emerald-600">*</span>
@@ -353,7 +353,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
               </select>
             </div>
             <div>
-              <Label className="mb-1.5 block text-xs text-zinc-400">
+              <Label className="mb-1.5 block text-xs text-muted-foreground">
                 {form.discountType === 'percent' ? 'Porcentaje' : 'Monto en pesos'}
                 {' '}
                 <span className="text-emerald-600">*</span>
@@ -372,7 +372,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
             </div>
           </div>
           <div>
-            <Label className="mb-2 block text-xs text-zinc-400">
+            <Label className="mb-2 block text-xs text-muted-foreground">
               Aplica sobre
               {' '}
               <span className="text-emerald-600">*</span>
@@ -391,8 +391,8 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
                   onClick={() => set('discountScope', s.value)}
                   className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
                     form.discountScope === s.value
-                      ? 'border-emerald-700 bg-emerald-950/60 text-emerald-300'
-                      : 'border-zinc-700 bg-zinc-800/60 text-zinc-400 hover:border-zinc-600'
+                      ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                      : 'border-border bg-background text-muted-foreground hover:bg-muted/50'
                   }`}
                 >
                   {s.label}
@@ -402,7 +402,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
           </div>
           {form.discountScope === 'product' && (
             <div>
-              <Label className="mb-1.5 block text-xs text-zinc-400">
+              <Label className="mb-1.5 block text-xs text-muted-foreground">
                 Producto
                 {' '}
                 <span className="text-emerald-600">*</span>
@@ -422,7 +422,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
           )}
           {form.discountScope === 'category' && (
             <div>
-              <Label className="mb-1.5 block text-xs text-zinc-400">
+              <Label className="mb-1.5 block text-xs text-muted-foreground">
                 Categoría
                 {' '}
                 <span className="text-emerald-600">*</span>
@@ -447,7 +447,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
         <div className="space-y-4">
           <SectionLabel>Configuración del combo</SectionLabel>
           <div>
-            <Label className="mb-1.5 block text-xs text-zinc-400">
+            <Label className="mb-1.5 block text-xs text-muted-foreground">
               Precio del combo
               {' '}
               <span className="text-emerald-600">*</span>
@@ -465,17 +465,17 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
           </div>
           <div>
             <div className="mb-2.5 flex items-center justify-between">
-              <Label className="text-xs text-zinc-400">
+              <Label className="text-xs text-muted-foreground">
                 Productos del combo
                 {' '}
-                <span className="text-zinc-600">(mín. 2)</span>
+                <span className="text-muted-foreground/60">(mín. 2)</span>
                 {' '}
                 <span className="text-emerald-600">*</span>
               </Label>
               <button
                 type="button"
                 onClick={addComboItem}
-                className="text-xs font-medium text-emerald-500 transition-colors hover:text-emerald-400"
+                className="text-xs font-medium text-emerald-600 transition-colors hover:text-emerald-500"
               >
                 + Agregar producto
               </button>
@@ -487,7 +487,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
                     value={item.productId || ''}
                     onChange={e => updateComboItem(idx, 'productId', Number(e.target.value))}
                     required
-                    className="flex-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 transition-colors focus:border-emerald-600 focus:outline-none"
+                    className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground transition-colors focus:border-emerald-500 focus:outline-none"
                   >
                     <option value="">Producto...</option>
                     {products.map(p => (
@@ -499,13 +499,13 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
                     min="1"
                     value={item.quantity}
                     onChange={e => updateComboItem(idx, 'quantity', Number(e.target.value))}
-                    className="w-20 rounded-lg border border-zinc-700 bg-zinc-800 p-2 text-center text-sm text-zinc-200 transition-colors focus:border-emerald-600 focus:outline-none"
+                    className="w-20 rounded-lg border border-input bg-background p-2 text-center text-sm text-foreground transition-colors focus:border-emerald-500 focus:outline-none"
                   />
                   {form.comboItems.length > 2 && (
                     <button
                       type="button"
                       onClick={() => removeComboItem(idx)}
-                      className="flex size-8 items-center justify-center rounded-lg text-lg text-zinc-600 transition-colors hover:bg-red-950/60 hover:text-red-400"
+                      className="flex size-8 items-center justify-center rounded-lg text-lg text-muted-foreground/50 transition-colors hover:bg-red-50 hover:text-red-500"
                     >
                       ×
                     </button>
@@ -519,13 +519,13 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
 
       {/* Vigencia */}
       <div>
-        <div className="mb-3 flex items-center gap-2">
-          <CalendarDays className="size-3.5 text-zinc-500" />
+        <div className="mb-3 flex items-center gap-1.5">
+          <CalendarDays className="size-3.5 text-muted-foreground" />
           <SectionLabel>Período de validez</SectionLabel>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <Label className="mb-1.5 block text-xs text-zinc-400">Válida desde</Label>
+            <Label className="mb-1.5 block text-xs text-muted-foreground">Válida desde</Label>
             <Input
               type="datetime-local"
               value={form.startsAt}
@@ -534,7 +534,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
             />
           </div>
           <div>
-            <Label className="mb-1.5 block text-xs text-zinc-400">Válida hasta</Label>
+            <Label className="mb-1.5 block text-xs text-muted-foreground">Válida hasta</Label>
             <Input
               type="datetime-local"
               value={form.endsAt}
@@ -543,24 +543,24 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
             />
           </div>
         </div>
-        <p className="mt-2 text-xs text-zinc-600">Dejá vacío para que no tenga vencimiento.</p>
+        <p className="mt-2 text-xs text-muted-foreground/60">Dejá vacío para que no tenga vencimiento.</p>
       </div>
 
       {/* Opciones */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-800/30 p-4">
+      <div className="rounded-xl border bg-muted/30 p-4">
         <SectionLabel>Opciones</SectionLabel>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-zinc-200">Promoción activa</p>
-              <p className="text-xs text-zinc-500">Se aplica en el POS al momento de la venta</p>
+              <p className="text-sm font-medium text-foreground">Promoción activa</p>
+              <p className="text-xs text-muted-foreground">Se aplica en el POS al momento de la venta</p>
             </div>
             <Toggle checked={form.isActive} onChange={v => set('isActive', v)} />
           </div>
-          <div className="flex items-center justify-between border-t border-zinc-700/50 pt-3">
+          <div className="flex items-center justify-between border-t pt-3">
             <div>
-              <p className="text-sm font-medium text-zinc-200">Acumulable con otras</p>
-              <p className="text-xs text-zinc-500">
+              <p className="text-sm font-medium text-foreground">Acumulable con otras</p>
+              <p className="text-xs text-muted-foreground">
                 {form.isStackable
                   ? 'Se puede combinar con otras promociones activas'
                   : 'Exclusiva — no se combina con otras promociones'}
@@ -572,20 +572,20 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
       </div>
 
       {/* Footer */}
-      <div className="flex justify-end gap-3 border-t border-zinc-800 pt-5">
+      <div className="flex justify-end gap-3 border-t pt-5">
         <Button
           type="button"
           variant="outline"
           onClick={onCancel}
           disabled={saving}
-          className="border-zinc-700 bg-transparent text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+          className="border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           Cancelar
         </Button>
         <Button
           type="submit"
           disabled={saving}
-          className="bg-emerald-600 text-white shadow-md shadow-emerald-900/30 hover:bg-emerald-500"
+          className="bg-emerald-600 text-white shadow-sm hover:bg-emerald-500"
         >
           {saving ? 'Guardando...' : initial?.id ? 'Guardar cambios' : 'Crear promoción'}
         </Button>
