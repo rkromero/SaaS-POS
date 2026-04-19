@@ -1,3 +1,10 @@
+## [1.41.1](https://github.com/rkromero/SaaS-POS/compare/v1.41.0...v1.41.1) (2026-04-19)
+
+
+### Bug Fixes
+
+* **promotions:** migrar clases zinc hardcodeadas a variables semánticas de tema ([c241cdc](https://github.com/rkromero/SaaS-POS/commit/c241cdcf57374fe7266370cc8afac06756273e87))
+
 # [1.41.0](https://github.com/rkromero/SaaS-POS/compare/v1.40.0...v1.41.0) (2026-04-19)
 
 
