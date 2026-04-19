@@ -1,9 +1,8 @@
 'use client';
 
-import { Pencil, Plus, Tag, Trash2 } from 'lucide-react';
+import { Package2, Pencil, Percent, Plus, Tag, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 import { PromotionForm } from './PromotionForm';
@@ -31,17 +30,32 @@ type Promotion = {
   comboItems: ComboItem[];
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  product_price: 'Precio especial',
-  discount: 'Descuento',
-  combo: 'Combo',
-};
-
-const TYPE_COLORS: Record<string, string> = {
-  product_price: 'bg-sky-900 text-sky-300',
-  discount: 'bg-amber-900 text-amber-300',
-  combo: 'bg-violet-900 text-violet-300',
-};
+const TYPE_CONFIG = {
+  product_price: {
+    label: 'Precio especial',
+    icon: Tag,
+    borderAccent: 'border-l-sky-500',
+    badge: 'bg-sky-900/50 text-sky-300 border border-sky-800/60',
+    iconColor: 'text-sky-400',
+    iconBg: 'bg-sky-900/40',
+  },
+  discount: {
+    label: 'Descuento',
+    icon: Percent,
+    borderAccent: 'border-l-amber-500',
+    badge: 'bg-amber-900/50 text-amber-300 border border-amber-800/60',
+    iconColor: 'text-amber-400',
+    iconBg: 'bg-amber-900/40',
+  },
+  combo: {
+    label: 'Combo',
+    icon: Package2,
+    borderAccent: 'border-l-violet-500',
+    badge: 'bg-violet-900/50 text-violet-300 border border-violet-800/60',
+    iconColor: 'text-violet-400',
+    iconBg: 'bg-violet-900/40',
+  },
+} as const;
 
 function formatDate(d: string | null) {
   if (!d) {
@@ -55,8 +69,8 @@ function PromotionSummary({ promo }: { promo: Promotion }) {
     return (
       <span className="text-sm text-zinc-400">
         {promo.targetProductName ?? '—'}
-        {' → '}
-        <span className="font-medium text-zinc-200">
+        <span className="mx-1.5 text-zinc-600">→</span>
+        <span className="font-semibold text-emerald-400">
           $
           {Number(promo.promoPrice).toLocaleString('es-AR')}
         </span>
@@ -71,22 +85,21 @@ function PromotionSummary({ promo }: { promo: Promotion }) {
       ? 'sobre el total'
       : promo.discountScope === 'product'
         ? `sobre "${promo.targetProductName}"`
-        : `en categoría "${promo.targetCategoryName}"`;
+        : `en cat. "${promo.targetCategoryName}"`;
     return (
-      <span className="text-sm text-zinc-400">
-        {val}
-        {' '}
-        {scope}
+      <span className="text-sm">
+        <span className="font-semibold text-amber-400">{val}</span>
+        <span className="ml-1.5 text-zinc-400">{scope}</span>
       </span>
     );
   }
   if (promo.type === 'combo') {
-    const itemsList = promo.comboItems.map(i => `${i.quantity}x ${i.productName}`).join(' + ');
+    const itemsList = promo.comboItems.map(i => `${i.quantity}× ${i.productName}`).join(' + ');
     return (
       <span className="text-sm text-zinc-400">
         {itemsList}
-        {' → '}
-        <span className="font-medium text-zinc-200">
+        <span className="mx-1.5 text-zinc-600">→</span>
+        <span className="font-semibold text-emerald-400">
           $
           {Number(promo.comboPrice).toLocaleString('es-AR')}
         </span>
@@ -122,6 +135,8 @@ function buildFormInitial(promo: Promotion) {
   };
 }
 
+type FilterType = 'all' | 'product_price' | 'discount' | 'combo';
+
 export const PromotionsPageClient = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,6 +145,7 @@ export const PromotionsPageClient = () => {
   const [editing, setEditing] = useState<Promotion | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [filter, setFilter] = useState<FilterType>('all');
 
   const reload = () => {
     setLoading(true);
@@ -166,10 +182,7 @@ export const PromotionsPageClient = () => {
     const res = await fetch(`/api/promotions/${promo.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...buildFormInitial(promo),
-        isActive: !promo.isActive,
-      }),
+      body: JSON.stringify({ ...buildFormInitial(promo), isActive: !promo.isActive }),
     });
     if (res.ok) {
       setPromotions(prev =>
@@ -182,7 +195,7 @@ export const PromotionsPageClient = () => {
     return (
       <div className="space-y-3">
         {[1, 2, 3].map(i => (
-          <div key={i} className="h-16 animate-pulse rounded-lg bg-zinc-800" />
+          <div key={i} className="h-20 animate-pulse rounded-xl bg-zinc-800/60" />
         ))}
       </div>
     );
@@ -190,10 +203,22 @@ export const PromotionsPageClient = () => {
 
   if (showForm || editing) {
     return (
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6">
-        <h2 className="mb-5 text-base font-semibold text-zinc-200">
-          {editing ? 'Editar promoción' : 'Nueva promoción'}
-        </h2>
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+        <div className="mb-6 flex items-center gap-3 border-b border-zinc-800 pb-5">
+          <button
+            type="button"
+            onClick={() => {
+              setShowForm(false);
+              setEditing(null);
+            }}
+            className="rounded-lg px-2 py-1 text-sm text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300"
+          >
+            ← Volver
+          </button>
+          <h2 className="text-base font-semibold text-zinc-100">
+            {editing ? 'Editar promoción' : 'Nueva promoción'}
+          </h2>
+        </div>
         <PromotionForm
           initial={editing ? buildFormInitial(editing) : undefined}
           onSaved={() => {
@@ -210,133 +235,224 @@ export const PromotionsPageClient = () => {
     );
   }
 
+  const now = new Date();
+  const activeCount = promotions.filter((p) => {
+    const started = !p.startsAt || new Date(p.startsAt) <= now;
+    const notEnded = !p.endsAt || new Date(p.endsAt) >= now;
+    return p.isActive && started && notEnded;
+  }).length;
+
+  const filtered = filter === 'all' ? promotions : promotions.filter(p => p.type === filter);
+
+  const filterTabs: { value: FilterType; label: string }[] = [
+    { value: 'all', label: `Todas (${promotions.length})` },
+    { value: 'product_price', label: 'Precio especial' },
+    { value: 'discount', label: 'Descuento' },
+    { value: 'combo', label: 'Combo' },
+  ];
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {error && (
-        <div className="rounded border border-red-800 bg-red-950 px-3 py-2 text-sm text-red-300">
+        <div className="rounded-lg border border-red-800 bg-red-950/60 px-4 py-3 text-sm text-red-300">
           {error}
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-zinc-500">
-          {promotions.length}
-          {' '}
-          promoción
-          {promotions.length !== 1 ? 'es' : ''}
-          {' registrada'}
-          {promotions.length !== 1 ? 's' : ''}
+          {promotions.length === 0
+            ? 'Sin promociones creadas'
+            : activeCount > 0
+              ? (
+                  <>
+                    <span className="font-semibold text-emerald-400">{activeCount}</span>
+                    {' '}
+                    activa
+                    {activeCount !== 1 ? 's' : ''}
+                    {' de '}
+                    {promotions.length}
+                  </>
+                )
+              : (
+                  <>
+                    {promotions.length}
+                    {' '}
+                    promoción
+                    {promotions.length !== 1 ? 'es' : ''}
+                  </>
+                )}
         </p>
         <Button
           onClick={() => setShowForm(true)}
-          className="bg-indigo-600 text-white hover:bg-indigo-500"
+          className="shrink-0 bg-emerald-600 text-white shadow-md shadow-emerald-900/40 hover:bg-emerald-500"
         >
           <Plus className="mr-1.5 size-4" />
           Nueva promoción
         </Button>
       </div>
 
+      {/* Filter tabs */}
+      {promotions.length > 0 && (
+        <div className="flex gap-1 rounded-xl bg-zinc-800/50 p-1">
+          {filterTabs.map(tab => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => setFilter(tab.value)}
+              className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                filter === tab.value
+                  ? 'bg-zinc-700 text-zinc-100 shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Empty state */}
       {promotions.length === 0
         ? (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-zinc-700 py-16 text-center">
-              <Tag className="mb-3 size-10 text-zinc-600" />
-              <p className="font-medium text-zinc-400">No hay promociones creadas</p>
-              <p className="mt-1 text-sm text-zinc-600">
-                Creá precios especiales, descuentos o combos para el POS.
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 py-16 text-center">
+              <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-zinc-800/80">
+                <Tag className="size-7 text-zinc-600" />
+              </div>
+              <p className="font-semibold text-zinc-200">No hay promociones creadas</p>
+              <p className="mt-1.5 max-w-xs text-sm text-zinc-600">
+                Creá precios especiales, descuentos o combos para aplicar en el POS.
               </p>
+              <Button
+                onClick={() => setShowForm(true)}
+                className="mt-5 bg-emerald-600 text-white hover:bg-emerald-500"
+              >
+                <Plus className="mr-1.5 size-4" />
+                Crear primera promoción
+              </Button>
             </div>
           )
-        : (
-            <div className="space-y-2">
-              {promotions.map((promo) => {
-                const now = new Date();
-                const started = !promo.startsAt || new Date(promo.startsAt) <= now;
-                const notEnded = !promo.endsAt || new Date(promo.endsAt) >= now;
-                const isVigente = promo.isActive && started && notEnded;
+        : filtered.length === 0
+          ? (
+              <div className="rounded-xl border border-dashed border-zinc-800 py-10 text-center text-sm text-zinc-600">
+                No hay promociones de este tipo.
+              </div>
+            )
+          : (
+              <div className="space-y-2">
+                {filtered.map((promo) => {
+                  const started = !promo.startsAt || new Date(promo.startsAt) <= now;
+                  const notEnded = !promo.endsAt || new Date(promo.endsAt) >= now;
+                  const isVigente = promo.isActive && started && notEnded;
+                  const isExpired = promo.isActive && !!promo.endsAt && new Date(promo.endsAt) < now;
+                  const cfg = TYPE_CONFIG[promo.type];
+                  const TypeIcon = cfg.icon;
 
-                return (
-                  <div
-                    key={promo.id}
-                    className={`flex items-center justify-between gap-4 rounded-lg border p-4 transition-colors ${
-                      isVigente
-                        ? 'border-zinc-700 bg-zinc-900'
-                        : 'border-zinc-800 bg-zinc-900/50 opacity-60'
-                    }`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${TYPE_COLORS[promo.type]}`}>
-                          {TYPE_LABELS[promo.type]}
-                        </span>
-                        <span className="text-sm font-medium text-zinc-200">{promo.name}</span>
-                        {promo.isStackable
-                          ? <span className="text-[10px] text-emerald-500">acumulable</span>
-                          : <span className="text-[10px] text-zinc-600">exclusiva</span>}
-                        {isVigente && (
-                          <Badge className="bg-emerald-900 text-[10px] text-emerald-400">VIGENTE</Badge>
-                        )}
-                        {!promo.isActive && (
-                          <Badge className="bg-zinc-800 text-[10px] text-zinc-500">INACTIVA</Badge>
-                        )}
+                  return (
+                    <div
+                      key={promo.id}
+                      className={`flex items-center gap-3 rounded-xl border border-l-4 border-zinc-800 bg-zinc-900 px-4 py-3.5 transition-all ${cfg.borderAccent} ${
+                        !promo.isActive ? 'opacity-50' : ''
+                      }`}
+                    >
+                      {/* Type icon */}
+                      <div className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${cfg.iconBg}`}>
+                        <TypeIcon className={`size-4 ${cfg.iconColor}`} />
                       </div>
-                      <div className="mt-1">
-                        <PromotionSummary promo={promo} />
-                      </div>
-                      {(promo.startsAt || promo.endsAt) && (
-                        <p className="mt-0.5 text-xs text-zinc-600">
-                          {promo.startsAt ? `Desde ${formatDate(promo.startsAt)}` : ''}
-                          {promo.startsAt && promo.endsAt ? ' — ' : ''}
-                          {promo.endsAt ? `Hasta ${formatDate(promo.endsAt)}` : ''}
-                        </p>
-                      )}
-                    </div>
 
-                    <div className="flex shrink-0 items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleActive(promo)}
-                        className={`rounded px-2 py-1 text-xs transition-colors ${
-                          promo.isActive
-                            ? 'border border-zinc-700 text-zinc-400 hover:bg-zinc-800'
-                            : 'border border-emerald-800 text-emerald-500 hover:bg-emerald-950'
-                        }`}
-                      >
-                        {promo.isActive ? 'Desactivar' : 'Activar'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditing(promo)}
-                        className="rounded p-1.5 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200"
-                      >
-                        <Pencil className="size-3.5" />
-                      </button>
-                      {confirmDelete === promo.id
-                        ? (
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(promo.id)}
-                              disabled={deleting === promo.id}
-                              className="rounded border border-red-700 bg-red-950 px-2 py-1 text-xs text-red-400 hover:bg-red-900"
-                            >
-                              Confirmar
-                            </button>
-                          )
-                        : (
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(promo.id)}
-                              disabled={deleting === promo.id}
-                              className="rounded p-1.5 text-zinc-600 hover:bg-red-950 hover:text-red-400"
-                            >
-                              <Trash2 className="size-3.5" />
-                            </button>
+                      {/* Content */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cfg.badge}`}>
+                            {cfg.label}
+                          </span>
+                          <span className="text-sm font-medium text-zinc-100">{promo.name}</span>
+                          {isVigente && (
+                            <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
+                              <span className="inline-block size-1.5 animate-pulse rounded-full bg-emerald-400" />
+                              Vigente
+                            </span>
                           )}
+                          {isExpired && (
+                            <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-500">
+                              Vencida
+                            </span>
+                          )}
+                          {!promo.isActive && (
+                            <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-600">
+                              Inactiva
+                            </span>
+                          )}
+                          {promo.isStackable && (
+                            <span className="text-[10px] text-emerald-600">acumulable</span>
+                          )}
+                        </div>
+                        <div className="mt-0.5">
+                          <PromotionSummary promo={promo} />
+                        </div>
+                        {(promo.startsAt || promo.endsAt) && (
+                          <p className="mt-0.5 text-xs text-zinc-600">
+                            {promo.startsAt ? `Desde ${formatDate(promo.startsAt)}` : ''}
+                            {promo.startsAt && promo.endsAt ? ' — ' : ''}
+                            {promo.endsAt ? `Hasta ${formatDate(promo.endsAt)}` : ''}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex shrink-0 items-center gap-2">
+                        {/* Toggle switch */}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(promo)}
+                          title={promo.isActive ? 'Desactivar' : 'Activar'}
+                          className={`relative h-5 w-9 rounded-full transition-colors focus:outline-none ${
+                            promo.isActive ? 'bg-emerald-600' : 'bg-zinc-700'
+                          }`}
+                        >
+                          <span
+                            className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-transform ${
+                              promo.isActive ? 'translate-x-4' : 'translate-x-0.5'
+                            }`}
+                          />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setEditing(promo)}
+                          className="rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+                        >
+                          <Pencil className="size-3.5" />
+                        </button>
+
+                        {confirmDelete === promo.id
+                          ? (
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(promo.id)}
+                                disabled={deleting === promo.id}
+                                className="rounded-lg border border-red-700 bg-red-950 px-2.5 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-900"
+                              >
+                                ¿Eliminar?
+                              </button>
+                            )
+                          : (
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(promo.id)}
+                                disabled={deleting === promo.id}
+                                className="rounded-lg p-1.5 text-zinc-600 transition-colors hover:bg-red-950/60 hover:text-red-400"
+                              >
+                                <Trash2 className="size-3.5" />
+                              </button>
+                            )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
     </div>
   );
 };
