@@ -1,3 +1,10 @@
+# [1.41.0](https://github.com/rkromero/SaaS-POS/compare/v1.40.0...v1.41.0) (2026-04-19)
+
+
+### Features
+
+* **promotions:** rediseño completo de UX y look & feel ([f19800e](https://github.com/rkromero/SaaS-POS/commit/f19800e68e57dc16df54acefe4e36af502a1d0d2))
+
 # [1.40.0](https://github.com/rkromero/SaaS-POS/compare/v1.39.2...v1.40.0) (2026-04-18)
 
 
