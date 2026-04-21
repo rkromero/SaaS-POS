@@ -1,3 +1,10 @@
+# [1.48.0](https://github.com/rkromero/SaaS-POS/compare/v1.47.0...v1.48.0) (2026-04-21)
+
+
+### Features
+
+* **stock:** abrir modal de ingreso al escanear barcode con pistola lectora ([6898172](https://github.com/rkromero/SaaS-POS/commit/6898172b07086ba31512442df3324fa3c047368a))
+
 # [1.47.0](https://github.com/rkromero/SaaS-POS/compare/v1.46.2...v1.47.0) (2026-04-21)
 
 
