@@ -1,3 +1,10 @@
+# [1.43.0](https://github.com/rkromero/SaaS-POS/compare/v1.42.0...v1.43.0) (2026-04-21)
+
+
+### Features
+
+* **rebrand:** renombrar app a Nimbo con design system Coinbase ([e1468a3](https://github.com/rkromero/SaaS-POS/commit/e1468a32d298ec73bb324d14b9b1c1e1e80ca56b)), closes [#0052](https://github.com/rkromero/SaaS-POS/issues/0052)
+
 # [1.42.0](https://github.com/rkromero/SaaS-POS/compare/v1.41.1...v1.42.0) (2026-04-21)
 
 
