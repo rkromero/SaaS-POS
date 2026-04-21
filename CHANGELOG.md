@@ -1,3 +1,10 @@
+# [1.45.0](https://github.com/rkromero/SaaS-POS/compare/v1.44.0...v1.45.0) (2026-04-21)
+
+
+### Features
+
+* **auth:** personalizar página de login con diseño split screen Nimbo ([ba1b67e](https://github.com/rkromero/SaaS-POS/commit/ba1b67ea6e040b8638db2ba87863fff68fb0f037))
+
 # [1.44.0](https://github.com/rkromero/SaaS-POS/compare/v1.43.0...v1.44.0) (2026-04-21)
 
 
