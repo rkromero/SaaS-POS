@@ -1,3 +1,15 @@
+## [1.46.1](https://github.com/rkromero/SaaS-POS/compare/v1.46.0...v1.46.1) (2026-04-21)
+
+
+### Bug Fixes
+
+* **billing:** omitir payer_email en preapproval para evitar error 3DS en sandbox ([e697225](https://github.com/rkromero/SaaS-POS/commit/e697225792bf6d27f7221e3a02caf8e2e8b73eac))
+
+
+### Features
+
+* **onboarding+products:** reposicionar modal paso 4 y agregar combobox de categorías ([3a6a029](https://github.com/rkromero/SaaS-POS/commit/3a6a029014bf06b086567c701f8cc7eb6fea7c73))
+
 # [1.46.0](https://github.com/rkromero/SaaS-POS/compare/v1.45.0...v1.46.0) (2026-04-21)
 
 
