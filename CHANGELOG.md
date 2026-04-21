@@ -1,3 +1,11 @@
+# [1.50.0](https://github.com/rkromero/SaaS-POS/compare/v1.49.0...v1.50.0) (2026-04-21)
+
+
+### Features
+
+* **demo-badge:** cambiar botón flotante a "Abrir POS" con azul nimbo ([9fab6e1](https://github.com/rkromero/SaaS-POS/commit/9fab6e1f64ce3876096360719eefd52a2334788a))
+* **sidebar:** estilo activo azul nimbo sólido con texto blanco ([c56ea4f](https://github.com/rkromero/SaaS-POS/commit/c56ea4f99bcf1a012600467b6b3da71f2915703e))
+
 # [1.49.0](https://github.com/rkromero/SaaS-POS/compare/v1.48.0...v1.49.0) (2026-04-21)
 
 
