@@ -1,51 +1,56 @@
 'use client';
 
-import { DM_Sans, Lora, Space_Mono } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import Link from 'next/link';
 import { Fragment, useEffect, useRef, useState } from 'react';
 
 // ─── Fonts ───────────────────────────────────────────────────────────────────
-const lora = Lora({ subsets: ['latin'], variable: '--font-lora', display: 'swap' });
-const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans', display: 'swap' });
-const spaceMono = Space_Mono({ weight: ['400', '700'], subsets: ['latin'], variable: '--font-space-mono', display: 'swap' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
-// ─── Color tokens ─────────────────────────────────────────────────────────────
-// Navy = confianza / autoridad. Esmeralda = dinero / crecimiento.
+// ─── Color tokens — Nimbo / Coinbase Design System ────────────────────────────
 const C = {
-  // Navy
-  n950: '#020617',
-  n900: '#0f172a',
-  n800: '#1e293b',
-  n700: '#334155',
-  n600: '#475569',
-  n500: '#64748b',
-  n400: '#94a3b8',
-  n300: '#cbd5e1',
-  n200: '#e2e8f0',
-  n100: '#f1f5f9',
-  n50: '#f8fafc',
-  // Esmeralda
-  e700: '#047857',
-  e600: '#059669',
-  e500: '#10b981',
-  e400: '#34d399',
-  e200: '#a7f3d0',
-  e100: '#d1fae5',
-  e50: '#ecfdf5',
+  // Coinbase Blue (único acento de marca)
+  blue: '#0052ff',
+  blueHover: '#578bfa',
+  blueLight: '#eef2ff',
+  blueBorder: '#c7d2ff',
+  // Dark surfaces
+  dark: '#0a0b0d',
+  darkCard: '#282b31',
+  // Grays
+  lightGray: '#eef0f3',
+  // Aliases para compatibilidad con código existente
+  e700: '#0052ff',
+  e600: '#0052ff',
+  e500: '#578bfa',
+  e400: '#578bfa',
+  e200: '#c7d2ff',
+  e100: '#eef2ff',
+  e50: '#f0f3ff',
+  n950: '#060709',
+  n900: '#0a0b0d',
+  n800: '#282b31',
+  n700: '#3b3f4a',
+  n600: '#5b616e',
+  n500: '#5b616e',
+  n400: '#8a8f9c',
+  n300: '#c7cbd4',
+  n200: '#dde0e6',
+  n100: '#eef0f3',
+  n50: '#f7f8f9',
   // Semánticos
   white: '#ffffff',
-  textDark: '#0f172a',
-  textMid: '#334155',
-  textSoft: '#64748b',
-  textMuted: '#94a3b8',
-  border: '#e2e8f0',
+  textDark: '#0a0b0d',
+  textMid: '#282b31',
+  textSoft: '#5b616e',
+  textMuted: '#8a8f9c',
+  border: '#dde0e6',
 } as const;
 
 // ─── Style constants ──────────────────────────────────────────────────────────
 const wrap: React.CSSProperties = { maxWidth: 1140, margin: '0 auto', padding: '0 20px' };
 
 const h2base: React.CSSProperties = {
-  fontFamily: 'var(--font-lora)',
   fontSize: 'clamp(1.75rem, 3.2vw, 2.5rem)',
   fontWeight: 700,
   lineHeight: 1.2,
@@ -57,15 +62,14 @@ const btnPrimaryLg: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'center',
   gap: 8,
-  padding: '15px 28px',
-  borderRadius: 10,
+  padding: '15px 32px',
+  borderRadius: 56,
   fontSize: 15,
-  fontWeight: 700,
+  fontWeight: 600,
   textDecoration: 'none',
-  background: C.e600,
+  background: C.blue,
   color: C.white,
-  boxShadow: '0 4px 20px rgba(5,150,105,.38)',
-  border: 'none',
+  border: `1px solid ${C.blue}`,
   cursor: 'pointer',
 };
 const btnOutlineLg: React.CSSProperties = {
@@ -73,39 +77,40 @@ const btnOutlineLg: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'center',
   gap: 8,
-  padding: '15px 28px',
-  borderRadius: 10,
+  padding: '15px 32px',
+  borderRadius: 56,
   fontSize: 15,
   fontWeight: 600,
   textDecoration: 'none',
-  background: 'transparent',
-  color: C.n800,
-  border: `1.5px solid ${C.n300}`,
+  background: C.lightGray,
+  color: C.textDark,
+  border: `1px solid ${C.lightGray}`,
 };
 const btnPrimarySm: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '9px 18px',
-  borderRadius: 8,
+  padding: '9px 20px',
+  borderRadius: 56,
   fontSize: 14,
-  fontWeight: 700,
+  fontWeight: 600,
   textDecoration: 'none',
-  background: C.e600,
+  background: C.blue,
   color: C.white,
+  border: `1px solid ${C.blue}`,
 };
 const btnOutlineSm: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '9px 18px',
-  borderRadius: 8,
+  padding: '9px 20px',
+  borderRadius: 56,
   fontSize: 14,
   fontWeight: 600,
   textDecoration: 'none',
-  background: 'transparent',
-  color: C.n700,
-  border: `1.5px solid ${C.n200}`,
+  background: C.lightGray,
+  color: C.textDark,
+  border: `1px solid ${C.lightGray}`,
 };
 const empty: React.CSSProperties = {};
 
@@ -206,12 +211,11 @@ export const LandingPage = () => {
   useCounters();
   const navRef = useNavbar();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const fontVars = `${lora.variable} ${dmSans.variable} ${spaceMono.variable}`;
 
   return (
     <div
-      className={fontVars}
-      style={{ fontFamily: 'var(--font-dm-sans), system-ui, sans-serif', background: C.n50, color: C.textDark, overflowX: 'hidden' }}
+      className={inter.variable}
+      style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif', background: C.white, color: C.textDark, overflowX: 'hidden' }}
     >
 
       {/* ══ NAVBAR ══════════════════════════════════════════════════════════ */}
@@ -237,14 +241,14 @@ export const LandingPage = () => {
         {/* Logo */}
         <Link
           href="/"
-          style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 9, fontFamily: 'var(--font-space-mono)', fontWeight: 700, fontSize: 18, color: C.n900 }}
+          style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 9, fontFamily: 'var(--font-inter)', fontWeight: 700, fontSize: 18, color: C.n900 }}
         >
           <span style={{ width: 34, height: 34, background: C.e600, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
               <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 6.1 17 7 17h12v-2H6.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H15.5c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
             </svg>
           </span>
-          TuCaja
+          Nimbo
         </Link>
 
         {/* Desktop nav links */}
@@ -316,7 +320,7 @@ export const LandingPage = () => {
         style={{
           minHeight: '100svh',
           paddingTop: 64,
-          background: `radial-gradient(ellipse 110% 70% at 65% -5%, rgba(16,185,129,.11) 0%, transparent 60%), linear-gradient(180deg, ${C.n50} 0%, ${C.white} 100%)`,
+          background: `radial-gradient(ellipse 110% 70% at 65% -5%, rgba(0,82,255,.08) 0%, transparent 60%), linear-gradient(180deg, ${C.n50} 0%, ${C.white} 100%)`,
           display: 'flex',
           alignItems: 'center',
         }}
@@ -329,14 +333,14 @@ export const LandingPage = () => {
               <R>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.e50, border: `1px solid ${C.e200}`, borderRadius: 100, padding: '5px 14px', marginBottom: 22 }}>
                   <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.e500, display: 'block', flexShrink: 0 }} />
-                  <span style={{ fontFamily: 'var(--font-space-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: C.e700 }}>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: 11, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: C.e700 }}>
                     Sistema POS para Argentina
                   </span>
                 </div>
               </R>
 
               <R delay={80}>
-                <h1 style={{ fontFamily: 'var(--font-lora)', fontSize: 'clamp(2.1rem, 5.5vw, 3.8rem)', fontWeight: 700, lineHeight: 1.12, marginBottom: 22, color: C.textDark }}>
+                <h1 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(2.1rem, 5.5vw, 3.8rem)', fontWeight: 700, lineHeight: 1.12, marginBottom: 22, color: C.textDark }}>
                   Sabé cuánto vendiste,
                   <br />
                   qué stock te queda
@@ -380,7 +384,7 @@ export const LandingPage = () => {
                     {' '}
                     <strong style={{ color: C.textDark }}>200 negocios</strong>
                     {' '}
-                    ya usan TuCaja
+                    ya usan Nimbo
                   </span>
                 </div>
               </R>
@@ -403,7 +407,7 @@ export const LandingPage = () => {
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: C.e50, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>📈</div>
                   <div>
                     <div style={{ fontSize: 10, color: C.textMuted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>Ventas hoy</div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: C.textDark, fontFamily: 'var(--font-space-mono)' }}>$84.500</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: C.textDark, fontFamily: 'var(--font-inter)' }}>$84.500</div>
                   </div>
                 </div>
 
@@ -414,7 +418,7 @@ export const LandingPage = () => {
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: C.e400 }} />
                       <span style={{ color: C.white, fontWeight: 600, fontSize: 13 }}>🛒 Caja — Local Centro</span>
                     </div>
-                    <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 12, fontFamily: 'var(--font-space-mono)' }}>10:42 am</span>
+                    <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 12, fontFamily: 'var(--font-inter)' }}>10:42 am</span>
                   </div>
                   <div style={{ padding: 18 }}>
                     <div style={{ background: C.n100, borderRadius: 8, padding: '9px 12px', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, border: `1px solid ${C.border}` }}>
@@ -429,13 +433,13 @@ export const LandingPage = () => {
                       <div key={item.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: C.e50, borderRadius: 9, padding: '10px 12px', border: `1px solid ${C.e100}`, marginBottom: 8 }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: C.textDark, flex: 1, marginRight: 8 }}>{item.name}</span>
                         <span style={{ background: C.e100, color: C.e700, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 100, marginRight: 8, flexShrink: 0 }}>{item.qty}</span>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: C.e700, fontFamily: 'var(--font-space-mono)', flexShrink: 0 }}>{item.price}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: C.e700, fontFamily: 'var(--font-inter)', flexShrink: 0 }}>{item.price}</span>
                       </div>
                     ))}
                     <div style={{ height: 1, background: C.border, margin: '14px 0' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                       <span style={{ fontSize: 14, color: C.textSoft }}>Total</span>
-                      <span style={{ fontSize: 22, fontWeight: 700, fontFamily: 'var(--font-space-mono)', color: C.textDark }}>$5.550</span>
+                      <span style={{ fontSize: 22, fontWeight: 700, fontFamily: 'var(--font-inter)', color: C.textDark }}>$5.550</span>
                     </div>
                     <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
                       {['💵 Efect.', '💳 Déb.', '🔄 Transf.', '📝 Fiado'].map((pm, i) => (
@@ -444,7 +448,7 @@ export const LandingPage = () => {
                         </div>
                       ))}
                     </div>
-                    <button type="button" style={{ background: C.e600, color: C.white, border: 'none', width: '100%', padding: '13px', borderRadius: 9, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-dm-sans)', boxShadow: '0 4px 12px rgba(5,150,105,.3)' }}>
+                    <button type="button" style={{ background: C.e600, color: C.white, border: 'none', width: '100%', padding: '13px', borderRadius: 56, fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,82,255,.25)' }}>
                       ✓ Confirmar cobro
                     </button>
                   </div>
@@ -511,18 +515,18 @@ export const LandingPage = () => {
                 <span style={{ display: 'block', width: 7, height: 7, borderRadius: '50%', background: '#f87171', flexShrink: 0 }} />
                 <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#fca5a5' }}>Sin sistema</span>
               </div>
-              <h3 style={{ fontFamily: 'var(--font-lora)', fontSize: 'clamp(1.1rem, 2.4vw, 1.35rem)', fontWeight: 700, color: '#fef2f2', lineHeight: 1.3, margin: 0 }}>
+              <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1.1rem, 2.4vw, 1.35rem)', fontWeight: 700, color: '#fef2f2', lineHeight: 1.3, margin: 0 }}>
                 El caos silencioso
                 <br />
                 de todos los días
               </h3>
             </div>
             <div data-compare-header style={{ background: C.n900, padding: '24px 36px' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(16,185,129,.12)', border: `1px solid rgba(16,185,129,.22)`, borderRadius: 6, padding: '4px 12px', marginBottom: 16 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(0,82,255,.12)', border: `1px solid rgba(0,82,255,.22)`, borderRadius: 6, padding: '4px 12px', marginBottom: 16 }}>
                 <span style={{ display: 'block', width: 7, height: 7, borderRadius: '50%', background: C.e400, flexShrink: 0 }} />
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: C.e400 }}>Con TuCaja</span>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: C.e400 }}>Con Nimbo</span>
               </div>
-              <h3 style={{ fontFamily: 'var(--font-lora)', fontSize: 'clamp(1.1rem, 2.4vw, 1.35rem)', fontWeight: 700, color: C.white, lineHeight: 1.3, margin: 0 }}>
+              <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1.1rem, 2.4vw, 1.35rem)', fontWeight: 700, color: C.white, lineHeight: 1.3, margin: 0 }}>
                 Control real
                 <br />
                 desde el primer día
@@ -656,7 +660,7 @@ export const LandingPage = () => {
                 num: '02',
                 icon: '📦',
                 title: 'Nunca más perdés una venta por falta de stock',
-                body: 'El sistema te avisa cuando un producto está por agotarse, antes de que el cliente llegue y no lo encuentre. Definís vos el mínimo y TuCaja cuida el resto.',
+                body: 'El sistema te avisa cuando un producto está por agotarse, antes de que el cliente llegue y no lo encuentre. Definís vos el mínimo y Nimbo cuida el resto.',
                 highlighted: false,
               },
               {
@@ -674,14 +678,14 @@ export const LandingPage = () => {
                   borderRadius: 20,
                   padding: '36px 28px',
                   height: '100%',
-                  boxShadow: b.highlighted ? '0 12px 40px rgba(5,150,105,.25)' : 'none',
+                  boxShadow: b.highlighted ? '0 12px 40px rgba(0,82,255,.22)' : 'none',
                 }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-                    <span style={{ fontFamily: 'var(--font-space-mono)', fontSize: 11, fontWeight: 700, color: b.highlighted ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.3)', letterSpacing: '.1em' }}>{b.num}</span>
+                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: 11, fontWeight: 700, color: b.highlighted ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.3)', letterSpacing: '.1em' }}>{b.num}</span>
                     <span style={{ fontSize: 28 }}>{b.icon}</span>
                   </div>
-                  <h3 style={{ fontFamily: 'var(--font-lora)', fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', fontWeight: 700, color: C.white, marginBottom: 14, lineHeight: 1.35 }}>{b.title}</h3>
+                  <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', fontWeight: 700, color: C.white, marginBottom: 14, lineHeight: 1.35 }}>{b.title}</h3>
                   <p style={{ fontSize: 14, lineHeight: 1.75, color: b.highlighted ? 'rgba(255,255,255,.85)' : 'rgba(255,255,255,.55)' }}>{b.body}</p>
                 </div>
               </R>
@@ -792,8 +796,8 @@ export const LandingPage = () => {
               {/* Content */}
               <div style={{ padding: 'clamp(16px, 3vw, 28px)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
-                  <span style={{ fontFamily: 'var(--font-lora)', fontSize: 'clamp(1rem, 2vw, 1.25rem)', fontWeight: 700, color: C.textDark }}>Panel principal</span>
-                  <span style={{ fontSize: 12, color: C.textSoft, fontFamily: 'var(--font-space-mono)', background: C.n100, padding: '4px 10px', borderRadius: 6, border: `1px solid ${C.border}` }}>Hoy · lunes 14 abr 2026</span>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1rem, 2vw, 1.25rem)', fontWeight: 700, color: C.textDark }}>Panel principal</span>
+                  <span style={{ fontSize: 12, color: C.textSoft, fontFamily: 'var(--font-inter)', background: C.n100, padding: '4px 10px', borderRadius: 6, border: `1px solid ${C.border}` }}>Hoy · lunes 14 abr 2026</span>
                 </div>
                 {/* Metric cards */}
                 <div data-metrics-grid>
@@ -805,7 +809,7 @@ export const LandingPage = () => {
                   ].map(m => (
                     <div key={m.label} style={{ background: C.white, borderRadius: 12, padding: '18px 16px', border: `1px solid ${C.border}` }}>
                       <div style={{ fontSize: 11, color: C.textMuted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>{m.label}</div>
-                      <div style={{ fontFamily: 'var(--font-space-mono)', fontSize: 'clamp(1.25rem, 3vw, 1.6rem)', fontWeight: 700, color: (m as any).vc ?? C.textDark }}>{m.value}</div>
+                      <div style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1.25rem, 3vw, 1.6rem)', fontWeight: 700, color: (m as any).vc ?? C.textDark }}>{m.value}</div>
                       <div style={{ fontSize: 11, color: m.dc, fontWeight: 600, marginTop: 4 }}>{m.delta}</div>
                     </div>
                   ))}
@@ -850,7 +854,7 @@ export const LandingPage = () => {
             <R delay={80}><h2 style={h2base}>¿Tu negocio está acá?</h2></R>
             <R delay={160}>
               <p style={{ fontSize: 16, color: C.textSoft, marginTop: 14 }}>
-                TuCaja funciona para cualquier negocio que venda al público y necesite control real.
+                Nimbo funciona para cualquier negocio que venda al público y necesite control real.
               </p>
             </R>
           </div>
@@ -865,7 +869,7 @@ export const LandingPage = () => {
               <R key={neg.title} delay={i * 60}>
                 <div style={{ background: C.white, borderRadius: 16, padding: '24px 20px', border: `1px solid ${C.border}`, height: '100%', boxShadow: '0 2px 8px rgba(15,23,42,.04)' }}>
                   <span style={{ fontSize: 32, display: 'block', marginBottom: 14 }}>{neg.icon}</span>
-                  <h3 style={{ fontFamily: 'var(--font-lora)', color: C.textDark, fontSize: '1rem', fontWeight: 700, marginBottom: 12 }}>{neg.title}</h3>
+                  <h3 style={{ fontFamily: 'var(--font-inter)', color: C.textDark, fontSize: '1rem', fontWeight: 700, marginBottom: 12 }}>{neg.title}</h3>
                   <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {neg.items.map(item => (
                       <li key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: C.textSoft, lineHeight: 1.5 }}>
@@ -885,7 +889,7 @@ export const LandingPage = () => {
       <section style={{ background: C.white, padding: '96px 0' }}>
         <div style={wrap}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <R><Tag>Lo que dicen quienes ya usan TuCaja</Tag></R>
+            <R><Tag>Lo que dicen quienes ya usan Nimbo</Tag></R>
             <R delay={80}><h2 style={h2base}>Negocios reales, resultados reales</h2></R>
           </div>
 
@@ -898,7 +902,7 @@ export const LandingPage = () => {
                 { count: 98, label: '% de satisfacción en soporte' },
               ].map(m => (
                 <div key={m.label} style={{ padding: '32px 20px', textAlign: 'center' }}>
-                  <span data-count={m.count} style={{ fontFamily: 'var(--font-space-mono)', fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 700, color: C.e600, display: 'block', lineHeight: 1 }}>0</span>
+                  <span data-count={m.count} style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 700, color: C.e600, display: 'block', lineHeight: 1 }}>0</span>
                   <div style={{ fontSize: 14, color: C.textSoft, marginTop: 8 }}>{m.label}</div>
                 </div>
               ))}
@@ -915,7 +919,7 @@ export const LandingPage = () => {
               <R key={t.name} delay={i * 80}>
                 <div style={{ background: C.n50, borderRadius: 16, padding: '28px 24px', height: '100%', border: `1px solid ${C.border}` }}>
                   <div style={{ color: '#f59e0b', fontSize: 13, marginBottom: 12, letterSpacing: 3 }}>★★★★★</div>
-                  <p style={{ fontFamily: 'var(--font-lora)', fontStyle: 'italic', fontSize: '1rem', color: C.textDark, lineHeight: 1.78, marginBottom: 24 }}>
+                  <p style={{ fontFamily: 'var(--font-inter)', fontStyle: 'italic', fontSize: '1rem', color: C.textDark, lineHeight: 1.78, marginBottom: 24 }}>
                     &ldquo;
                     {t.quote}
                     &rdquo;
@@ -1019,7 +1023,7 @@ export const LandingPage = () => {
                   [true, 'Soporte prioritario'],
                   [true, 'Incorporación asistida'],
                 ]}
-                ctaHref="mailto:hola@tucaja.ar"
+                ctaHref="mailto:hola@nimbopos.ar"
                 ctaLabel="Hablar con ventas"
                 ctaVariant="outline"
               />
@@ -1041,7 +1045,7 @@ export const LandingPage = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px 48px', maxWidth: 900, margin: '0 auto' }}>
             {[
               ['¿Funciona si se corta internet?', 'Sí. La pantalla de cobro funciona offline. Las ventas se sincronizan cuando volvés a tener conexión. No perdés ninguna venta por un problema de internet.'],
-              ['¿Necesito instalar algo?', 'No. TuCaja funciona desde el navegador en tu celular, tablet o computadora. Sin descargas, sin configuraciones técnicas.'],
+              ['¿Necesito instalar algo?', 'No. Nimbo funciona desde el navegador en tu celular, tablet o computadora. Sin descargas, sin configuraciones técnicas.'],
               ['¿Puedo importar mis productos de Excel?', 'Sí. Exportás tu Excel como CSV, lo subís y en minutos tenés todo tu catálogo cargado. También podés actualizar precios en masa con un porcentaje.'],
               ['¿El sistema maneja el fiado?', 'Sí. Cuando vendés en fiado la deuda se crea automáticamente. Ves el saldo de cada cliente en tiempo real y registrás los pagos en segundos.'],
               ['¿Puedo tener más de un empleado?', 'Sí. Podés agregar empleados y asignarlos a un local. Cada uno solo ve su local. Vos como dueño ves todo.'],
@@ -1060,11 +1064,11 @@ export const LandingPage = () => {
 
       {/* ══ CTA FINAL ═══════════════════════════════════════════════════════ */}
       <section style={{ background: C.n900, padding: '100px 20px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 80% at 50% 110%, rgba(16,185,129,.18) 0%, transparent 65%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 80% at 50% 110%, rgba(0,82,255,.15) 0%, transparent 65%)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative', maxWidth: 600, margin: '0 auto' }}>
           <R><Tag dark>Empezá hoy mismo</Tag></R>
           <R delay={80}>
-            <h2 style={{ fontFamily: 'var(--font-lora)', fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', fontWeight: 700, lineHeight: 1.18, color: C.white, marginTop: 16, marginBottom: 16 }}>
+            <h2 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', fontWeight: 700, lineHeight: 1.18, color: C.white, marginTop: 16, marginBottom: 16 }}>
               Tu negocio merece
               <br />
               más control
@@ -1079,7 +1083,7 @@ export const LandingPage = () => {
           </R>
           <R delay={240}>
             <div data-cta-btns>
-              <Link href="/sign-up" style={{ ...btnPrimaryLg, background: C.e600, boxShadow: '0 4px 24px rgba(16,185,129,.4)' }}>
+              <Link href="/sign-up" style={{ ...btnPrimaryLg, background: C.e600, boxShadow: '0 4px 24px rgba(0,82,255,.35)' }}>
                 Empezar gratis ahora →
               </Link>
               <a
@@ -1102,14 +1106,14 @@ export const LandingPage = () => {
 
       {/* ══ FOOTER ══════════════════════════════════════════════════════════ */}
       <footer style={{ background: C.n950, borderTop: '1px solid rgba(255,255,255,.06)', padding: '40px 20px', textAlign: 'center' }}>
-        <div style={{ fontFamily: 'var(--font-space-mono)', fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,.45)', marginBottom: 20 }}>TuCaja</div>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,.45)', marginBottom: 20 }}>Nimbo</div>
         <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 20 }}>
-          {[['#funciones', 'Funciones'], ['#precios', 'Precios'], ['#faq', 'Ayuda'], ['mailto:hola@tucaja.ar', 'Contacto']].map(([href, label]) => (
+          {[['#funciones', 'Funciones'], ['#precios', 'Precios'], ['#faq', 'Ayuda'], ['mailto:hola@nimbopos.ar', 'Contacto']].map(([href, label]) => (
             <a key={href} href={href!} style={{ color: 'rgba(255,255,255,.32)', textDecoration: 'none', fontSize: 13 }}>{label}</a>
           ))}
         </div>
         <div style={{ fontSize: 12, color: 'rgba(255,255,255,.16)' }}>
-          © 2025 TuCaja · Sistema de punto de venta para Argentina
+          © 2025 Nimbo · Sistema de punto de venta para Argentina
         </div>
       </footer>
 
@@ -1235,7 +1239,7 @@ function FeatureCard({
         <div style={{ width: 48, height: 48, borderRadius: 12, background: highlight ? 'rgba(255,255,255,.09)' : C.e50, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 18 }}>
           {icon}
         </div>
-        <h3 style={{ fontFamily: 'var(--font-lora)', fontSize: '1.05rem', fontWeight: 700, color: highlight ? C.white : C.textDark, marginBottom: 10, lineHeight: 1.35 }}>{title}</h3>
+        <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: '1.05rem', fontWeight: 700, color: highlight ? C.white : C.textDark, marginBottom: 10, lineHeight: 1.35 }}>{title}</h3>
         <p style={{ fontSize: 14, lineHeight: 1.72, color: highlight ? 'rgba(255,255,255,.68)' : C.textSoft }}>{children}</p>
         {pills && pills.length > 0 && (
           <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${highlight ? 'rgba(255,255,255,.1)' : C.border}`, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -1280,7 +1284,7 @@ function PlanCard({
       borderRadius: 20,
       padding: '32px 24px',
       border: `2px solid ${recommended ? C.e500 : C.border}`,
-      boxShadow: recommended ? '0 12px 40px rgba(5,150,105,.15)' : 'none',
+      boxShadow: recommended ? '0 12px 40px rgba(0,82,255,.15)' : 'none',
       position: 'relative',
     }}
     >
@@ -1289,10 +1293,10 @@ function PlanCard({
           ⭐ El más elegido
         </div>
       )}
-      <div style={{ fontFamily: 'var(--font-lora)', fontSize: '1.35rem', fontWeight: 700, color: C.textDark, marginBottom: 4 }}>{name}</div>
+      <div style={{ fontFamily: 'var(--font-inter)', fontSize: '1.35rem', fontWeight: 700, color: C.textDark, marginBottom: 4 }}>{name}</div>
       <div style={{ fontSize: 13, color: C.textSoft, marginBottom: 22 }}>{desc}</div>
       <div style={{ marginBottom: 22 }}>
-        <span style={{ fontFamily: 'var(--font-space-mono)', fontSize: '2rem', fontWeight: 700, color: C.textDark }}>{price}</span>
+        <span style={{ fontFamily: 'var(--font-inter)', fontSize: '2rem', fontWeight: 700, color: C.textDark }}>{price}</span>
         <span style={{ fontSize: 13, color: C.textSoft, marginLeft: 4 }}>{period}</span>
       </div>
       <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 11, marginBottom: 24 }}>
@@ -1310,14 +1314,14 @@ function PlanCard({
           width: '100%',
           textAlign: 'center',
           padding: '13px 0',
-          borderRadius: 9,
-          fontWeight: 700,
+          borderRadius: 56,
+          fontWeight: 600,
           fontSize: 14,
           textDecoration: 'none',
           background: ctaVariant === 'primary' ? C.e600 : 'transparent',
           color: ctaVariant === 'primary' ? C.white : C.e700,
           border: ctaVariant === 'outline' ? `1.5px solid ${C.e500}` : 'none',
-          boxShadow: ctaVariant === 'primary' ? '0 4px 16px rgba(5,150,105,.28)' : 'none',
+          boxShadow: ctaVariant === 'primary' ? '0 4px 16px rgba(0,82,255,.25)' : 'none',
         }}
       >
         {ctaLabel}
