@@ -2,7 +2,7 @@
 
 import { Inter } from 'next/font/google';
 import Link from 'next/link';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // ─── Fonts ───────────────────────────────────────────────────────────────────
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
@@ -506,34 +506,8 @@ export const LandingPage = () => {
             </R>
           </div>
 
-          {/* Tabla comparativa */}
-          <div data-compare-table style={{ gap: 0, borderRadius: 18, overflow: 'hidden', border: `1px solid ${C.border}`, boxShadow: '0 8px 40px rgba(15,23,42,.07)' }}>
-
-            {/* Cabeceras */}
-            <div data-compare-header style={{ background: '#1e1412', padding: '24px 36px', borderRight: '1px solid rgba(255,255,255,.06)' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.22)', borderRadius: 6, padding: '4px 12px', marginBottom: 16 }}>
-                <span style={{ display: 'block', width: 7, height: 7, borderRadius: '50%', background: '#f87171', flexShrink: 0 }} />
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#fca5a5' }}>Sin sistema</span>
-              </div>
-              <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1.1rem, 2.4vw, 1.35rem)', fontWeight: 700, color: '#fef2f2', lineHeight: 1.3, margin: 0 }}>
-                El caos silencioso
-                <br />
-                de todos los días
-              </h3>
-            </div>
-            <div data-compare-header style={{ background: C.n900, padding: '24px 36px' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(0,82,255,.12)', border: `1px solid rgba(0,82,255,.22)`, borderRadius: 6, padding: '4px 12px', marginBottom: 16 }}>
-                <span style={{ display: 'block', width: 7, height: 7, borderRadius: '50%', background: C.e400, flexShrink: 0 }} />
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: C.e400 }}>Con Nimbo</span>
-              </div>
-              <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1.1rem, 2.4vw, 1.35rem)', fontWeight: 700, color: C.white, lineHeight: 1.3, margin: 0 }}>
-                Control real
-                <br />
-                desde el primer día
-              </h3>
-            </div>
-
-            {/* Filas */}
+          {/* Comparativa cards con flecha */}
+          <div data-compare-list>
             {[
               [
                 'Anotás las ventas en un cuaderno y al final del día no cierra',
@@ -560,69 +534,45 @@ export const LandingPage = () => {
                 'Cobrás en segundos — el sistema hace todo el resto solo',
               ],
             ].map(([bad, good], i) => (
-              <Fragment key={i}>
-                <R delay={i * 40}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 14,
-                    padding: '20px 36px',
-                    background: i % 2 === 0 ? '#fafafa' : C.white,
-                    borderTop: `1px solid ${C.border}`,
-                    borderRight: `1px solid ${C.border}`,
-                  }}
-                  >
-                    <span style={{
-                      flexShrink: 0,
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      background: '#fee2e2',
-                      border: '1px solid #fecaca',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginTop: 1,
-                    }}
-                    >
-                      <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                        <path d="M1 1l6 6M7 1L1 7" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                    </span>
-                    <span style={{ fontSize: 14, color: '#6b2b2b', lineHeight: 1.65 }}>{bad}</span>
+              <R key={i} delay={i * 60}>
+                <div data-compare-item>
+                  {/* Bad */}
+                  <div data-compare-bad>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+                      <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#fee2e2', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                          <path d="M1 1l6 6M7 1L1 7" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                      </span>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#ef4444' }}>Sin sistema</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 14, color: '#7f1d1d', lineHeight: 1.65 }}>{bad}</p>
                   </div>
-                </R>
-                <R delay={i * 40 + 20}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 14,
-                    padding: '20px 36px',
-                    background: i % 2 === 0 ? '#f0fdf8' : C.e50,
-                    borderTop: `1px solid ${C.e200}`,
-                  }}
-                  >
-                    <span style={{
-                      flexShrink: 0,
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      background: C.e100,
-                      border: `1px solid ${C.e200}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginTop: 1,
-                    }}
-                    >
-                      <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-                        <path d="M1 3.5l2.5 2.5L8 1" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </span>
-                    <span style={{ fontSize: 14, color: C.textMid, lineHeight: 1.65 }}>{good}</span>
+
+                  {/* Arrow */}
+                  <div data-compare-arrow>
+                    <svg data-arrow-h width="28" height="16" viewBox="0 0 28 16" fill="none">
+                      <path d="M0 8h24M18 2l6 6-6 6" stroke={C.e400} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <svg data-arrow-v width="16" height="28" viewBox="0 0 16 28" fill="none">
+                      <path d="M8 0v24M2 18l6 6 6-6" stroke={C.e400} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </div>
-                </R>
-              </Fragment>
+
+                  {/* Good */}
+                  <div data-compare-good>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+                      <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#d1fae5', border: '1px solid #6ee7b7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
+                          <path d="M1 3.5l2.5 2.5L8 1" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#059669' }}>Con Nimbo</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 14, color: '#064e3b', lineHeight: 1.65 }}>{good}</p>
+                  </div>
+                </div>
+              </R>
             ))}
           </div>
         </div>
@@ -1126,9 +1076,14 @@ export const LandingPage = () => {
         [data-hero-ctas] a   { text-align: center; justify-content: center; }
         [data-trust-signals] { display: flex; flex-direction: column; gap: 6px; margin-top: 20px; }
         [data-ad-grid]       { display: flex; flex-direction: column; }
-        [data-compare-table] { display: grid; grid-template-columns: 1fr 1fr; }
-        [data-compare-table] [data-compare-header] { padding: 20px 18px !important; }
-        [data-compare-table] > div { padding: 16px 18px !important; }
+        [data-compare-list]  { display: flex; flex-direction: column; gap: 12px; }
+        [data-compare-item]  { display: flex; flex-direction: column; gap: 0; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 16px rgba(15,23,42,.06); border: 1px solid #e2e8f0; }
+        [data-compare-bad]   { background: #fff5f5; padding: 18px 20px; border-bottom: 1px solid #fecaca; }
+        [data-compare-good]  { background: #f0fdf4; padding: 18px 20px; }
+        [data-compare-arrow] { display: flex; align-items: center; justify-content: center; padding: 10px; background: #fff; border-top: 1px solid #fecaca; border-bottom: 1px solid #d1fae5; }
+        [data-arrow-h]       { display: none; }
+        [data-arrow-v]       { display: block; animation: arrowBounce 1.4s ease-in-out infinite; }
+        @keyframes arrowBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
         [data-benefits-grid] { display: flex; flex-direction: column; gap: 16px; }
         [data-metrics-grid]  { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         [data-db-row]        { display: flex; flex-direction: column; gap: 12px; }
@@ -1161,9 +1116,14 @@ export const LandingPage = () => {
         @media (min-width: 900px) {
           [data-hero-grid]     { display: grid; grid-template-columns: clamp(300px, 50%, 540px) 1fr; gap: 64px; align-items: center; padding: 80px 0 100px; }
           [data-ad-grid]       { display: grid; grid-template-columns: 1fr 1fr; }
-          [data-compare-table] { display: grid; grid-template-columns: 1fr 1fr; }
-          [data-compare-table] [data-compare-header] { padding: 24px 36px !important; }
-          [data-compare-table] > div { padding: 20px 36px !important; }
+          [data-compare-list]  { gap: 16px; }
+          [data-compare-item]  { flex-direction: row; border-radius: 16px; }
+          [data-compare-bad]   { flex: 1; border-bottom: none; border-right: 1px solid #fecaca; padding: 24px 28px; }
+          [data-compare-good]  { flex: 1; padding: 24px 28px; }
+          [data-compare-arrow] { padding: 0 14px; border-top: none; border-bottom: none; border-left: 1px solid #fecaca; border-right: 1px solid #d1fae5; }
+          [data-arrow-h]       { display: block; animation: arrowBounce 1.4s ease-in-out infinite; }
+          [data-arrow-v]       { display: none; }
+          @keyframes arrowBounce { 0%,100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
           [data-benefits-grid] { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
           [data-db-row]        { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
           [data-pricing-grid]  { grid-template-columns: repeat(4, 1fr); }
