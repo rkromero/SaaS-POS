@@ -1,3 +1,10 @@
+## [1.46.2](https://github.com/rkromero/SaaS-POS/compare/v1.46.1...v1.46.2) (2026-04-21)
+
+
+### Bug Fixes
+
+* **billing:** agregar payer_email al preapproval de MP usando email del usuario de Clerk ([e9c200d](https://github.com/rkromero/SaaS-POS/commit/e9c200d3a43f7eccd0f4e8b458a2d5e1d9b9553a))
+
 ## [1.46.1](https://github.com/rkromero/SaaS-POS/compare/v1.46.0...v1.46.1) (2026-04-21)
 
 
