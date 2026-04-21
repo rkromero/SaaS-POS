@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/expiration-check",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/subscription-check",
+      "schedule": "0 9 * * *"
     }
   ]
 }

@@ -3,10 +3,10 @@ import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
+import { Env } from '@/libs/Env';
 import { getPlan, type PlanType } from '@/libs/Plans';
 import { organizationSchema } from '@/models/Schema';
 
-const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN!;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
 // MP subscription duration in months
@@ -21,10 +21,17 @@ const PLAN_FREQUENCY: Record<string, { frequency: number; frequency_type: string
 const USD_TO_ARS = 1200;
 
 // POST /api/billing/subscribe — create MP subscription link
+// If the org already has an active preapproval (plan change), cancel it first.
+// The 30-day cycle always resets from the day the new subscription is authorized.
 export async function POST(request: Request) {
   const { userId, orgId } = await auth();
   if (!userId || !orgId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const mpToken = Env.MP_ACCESS_TOKEN;
+  if (!mpToken) {
+    return NextResponse.json({ error: 'Configuración de pago no disponible' }, { status: 500 });
   }
 
   const { planId } = await request.json();
@@ -34,26 +41,45 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Este plan no es de pago' }, { status: 400 });
   }
 
+  // Check if org already has a preapproval that needs to be cancelled first
+  const [currentOrg] = await db
+    .select()
+    .from(organizationSchema)
+    .where(eq(organizationSchema.id, orgId));
+
+  if (currentOrg?.mpPreapprovalId && currentOrg.mpPlanStatus !== 'cancelled') {
+    // Cancel old preapproval — we don't fail the request if this errors,
+    // since the old subscription may already be expired or in an unknown state.
+    await fetch(`https://api.mercadopago.com/preapproval/${currentOrg.mpPreapprovalId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${mpToken}`,
+      },
+      body: JSON.stringify({ status: 'cancelled' }),
+    }).catch(() => null);
+  }
+
   // Get user info from Clerk for payer data
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const email = user.emailAddresses[0]?.emailAddress ?? '';
 
   // Get org name
-  const org = await client.organizations.getOrganization({ organizationId: orgId });
+  const clerkOrg = await client.organizations.getOrganization({ organizationId: orgId });
 
   const priceARS = plan.priceUSD * USD_TO_ARS;
   const frequency = PLAN_FREQUENCY[planId]!;
 
-  // Create MP preapproval (recurring subscription)
+  // Create new MP preapproval (recurring subscription)
   const response = await fetch('https://api.mercadopago.com/preapproval', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${MP_ACCESS_TOKEN}`,
+      'Authorization': `Bearer ${mpToken}`,
     },
     body: JSON.stringify({
-      reason: `${plan.name} — ${org.name}`,
+      reason: `${plan.name} — ${clerkOrg.name}`,
       auto_recurring: {
         frequency: frequency.frequency,
         frequency_type: frequency.frequency_type,
@@ -77,7 +103,8 @@ export async function POST(request: Request) {
 
   const data = await response.json();
 
-  // Save preapproval ID to org
+  // Save new preapproval ID — this also prevents the old cancellation webhook
+  // from downgrading the plan (webhook handler checks ID match).
   await db
     .update(organizationSchema)
     .set({
