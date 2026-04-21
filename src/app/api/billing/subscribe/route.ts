@@ -60,38 +60,48 @@ export async function POST(request: Request) {
     }).catch(() => null);
   }
 
-  // Get org name from Clerk
+  // Get org name and user email from Clerk
   const client = await clerkClient();
-  const clerkOrg = await client.organizations.getOrganization({ organizationId: orgId });
+  const [clerkOrg, clerkUser] = await Promise.all([
+    client.organizations.getOrganization({ organizationId: orgId }),
+    client.users.getUser(userId),
+  ]);
+
+  const payerEmail = clerkUser.emailAddresses[0]?.emailAddress;
+  if (!payerEmail) {
+    return NextResponse.json({ error: 'No se pudo obtener el email del usuario' }, { status: 400 });
+  }
 
   const priceARS = plan.priceUSD * USD_TO_ARS;
   const frequency = PLAN_FREQUENCY[planId]!;
 
-  // Create new MP preapproval (recurring subscription).
-  // We intentionally omit payer_email so the user can log into any MP account
-  // at checkout — sending a mismatched email causes 3DS challenge failures in sandbox.
+  const preapprovalBody = {
+    reason: `${plan.name} — ${clerkOrg.name}`,
+    auto_recurring: {
+      frequency: frequency.frequency,
+      frequency_type: frequency.frequency_type,
+      transaction_amount: priceARS,
+      currency_id: 'ARS',
+    },
+    back_url: `${APP_URL}/dashboard/billing?status=success`,
+    external_reference: `${orgId}|${planId}`,
+    payer_email: payerEmail,
+    status: 'pending',
+  };
+
   const response = await fetch('https://api.mercadopago.com/preapproval', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${mpToken}`,
     },
-    body: JSON.stringify({
-      reason: `${plan.name} — ${clerkOrg.name}`,
-      auto_recurring: {
-        frequency: frequency.frequency,
-        frequency_type: frequency.frequency_type,
-        transaction_amount: priceARS,
-        currency_id: 'ARS',
-      },
-      back_url: `${APP_URL}/dashboard/billing?status=success`,
-      external_reference: `${orgId}|${planId}`,
-      status: 'pending',
-    }),
+    body: JSON.stringify(preapprovalBody),
   });
 
   if (!response.ok) {
     const error = await response.json();
+
+    console.error('[billing/subscribe] MP error:', JSON.stringify(error));
     return NextResponse.json(
       { error: 'Error al crear suscripción en Mercado Pago', details: error },
       { status: 500 },
