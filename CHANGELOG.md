@@ -1,3 +1,10 @@
+# [1.47.0](https://github.com/rkromero/SaaS-POS/compare/v1.46.2...v1.47.0) (2026-04-21)
+
+
+### Features
+
+* **pos:** consulta de precio global con F10 ([bb2ecb5](https://github.com/rkromero/SaaS-POS/commit/bb2ecb5d6d3a5ca54a462272c2334e4437a2913e))
+
 ## [1.46.2](https://github.com/rkromero/SaaS-POS/compare/v1.46.1...v1.46.2) (2026-04-21)
 
 
