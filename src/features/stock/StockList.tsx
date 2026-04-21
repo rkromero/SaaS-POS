@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -59,6 +59,11 @@ export const StockList = ({ isAdmin, hasExpirationModule = false }: StockListPro
   }>({ open: false, item: null });
 
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanNotFound, setScanNotFound] = useState<string | null>(null);
+
+  // Detección de pistola lectora global (sin necesidad de abrir el scanner dialog)
+  const lastKeyTime = useRef<number>(0);
+  const barcodeBuffer = useRef<string>('');
 
   // Load locations on mount
   useEffect(() => {
@@ -91,6 +96,81 @@ export const StockList = ({ isAdmin, hasExpirationModule = false }: StockListPro
     fetchStock();
   }, [fetchStock]);
 
+  const openMovement = (item: StockItem, type: 'in' | 'out') => {
+    setMovementModal({ open: true, type, item, locationId: item.locationId });
+  };
+
+  const openHistory = (item: StockItem) => {
+    setHistoryModal({ open: true, item });
+  };
+
+  // Escáner global: detecta pistola lectora por velocidad de teclas (< 80ms entre chars + Enter)
+  // Solo actúa cuando no hay ningún modal abierto y hay un local seleccionado
+  useEffect(() => {
+    if (!selectedLocationId) {
+      return;
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // No interferir si hay un modal abierto o si el foco está en un input del usuario
+      const anyModalOpen = movementModal.open || historyModal.open || scannerOpen;
+      if (anyModalOpen) {
+        return;
+      }
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+        return;
+      }
+
+      const now = Date.now();
+      const diff = now - lastKeyTime.current;
+      lastKeyTime.current = now;
+
+      if (e.key === 'Enter') {
+        const code = barcodeBuffer.current.trim();
+        barcodeBuffer.current = '';
+        if (code.length < 3) {
+          return;
+        }
+
+        e.preventDefault();
+        setScanNotFound(null);
+
+        fetch(`/api/products/barcode/${encodeURIComponent(code)}?locationId=${selectedLocationId}`)
+          .then(r => r.ok ? r.json() : null)
+          .then((product: { id: number; name: string; sku: string | null; barcode: string | null; quantity: number } | null) => {
+            if (!product) {
+              setScanNotFound(code);
+              return;
+            }
+            // Buscar en el stock ya cargado; si no existe, construir un ítem mínimo
+            const stockItem = stock.find(s => s.productId === product.id) ?? {
+              id: null,
+              quantity: product.quantity,
+              lowStockThreshold: 0,
+              productId: product.id,
+              productName: product.name,
+              productSku: product.sku,
+              productBarcode: product.barcode,
+              productIsActive: true,
+              categoryName: null,
+              locationId: Number(selectedLocationId),
+            };
+            openMovement(stockItem, 'in');
+          })
+          .catch(() => setScanNotFound(code));
+        return;
+      }
+
+      if (e.key.length === 1) {
+        barcodeBuffer.current = diff < 80 ? barcodeBuffer.current + e.key : e.key;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedLocationId, movementModal.open, historyModal.open, scannerOpen, stock]);
+
   const filtered = stock.filter(
     item =>
       search === ''
@@ -100,14 +180,6 @@ export const StockList = ({ isAdmin, hasExpirationModule = false }: StockListPro
   );
 
   const lowStockCount = stock.filter(s => s.quantity <= s.lowStockThreshold).length;
-
-  const openMovement = (item: StockItem, type: 'in' | 'out') => {
-    setMovementModal({ open: true, type, item, locationId: item.locationId });
-  };
-
-  const openHistory = (item: StockItem) => {
-    setHistoryModal({ open: true, item });
-  };
 
   return (
     <div className="space-y-4">
@@ -152,6 +224,16 @@ export const StockList = ({ isAdmin, hasExpirationModule = false }: StockListPro
             {lowStockCount !== 1 ? 's' : ''}
             {' '}
             con stock bajo
+          </Badge>
+        )}
+
+        {scanNotFound && (
+          <Badge variant="outline" className="border-orange-300 text-orange-600">
+            Código
+            {' '}
+            <span className="font-mono">{scanNotFound}</span>
+            {' '}
+            no encontrado
           </Badge>
         )}
       </div>
