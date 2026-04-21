@@ -60,18 +60,16 @@ export async function POST(request: Request) {
     }).catch(() => null);
   }
 
-  // Get user info from Clerk for payer data
+  // Get org name from Clerk
   const client = await clerkClient();
-  const user = await client.users.getUser(userId);
-  const email = user.emailAddresses[0]?.emailAddress ?? '';
-
-  // Get org name
   const clerkOrg = await client.organizations.getOrganization({ organizationId: orgId });
 
   const priceARS = plan.priceUSD * USD_TO_ARS;
   const frequency = PLAN_FREQUENCY[planId]!;
 
-  // Create new MP preapproval (recurring subscription)
+  // Create new MP preapproval (recurring subscription).
+  // We intentionally omit payer_email so the user can log into any MP account
+  // at checkout — sending a mismatched email causes 3DS challenge failures in sandbox.
   const response = await fetch('https://api.mercadopago.com/preapproval', {
     method: 'POST',
     headers: {
@@ -86,7 +84,6 @@ export async function POST(request: Request) {
         transaction_amount: priceARS,
         currency_id: 'ARS',
       },
-      payer_email: email,
       back_url: `${APP_URL}/dashboard/billing?status=success`,
       external_reference: `${orgId}|${planId}`,
       status: 'pending',
