@@ -1,3 +1,10 @@
+# [1.42.0](https://github.com/rkromero/SaaS-POS/compare/v1.41.1...v1.42.0) (2026-04-21)
+
+
+### Features
+
+* **billing:** sistema de suscripciones recurrentes completo ([bb848c0](https://github.com/rkromero/SaaS-POS/commit/bb848c05237b21675b286de40508d21ea6ac6efb))
+
 ## [1.41.1](https://github.com/rkromero/SaaS-POS/compare/v1.41.0...v1.41.1) (2026-04-19)
 
 
