@@ -1,3 +1,10 @@
+# [1.49.0](https://github.com/rkromero/SaaS-POS/compare/v1.48.0...v1.49.0) (2026-04-21)
+
+
+### Features
+
+* **sidebar:** cambiar indicador de módulo activo a recuadro azul nimbo ([884190b](https://github.com/rkromero/SaaS-POS/commit/884190b67d7e64c8ce224ab18e10b620e4ee342d))
+
 # [1.48.0](https://github.com/rkromero/SaaS-POS/compare/v1.47.0...v1.48.0) (2026-04-21)
 
 
