@@ -131,7 +131,7 @@ function NavLink({
         collapsed ? 'justify-center px-2' : 'gap-2.5 px-3'
       } ${
         isActive
-          ? 'border border-nimbo-blue bg-nimbo-blue/10 font-medium text-nimbo-blue-hover'
+          ? 'bg-nimbo-blue font-medium text-white'
           : 'text-n400 hover:bg-n800 hover:text-n100'
       }`}
     >
