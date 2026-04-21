@@ -301,6 +301,19 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     });
   };
 
+  // Recibe productos desde el consultor de precios global (F10)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const product = (e as CustomEvent<POSProduct>).detail;
+      if (product) {
+        addToCart(product);
+      }
+    };
+    window.addEventListener('price-checker:add-to-cart', handler);
+    return () => window.removeEventListener('price-checker:add-to-cart', handler);
+    // addToCart es estable (no depende de props ni state externo), no necesita ir en deps
+  }, []);
+
   const addComboToCart = (combo: POSCombo) => {
     // Verify each component has enough stock considering what's already in the cart
     for (const component of combo.items) {

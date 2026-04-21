@@ -6,6 +6,7 @@ import { BrandingProvider } from '@/features/branding/BrandingContext';
 import { DashboardSidebar } from '@/features/dashboard/DashboardSidebar';
 import { OnboardingProvider } from '@/features/onboarding/OnboardingContext';
 import { OnboardingTour } from '@/features/onboarding/OnboardingTour';
+import { PriceCheckerGlobal } from '@/features/pos/PriceCheckerGlobal';
 import { db } from '@/libs/DB';
 import { getOrgAccess } from '@/libs/OrgAccess';
 import { brandingSchema } from '@/models/Schema';
@@ -65,6 +66,8 @@ export default async function DashboardLayout(props: { children: React.ReactNode
         </div>
         {/* Onboarding tour — mounts once, manages its own visibility */}
         <OnboardingTour />
+        {/* Consulta de precio global — F10 desde cualquier página */}
+        <PriceCheckerGlobal />
       </OnboardingProvider>
     </BrandingProvider>
   );
