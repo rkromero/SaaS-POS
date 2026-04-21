@@ -1,3 +1,10 @@
+# [1.44.0](https://github.com/rkromero/SaaS-POS/compare/v1.43.0...v1.44.0) (2026-04-21)
+
+
+### Features
+
+* **landing:** aplicar Coinbase design system a landing page ([e37e562](https://github.com/rkromero/SaaS-POS/commit/e37e562264b3ef2d7ec8f43101c393550a7463ab)), closes [#0052](https://github.com/rkromero/SaaS-POS/issues/0052)
+
 # [1.43.0](https://github.com/rkromero/SaaS-POS/compare/v1.42.0...v1.43.0) (2026-04-21)
 
 
