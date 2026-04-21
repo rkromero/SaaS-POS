@@ -1,11 +1,11 @@
 {
-  "name": "POS Kiosco",
-  "short_name": "POS",
-  "description": "Sistema de punto de venta para kioscos argentinos",
+  "name": "Nimbo",
+  "short_name": "Nimbo",
+  "description": "Sistema de punto de venta para negocios argentinos",
   "start_url": "/dashboard/pos",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "theme_color": "#0052ff",
   "orientation": "portrait-primary",
   "icons": [
     {

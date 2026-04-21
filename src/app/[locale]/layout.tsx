@@ -1,7 +1,7 @@
 import '@/styles/global.css';
 
 import type { Metadata } from 'next';
-import { DM_Sans, Lora, Space_Mono } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { NextIntlClientProvider, useMessages } from 'next-intl';
 import { unstable_setRequestLocale } from 'next-intl/server';
 
@@ -9,22 +9,9 @@ import { DemoBadge } from '@/components/DemoBadge';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AllLocales } from '@/utils/AppConfig';
 
-const lora = Lora({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-lora',
-  display: 'swap',
-});
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  variable: '--font-dm-sans',
-  display: 'swap',
-});
-
-const spaceMono = Space_Mono({
-  weight: ['400', '700'],
-  subsets: ['latin'],
-  variable: '--font-space-mono',
+  variable: '--font-inter',
   display: 'swap',
 });
 
@@ -33,7 +20,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'POS Kiosco',
+    title: 'Nimbo',
   },
   icons: [
     {
@@ -80,7 +67,7 @@ export default function RootLayout(props: {
   return (
     <html lang={props.params.locale} suppressHydrationWarning>
       <body
-        className={`${lora.variable} ${dmSans.variable} ${spaceMono.variable} bg-background font-sans text-foreground antialiased`}
+        className={`${inter.variable} bg-background font-sans text-foreground antialiased`}
         suppressHydrationWarning
       >
         <ThemeProvider>

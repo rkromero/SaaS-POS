@@ -4,76 +4,73 @@
 
 @layer base {
   :root {
-    /* ─── TuCaja Brand Palette — Navy + Esmeralda ────────────────────────── */
-    /* Navy = confianza / autoridad. Esmeralda = dinero / crecimiento.        */
+    /* ─── Nimbo Brand Palette — Coinbase Design System ───────────────────── */
+    /* Coinbase Blue (#0052ff) como acento único. Blanco + near-black como base. */
 
-    /* Fondo general — n50 #f8fafc */
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%; /* n900 #0f172a */
+    --background: 0 0% 100%; /* #ffffff */
+    --foreground: 220 14% 5%; /* #0a0b0d */
 
-    /* Cards y popovers sobre blanco puro */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 220 14% 5%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 14% 5%;
 
-    /* Esmeralda principal — botones, links activos, elementos de acción */
-    --primary: 161 93% 30%; /* e600 #059669 */
+    /* Coinbase Blue — botones, links, elementos de acción */
+    --primary: 223 100% 50%; /* #0052ff */
     --primary-foreground: 0 0% 100%;
 
-    /* Navy suave — fondos secundarios, hover states */
-    --secondary: 210 40% 96%; /* n100 #f1f5f9 */
-    --secondary-foreground: 215 28% 17%; /* n800 #1e293b */
+    /* Cool gray — fondos secundarios */
+    --secondary: 210 20% 94%; /* #eef0f3 */
+    --secondary-foreground: 220 14% 5%;
 
-    /* Navy muy suave — fondos de contenido, áreas neutras */
-    --muted: 210 40% 96%; /* n100 #f1f5f9 */
-    --muted-foreground: 215 16% 47%; /* n500 #64748b */
+    /* Superficies neutras */
+    --muted: 210 20% 94%; /* #eef0f3 */
+    --muted-foreground: 220 9% 40%; /* #5b616e */
 
-    /* Esmeralda muy suave — chips, badges, highlights positivos */
-    --accent: 152 81% 96%; /* e50 #ecfdf5 */
-    --accent-foreground: 161 94% 24%; /* e700 #047857 */
+    /* Hover blue suave */
+    --accent: 221 93% 94%; /* azul muy suave para highlights */
+    --accent-foreground: 223 100% 40%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Bordes e inputs — n200 #e2e8f0 */
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 161 93% 30%; /* e600 */
+    --border: 220 9% 87%; /* #dde0e6 — sutil */
+    --input: 220 9% 87%;
+    --ring: 223 100% 50%; /* #0052ff */
 
-    --radius: 0.625rem; /* 10px — consistente con la landing */
+    --radius: 0.5rem;
   }
 
   /* ─── Dark mode ──────────────────────────────────────────────────────────── */
   .dark {
-    --background: 222 47% 11%; /* n900 #0f172a */
-    --foreground: 210 40% 98%; /* n50 #f8fafc */
+    --background: 220 14% 5%; /* #0a0b0d */
+    --foreground: 0 0% 100%;
 
-    --card: 215 28% 17%; /* n800 #1e293b */
-    --card-foreground: 210 40% 98%;
+    --card: 220 9% 18%; /* #282b31 */
+    --card-foreground: 0 0% 100%;
 
-    --popover: 215 28% 17%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 9% 18%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 160 84% 39%; /* e500 #10b981 */
-    --primary-foreground: 222 47% 11%;
+    --primary: 221 93% 66%; /* #578bfa — hover blue como primario en dark */
+    --primary-foreground: 220 14% 5%;
 
-    --secondary: 215 28% 17%; /* n800 */
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 220 9% 18%; /* #282b31 */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 215 28% 17%;
-    --muted-foreground: 215 20% 65%; /* n400 #94a3b8 */
+    --muted: 220 9% 18%;
+    --muted-foreground: 220 9% 60%;
 
-    --accent: 215 25% 27%; /* n700 #334155 */
-    --accent-foreground: 210 40% 98%;
+    --accent: 220 9% 25%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 25% 27%; /* n700 */
-    --input: 215 25% 27%;
-    --ring: 160 84% 39%; /* e500 */
+    --border: 220 9% 22%;
+    --input: 220 9% 22%;
+    --ring: 221 93% 66%;
   }
 }
 
@@ -83,7 +80,7 @@
   }
 
   body {
-    font-family: var(--font-dm-sans), system-ui, sans-serif;
+    font-family: var(--font-inter), system-ui, sans-serif;
   }
 
   h1,
@@ -92,31 +89,29 @@
   h4,
   h5,
   h6 {
-    font-family: var(--font-lora), Georgia, serif;
+    font-family: var(--font-inter), system-ui, sans-serif;
   }
 }
 
-/* ─── Sidebar dark context — redefinición de variables para el sidebar navy ─ */
-/* Cualquier componente que use hsl(var(--*)) dentro del sidebar se adapta     */
-/* automáticamente sin necesidad de clases adicionales.                         */
+/* ─── Sidebar dark context ───────────────────────────────────────────────── */
 .sidebar-dark {
-  --background: 215 28% 15%; /* n800 suavizado — cards dentro del sidebar */
-  --foreground: 210 40% 96%; /* n100 — texto principal */
-  --card: 215 28% 15%;
-  --card-foreground: 210 40% 96%;
-  --popover: 222 47% 11%; /* n900 */
-  --popover-foreground: 210 40% 96%;
-  --primary: 160 84% 39%; /* e500 — esmeralda más viva en oscuro */
-  --primary-foreground: 222 47% 11%;
-  --secondary: 222 47% 11%; /* n900 */
-  --secondary-foreground: 210 40% 96%;
-  --muted: 222 47% 11%; /* n900 — hover oscuro */
-  --muted-foreground: 215 20% 58%; /* entre n400 y n500 */
-  --accent: 215 25% 20%; /* n800 oscurecido */
-  --accent-foreground: 210 40% 96%;
-  --border: 215 25% 22%; /* n800 */
-  --input: 215 25% 22%;
-  --ring: 160 84% 39%;
+  --background: 220 9% 15%;
+  --foreground: 210 20% 94%;
+  --card: 220 9% 15%;
+  --card-foreground: 210 20% 94%;
+  --popover: 220 14% 5%;
+  --popover-foreground: 210 20% 94%;
+  --primary: 221 93% 66%; /* #578bfa */
+  --primary-foreground: 220 14% 5%;
+  --secondary: 220 14% 5%;
+  --secondary-foreground: 210 20% 94%;
+  --muted: 220 14% 5%;
+  --muted-foreground: 220 9% 55%;
+  --accent: 220 9% 22%;
+  --accent-foreground: 210 20% 94%;
+  --border: 220 9% 22%;
+  --input: 220 9% 22%;
+  --ring: 221 93% 66%;
 }
 
 /* ─── Scrollbar del sidebar ─────────────────────────────────────────────── */
@@ -127,102 +122,101 @@
   background: transparent;
 }
 .sidebar-dark ::-webkit-scrollbar-thumb {
-  background: hsl(215 25% 28%); /* n700 — visible pero discreto */
+  background: hsl(220 9% 28%);
   border-radius: 99px;
 }
 .sidebar-dark ::-webkit-scrollbar-thumb:hover {
-  background: hsl(215 20% 40%); /* n600 — un poco más claro al hacer hover */
+  background: hsl(220 9% 40%);
 }
-/* Firefox */
 .sidebar-dark nav {
   scrollbar-width: thin;
-  scrollbar-color: hsl(215 25% 28%) transparent;
+  scrollbar-color: hsl(220 9% 28%) transparent;
 }
 
-/* ─── Sidebar collapse — main content transition ────────────────────────── */
+/* ─── Sidebar collapse — main content transition ─────────────────────────── */
 @media (min-width: 1024px) {
   .sidebar-main {
-    padding-left: 14rem; /* w-56 expanded */
+    padding-left: 14rem;
     transition: padding-left 300ms ease;
   }
   .sidebar-collapsed .sidebar-main {
-    padding-left: 3.5rem; /* w-14 collapsed */
+    padding-left: 3.5rem;
   }
 }
 
-/* ─── driver.js onboarding popover — TuCaja theme ───────────────────────── */
-.tucaja-onboarding-popover.driver-popover {
+/* ─── Nimbo onboarding popover ───────────────────────────────────────────── */
+.nimbo-onboarding-popover.driver-popover {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   border: 1px solid hsl(var(--border));
   border-radius: 14px;
-  box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.15);
   max-width: 320px;
   font-family: inherit;
 }
 
-.tucaja-onboarding-popover .driver-popover-title {
+.nimbo-onboarding-popover .driver-popover-title {
   font-size: 0.875rem;
   font-weight: 700;
   color: hsl(var(--foreground));
   margin-bottom: 6px;
 }
 
-.tucaja-onboarding-popover .driver-popover-description {
+.nimbo-onboarding-popover .driver-popover-description {
   font-size: 0.8125rem;
   color: hsl(var(--muted-foreground));
   line-height: 1.55;
 }
 
-.tucaja-onboarding-popover .driver-popover-footer {
+.nimbo-onboarding-popover .driver-popover-footer {
   margin-top: 14px;
   gap: 8px;
 }
 
-.tucaja-onboarding-popover .driver-popover-next-btn {
+.nimbo-onboarding-popover .driver-popover-next-btn {
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
   border: none;
-  border-radius: 8px;
+  border-radius: 56px;
   padding: 7px 16px;
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: background 0.15s;
   text-shadow: none;
 }
 
-.tucaja-onboarding-popover .driver-popover-next-btn:hover {
-  opacity: 0.88;
+.nimbo-onboarding-popover .driver-popover-next-btn:hover {
+  background: hsl(221 93% 66%); /* #578bfa */
 }
 
-.tucaja-onboarding-popover .driver-popover-close-btn {
+.nimbo-onboarding-popover .driver-popover-close-btn {
   background: transparent;
   color: hsl(var(--muted-foreground));
   border: 1px solid hsl(var(--border));
-  border-radius: 8px;
+  border-radius: 56px;
   padding: 6px 14px;
   font-size: 0.8125rem;
   cursor: pointer;
   transition: background 0.15s;
 }
 
-.tucaja-onboarding-popover .driver-popover-close-btn:hover {
+.nimbo-onboarding-popover .driver-popover-close-btn:hover {
   background: hsl(var(--muted));
 }
 
-.tucaja-onboarding-popover .driver-popover-arrow-side-left.driver-popover-arrow {
+.nimbo-onboarding-popover .driver-popover-arrow-side-left.driver-popover-arrow {
   border-right-color: hsl(var(--background));
 }
 
-.tucaja-onboarding-popover .driver-popover-arrow-side-right.driver-popover-arrow {
+.nimbo-onboarding-popover .driver-popover-arrow-side-right.driver-popover-arrow {
   border-left-color: hsl(var(--background));
 }
 
-.tucaja-onboarding-popover .driver-popover-arrow-side-top.driver-popover-arrow {
+.nimbo-onboarding-popover .driver-popover-arrow-side-top.driver-popover-arrow {
   border-bottom-color: hsl(var(--background));
 }
 
-.tucaja-onboarding-popover .driver-popover-arrow-side-bottom.driver-popover-arrow {
+.nimbo-onboarding-popover .driver-popover-arrow-side-bottom.driver-popover-arrow {
   border-top-color: hsl(var(--background));
 }
