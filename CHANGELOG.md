@@ -1,3 +1,10 @@
+# [1.46.0](https://github.com/rkromero/SaaS-POS/compare/v1.45.0...v1.46.0) (2026-04-21)
+
+
+### Features
+
+* **landing:** reemplazar tabla antes/después por cards con flecha animada ([e393d5c](https://github.com/rkromero/SaaS-POS/commit/e393d5c3e3a6e921f731b269d58548a42d8151ba))
+
 # [1.45.0](https://github.com/rkromero/SaaS-POS/compare/v1.44.0...v1.45.0) (2026-04-21)
 
 
