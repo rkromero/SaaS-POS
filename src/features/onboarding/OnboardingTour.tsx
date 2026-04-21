@@ -87,8 +87,13 @@ function FloatingStepCard({
   onNext: () => void;
   onSkip: () => void;
 }) {
+  // En el paso del POS la card va a la izquierda (junto al sidebar) para no tapar el botón de cobrar
+  const positionClass = stepDef.step === 4
+    ? 'fixed bottom-6 left-16 lg:left-60 z-[9998] w-72'
+    : 'fixed bottom-6 right-6 z-[9998] w-80';
+
   return (
-    <div className="fixed bottom-6 right-6 z-[9998] w-80 rounded-2xl border bg-background p-5 shadow-2xl">
+    <div className={`${positionClass} rounded-2xl border bg-background p-5 shadow-2xl`}>
       <div className="mb-3 flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
           <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">

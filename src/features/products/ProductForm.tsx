@@ -69,6 +69,14 @@ export const ProductForm = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Combobox de categoría
+  const [catSearch, setCatSearch] = useState(
+    product?.categoryId ? categories.find(c => c.id === product.categoryId)?.name ?? '' : '',
+  );
+  const [catOpen, setCatOpen] = useState(false);
+  const [creatingCat, setCreatingCat] = useState(false);
+  const catRef = useRef<HTMLDivElement>(null);
+
   // Estados para el manejo de imagen
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
@@ -82,8 +90,51 @@ export const ProductForm = ({
   useEffect(() => {
     fetch('/api/categories')
       .then(r => r.json())
-      .then(setCategories);
+      .then((data: Category[]) => {
+        setCategories(data);
+        // Si es edición, inicializar el label del combobox
+        if (product?.categoryId) {
+          const found = data.find(c => c.id === product.categoryId);
+          if (found) {
+            setCatSearch(found.name);
+          }
+        }
+      });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Cerrar el dropdown al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (catRef.current && !catRef.current.contains(e.target as Node)) {
+        setCatOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleCreateCategory = async (newName: string) => {
+    if (!newName.trim()) {
+      return;
+    }
+    setCreatingCat(true);
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName.trim() }),
+      });
+      if (res.ok) {
+        const created: Category = await res.json();
+        setCategories(prev => [...prev, created]);
+        setCategoryId(String(created.id));
+        setCatSearch(created.name);
+        setCatOpen(false);
+      }
+    } finally {
+      setCreatingCat(false);
+    }
+  };
 
   /**
    * Busca automáticamente la imagen de un producto en Open Food Facts
@@ -303,19 +354,77 @@ export const ProductForm = ({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="category">Categoría</Label>
-              <select
-                id="category"
-                value={categoryId}
-                onChange={e => setCategoryId(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
-              >
-                <option value="">Sin categoría</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+            <div className="space-y-1.5" ref={catRef}>
+              <Label htmlFor="cat-search">Categoría</Label>
+              <div className="relative">
+                <input
+                  id="cat-search"
+                  type="text"
+                  autoComplete="off"
+                  value={catSearch}
+                  onChange={(e) => {
+                    setCatSearch(e.target.value);
+                    setCategoryId('');
+                    setCatOpen(true);
+                  }}
+                  onFocus={() => setCatOpen(true)}
+                  placeholder="Buscar o escribir nueva..."
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+                {catOpen && (
+                  <div className="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border bg-background shadow-lg">
+                    {/* Opción sin categoría */}
+                    <button
+                      type="button"
+                      className="w-full px-3 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
+                      onMouseDown={() => {
+                        setCategoryId('');
+                        setCatSearch('');
+                        setCatOpen(false);
+                      }}
+                    >
+                      Sin categoría
+                    </button>
+
+                    {/* Categorías filtradas */}
+                    {categories
+                      .filter(c => c.name.toLowerCase().includes(catSearch.toLowerCase()))
+                      .map(cat => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
+                          onMouseDown={() => {
+                            setCategoryId(String(cat.id));
+                            setCatSearch(cat.name);
+                            setCatOpen(false);
+                          }}
+                        >
+                          {cat.name}
+                        </button>
+                      ))}
+
+                    {/* Agregar nueva (solo admin) */}
+                    {isAdmin && catSearch.trim() && !categories.some(c => c.name.toLowerCase() === catSearch.trim().toLowerCase()) && (
+                      <button
+                        type="button"
+                        disabled={creatingCat}
+                        className="w-full border-t px-3 py-2 text-left text-sm font-medium text-primary hover:bg-muted disabled:opacity-50"
+                        onMouseDown={() => handleCreateCategory(catSearch)}
+                      >
+                        {creatingCat ? 'Creando...' : `+ Agregar "${catSearch.trim()}"`}
+                      </button>
+                    )}
+
+                    {/* Sin resultados y sin texto */}
+                    {categories.length === 0 && !catSearch.trim() && (
+                      <p className="px-3 py-2 text-sm text-muted-foreground">
+                        Sin categorías — escribí un nombre para crear una
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
