@@ -18,32 +18,38 @@ async function verifyLocationOwnership(orgId: string, locationId: number) {
 }
 
 export async function GET(_req: Request, { params }: Params) {
-  const { orgId } = await auth();
-  if (!orgId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const { orgId } = await auth();
+    if (!orgId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const locationId = Number(params.locationId);
+    if (!locationId) {
+      return NextResponse.json({ error: 'locationId inválido' }, { status: 400 });
+    }
+
+    const owns = await verifyLocationOwnership(orgId, locationId);
+    if (!owns) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const [config] = await db
+      .select()
+      .from(locationArcaConfigSchema)
+      .where(eq(locationArcaConfigSchema.locationId, locationId));
+
+    if (!config) {
+      return NextResponse.json(null);
+    }
+
+    const { cert, privateKey, ...safe } = config;
+    return NextResponse.json({ ...safe, hasCert: !!cert, hasPrivateKey: !!privateKey });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[GET /api/arca/location-config]', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const locationId = Number(params.locationId);
-  if (!locationId) {
-    return NextResponse.json({ error: 'locationId inválido' }, { status: 400 });
-  }
-
-  const owns = await verifyLocationOwnership(orgId, locationId);
-  if (!owns) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-
-  const [config] = await db
-    .select()
-    .from(locationArcaConfigSchema)
-    .where(eq(locationArcaConfigSchema.locationId, locationId));
-
-  if (!config) {
-    return NextResponse.json(null);
-  }
-
-  const { cert, privateKey, ...safe } = config;
-  return NextResponse.json({ ...safe, hasCert: !!cert, hasPrivateKey: !!privateKey });
 }
 
 export async function PUT(request: Request, { params }: Params) {
