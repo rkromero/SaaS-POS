@@ -290,6 +290,11 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const addToCart = (product: POSProduct) => {
     setCart((prev) => {
       const existing = prev.find(i => i.type === 'product' && i.product.id === product.id);
+      const currentQty = existing ? existing.quantity : 0;
+      // Respect stock limit when tracking is enabled (stock !== null)
+      if (product.stock !== null && currentQty >= product.stock) {
+        return prev;
+      }
       if (existing) {
         return prev.map(i =>
           i.type === 'product' && i.product.id === product.id
@@ -362,7 +367,14 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
       setCart(prev =>
         prev.map((i) => {
           const itemKey = i.type === 'product' ? `p-${i.product.id}` : `c-${(i as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id}`;
-          return itemKey === key ? { ...i, quantity } : i;
+          if (itemKey !== key) {
+            return i;
+          }
+          // Cap at stock limit for products with stock tracking enabled
+          if (i.type === 'product' && i.product.stock !== null) {
+            return { ...i, quantity: Math.min(quantity, i.product.stock) };
+          }
+          return { ...i, quantity };
         }),
       );
     }
@@ -894,9 +906,15 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
                                     {Number(product.price).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
                                   </p>
                                 )}
-                            {outOfStock && (
-                              <p className="text-xs text-destructive">Sin stock</p>
-                            )}
+                            {outOfStock
+                              ? <p className="text-xs text-destructive">Sin stock</p>
+                              : product.stock !== null && (
+                                <p className={`text-xs ${product.stock <= 3 ? 'font-semibold text-amber-500' : 'text-muted-foreground'}`}>
+                                  Stock:
+                                  {' '}
+                                  {product.stock}
+                                </p>
+                              )}
                           </div>
                         </button>
                       );
@@ -1024,6 +1042,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
                         size="sm"
                         variant="outline"
                         className="size-6 p-0 text-xs"
+                        disabled={item.type === 'product' && item.product.stock !== null && item.quantity >= item.product.stock}
                         onClick={() => updateQuantity(itemKey, item.quantity + 1)}
                       >
                         +
