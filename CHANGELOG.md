@@ -1,3 +1,10 @@
+# [1.51.0](https://github.com/rkromero/SaaS-POS/compare/v1.50.0...v1.51.0) (2026-04-22)
+
+
+### Features
+
+* **caja:** agregar historial de cajas cerradas con detalle expandible ([d459c3b](https://github.com/rkromero/SaaS-POS/commit/d459c3be3d4f2f9edf65dfbf4ef67c7241579cc2))
+
 # [1.50.0](https://github.com/rkromero/SaaS-POS/compare/v1.49.0...v1.50.0) (2026-04-21)
 
 
