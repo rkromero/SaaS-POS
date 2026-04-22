@@ -1,3 +1,10 @@
+# [1.52.0](https://github.com/rkromero/SaaS-POS/compare/v1.51.0...v1.52.0) (2026-04-22)
+
+
+### Features
+
+* **pos:** limitar cantidad en carrito al stock disponible ([08aa725](https://github.com/rkromero/SaaS-POS/commit/08aa725d14e9422cad0e352fcdab631764489a33))
+
 # [1.51.0](https://github.com/rkromero/SaaS-POS/compare/v1.50.0...v1.51.0) (2026-04-22)
 
 
