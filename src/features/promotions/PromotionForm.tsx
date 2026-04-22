@@ -113,13 +113,13 @@ function Toggle({
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`relative h-5 w-9 rounded-full transition-colors focus:outline-none ${
+      className={`relative h-5 w-9 overflow-hidden rounded-full transition-colors focus:outline-none ${
         checked ? 'bg-primary' : 'bg-muted-foreground/30'
       }`}
     >
       <span
-        className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-transform ${
-          checked ? 'translate-x-4' : 'translate-x-0.5'
+        className={`absolute left-0.5 top-0.5 size-4 rounded-full bg-white shadow-sm transition-transform ${
+          checked ? 'translate-x-4' : 'translate-x-0'
         }`}
       />
     </button>
