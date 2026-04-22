@@ -1,3 +1,10 @@
+## [1.52.1](https://github.com/rkromero/SaaS-POS/compare/v1.52.0...v1.52.1) (2026-04-22)
+
+
+### Bug Fixes
+
+* **pwa:** corregir meta tag deprecated y crear íconos faltantes ([8b2d40a](https://github.com/rkromero/SaaS-POS/commit/8b2d40ae0df01e8e925b49646de4840dfa648907))
+
 # [1.52.0](https://github.com/rkromero/SaaS-POS/compare/v1.51.0...v1.52.0) (2026-04-22)
 
 
