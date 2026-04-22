@@ -1,3 +1,10 @@
+## [1.55.1](https://github.com/rkromero/SaaS-POS/compare/v1.55.0...v1.55.1) (2026-04-22)
+
+
+### Bug Fixes
+
+* **arca:** crear tabla location_arca_config faltante y agregar try/catch al endpoint ([76c547f](https://github.com/rkromero/SaaS-POS/commit/76c547faf78b998c390156a49d7b8d2862fa4a2a))
+
 # [1.55.0](https://github.com/rkromero/SaaS-POS/compare/v1.54.0...v1.55.0) (2026-04-22)
 
 
