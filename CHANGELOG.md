@@ -1,3 +1,10 @@
+# [1.56.0](https://github.com/rkromero/SaaS-POS/compare/v1.55.1...v1.56.0) (2026-04-22)
+
+
+### Features
+
+* **promotions:** límite de usos opcional por promoción ([f279084](https://github.com/rkromero/SaaS-POS/commit/f2790848d1aed10af5b57560047797de2f81530e))
+
 ## [1.55.1](https://github.com/rkromero/SaaS-POS/compare/v1.55.0...v1.55.1) (2026-04-22)
 
 
