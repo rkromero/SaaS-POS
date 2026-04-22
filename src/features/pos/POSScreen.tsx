@@ -1,12 +1,14 @@
 'use client';
 
-import { Maximize2, Minimize2, Package, Star } from 'lucide-react';
+import { Maximize2, Minimize2, Package, Star, WifiOff } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
+import { savePendingSale } from '@/libs/offlineSalesDB';
 
 import { LoyaltyCustomerPanel } from '../loyalty/LoyaltyCustomerPanel';
 import { Ticket } from './Ticket';
@@ -150,6 +152,9 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const [loyaltyCustomerId, setLoyaltyCustomerId] = useState<number | null>(null);
   const [loyaltyRewardId, setLoyaltyRewardId] = useState<number | null>(null);
   const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
+
+  // Offline sync
+  const { isOnline, pendingCount, isSyncing, syncPendingSales, refreshCount } = useOfflineSync();
 
   // Flujo de cobro por teclado: 'idle' → 'loyalty' → 'payment' → checkout
   const [checkoutFlowStep, setCheckoutFlowStep] = useState<'idle' | 'loyalty' | 'payment'>('idle');
@@ -585,11 +590,83 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
         setCompletedSale(data);
       }
     } catch {
-      setCheckoutError('Error de conexión');
+      if (!navigator.onLine) {
+        const offlineId = crypto.randomUUID();
+        const locationName = locations.find(l => String(l.id) === selectedLocationId)?.name ?? '';
+        const offlineItems = [
+          ...cart.filter(i => i.type === 'product').map((i) => {
+            const item = i as { type: 'product'; product: POSProduct; quantity: number };
+            const price = item.product.promoPrice ?? item.product.price;
+            return {
+              productName: item.product.name,
+              quantity: item.quantity,
+              unitPrice: price,
+              subtotal: (item.quantity * Number.parseFloat(price)).toFixed(2),
+            };
+          }),
+          ...cart.filter(i => i.type === 'combo').map((i) => {
+            const item = i as { type: 'combo'; combo: POSCombo; quantity: number };
+            return {
+              productName: item.combo.name,
+              quantity: item.quantity,
+              unitPrice: item.combo.comboPrice,
+              subtotal: (item.quantity * Number.parseFloat(item.combo.comboPrice)).toFixed(2),
+            };
+          }),
+        ];
+        const total = offlineItems.reduce((sum, item) => sum + Number.parseFloat(item.subtotal), 0).toFixed(2);
+        await savePendingSale({
+          id: offlineId,
+          receiptNumber: `OFFLINE-${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          locationName,
+          payload: {
+            locationId: Number(selectedLocationId),
+            items: cart
+              .filter(i => i.type === 'product')
+              .map(i => ({
+                productId: (i as { type: 'product'; product: POSProduct; quantity: number }).product.id,
+                quantity: i.quantity,
+              })),
+            comboItems: cart
+              .filter(i => i.type === 'combo')
+              .map(i => ({
+                comboId: (i as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id,
+                quantity: i.quantity,
+              })),
+            customerName: effectiveCustomerName,
+            customerEmail: effectivePm === 'fiado' ? (effectiveFiadoCustomer?.email ?? null) : (customerEmail || null),
+            customerWhatsapp: effectiveCustomerWhatsapp || null,
+            paymentMethod: effectivePm,
+            ...(effectiveCustomerId !== undefined && { customerId: effectiveCustomerId }),
+            ...(loyaltyCustomerId && { loyaltyCustomerId }),
+            ...(loyaltyRewardId && { loyaltyRewardId }),
+          },
+          displayItems: offlineItems,
+          total,
+          status: 'pending',
+        });
+        await refreshCount();
+        setCompletedSale({
+          sale: {
+            id: 0,
+            receiptNumber: 'SIN CONEXIÓN',
+            customerName: effectiveCustomerName,
+            customerEmail: null,
+            customerWhatsapp: null,
+            paymentMethod: effectivePm,
+            total,
+            createdAt: new Date().toISOString(),
+          },
+          items: offlineItems.map((item, idx) => ({ id: idx, ...item })),
+        });
+      } else {
+        setCheckoutError('Error de conexión');
+      }
     } finally {
       setSubmitting(false);
     }
-  }, [cart, paymentMethod, fiadoCustomer, modalFoundCustomer, customerName, customerEmail, customerWhatsapp, selectedLocationId, loyaltyCustomerId, loyaltyRewardId, emitirFactura, arcaActive, buyerType, buyerCuit]);
+  }, [cart, paymentMethod, fiadoCustomer, modalFoundCustomer, customerName, customerEmail, customerWhatsapp, selectedLocationId, loyaltyCustomerId, loyaltyRewardId, emitirFactura, arcaActive, buyerType, buyerCuit, locations, refreshCount]);
 
   // openCheckoutFlow: abre el flujo de cobro por teclado (Modal 1 → Modal 2 → checkout)
   const openCheckoutFlow = useCallback(() => {
@@ -767,6 +844,39 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
             <Minimize2 className="mr-1.5 size-3.5" />
             Salir de pantalla completa
           </Button>
+        </div>
+      )}
+
+      {/* Offline / pending-sync banners */}
+      {!isOnline && (
+        <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <WifiOff className="size-4 shrink-0" />
+          <span>Sin conexión — las ventas se guardarán localmente y se sincronizarán cuando vuelva la red</span>
+        </div>
+      )}
+      {isOnline && pendingCount > 0 && (
+        <div className="flex items-center gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+          {isSyncing
+            ? (
+                <span>
+                  Sincronizando
+                  {pendingCount}
+                  {' '}
+                  venta(s) pendiente(s)...
+                </span>
+              )
+            : (
+                <>
+                  <span>
+                    {pendingCount}
+                    {' '}
+                    venta(s) pendiente(s) de sincronización
+                  </span>
+                  <Button size="sm" variant="outline" className="ml-auto h-7 text-xs" onClick={syncPendingSales}>
+                    Sincronizar ahora
+                  </Button>
+                </>
+              )}
         </div>
       )}
 
