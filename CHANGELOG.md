@@ -1,3 +1,10 @@
+## [1.56.1](https://github.com/rkromero/SaaS-POS/compare/v1.56.0...v1.56.1) (2026-04-22)
+
+
+### Bug Fixes
+
+* **promotions:** cambiar color de toggles activo/acumulable a azul primario ([3f5c275](https://github.com/rkromero/SaaS-POS/commit/3f5c27598e6db6c454bb7ad11334a7a8c2071c75))
+
 # [1.56.0](https://github.com/rkromero/SaaS-POS/compare/v1.55.1...v1.56.0) (2026-04-22)
 
 
