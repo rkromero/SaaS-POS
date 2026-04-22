@@ -4,11 +4,12 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 
+import { BulkCategoryAssign } from './BulkCategoryAssign';
 import { BulkPriceUpdate } from './BulkPriceUpdate';
 import { ProductImport } from './ProductImport';
 import { ProductList } from './ProductList';
 
-type Mode = 'none' | 'bulk' | 'import';
+type Mode = 'none' | 'bulk' | 'import' | 'category';
 
 export const ProductsPageClient = ({ isAdmin }: { isAdmin: boolean }) => {
   const [mode, setMode] = useState<Mode>('none');
@@ -31,10 +32,14 @@ export const ProductsPageClient = ({ isAdmin }: { isAdmin: boolean }) => {
               <Button variant="outline" size="sm" onClick={() => setMode('import')}>
                 Importar desde CSV
               </Button>
+              <Button variant="outline" size="sm" onClick={() => setMode('category')}>
+                Asignar categorías
+              </Button>
             </div>
           )}
           {mode === 'bulk' && <BulkPriceUpdate onDone={refresh} />}
           {mode === 'import' && <ProductImport onDone={refresh} />}
+          {mode === 'category' && <BulkCategoryAssign onDone={refresh} />}
         </div>
       )}
       <div className="rounded-md bg-card p-6 shadow-sm">
