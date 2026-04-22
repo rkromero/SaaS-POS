@@ -3,8 +3,9 @@ import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { createVoucher, getLastVoucher } from '@/libs/arcaClient';
+import { resolveArcaConfig } from '@/libs/arcaResolver';
 import { db } from '@/libs/DB';
-import { arcaConfigSchema, saleSchema } from '@/models/Schema';
+import { saleSchema } from '@/models/Schema';
 
 // POST /api/arca/invoice
 // Genera CAE para una venta ya registrada
@@ -22,17 +23,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'saleId requerido' }, { status: 400 });
   }
 
-  // Obtener config ARCA
-  const [config] = await db
-    .select()
-    .from(arcaConfigSchema)
-    .where(eq(arcaConfigSchema.organizationId, orgId));
-
-  if (!config?.isActive || !config.cert || !config.privateKey) {
-    return NextResponse.json({ error: 'ARCA no está configurado o activo' }, { status: 400 });
-  }
-
-  // Obtener venta
+  // Obtener venta primero para conocer el locationId
   const [sale] = await db
     .select()
     .from(saleSchema)
@@ -40,6 +31,13 @@ export async function POST(request: Request) {
 
   if (!sale) {
     return NextResponse.json({ error: 'Venta no encontrada' }, { status: 404 });
+  }
+
+  // Resolver config ARCA: prioridad al local, fallback a la organización
+  const config = await resolveArcaConfig(orgId, sale.locationId);
+
+  if (!config?.isActive || !config.cert || !config.privateKey) {
+    return NextResponse.json({ error: 'ARCA no está configurado o activo' }, { status: 400 });
   }
 
   try {

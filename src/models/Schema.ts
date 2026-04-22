@@ -611,6 +611,20 @@ export const expenseSchema = pgTable(
 // ARCA (ex-AFIP) — configuración de facturación electrónica por organización
 // ---------------------------------------------------------------------------
 
+// Config fiscal por local (opcional — sobreescribe la org si está activa)
+export const locationArcaConfigSchema = pgTable('location_arca_config', {
+  locationId: integer('location_id').primaryKey().references(() => locationSchema.id, { onDelete: 'cascade' }),
+  cuit: text('cuit').notNull(),
+  razonSocial: text('razon_social').notNull(),
+  puntoVenta: integer('punto_venta').notNull(),
+  tipoContribuyente: text('tipo_contribuyente').notNull(), // 'monotributo' | 'responsable_inscripto'
+  ambiente: text('ambiente').default('sandbox').notNull(), // 'sandbox' | 'production'
+  cert: text('cert'),
+  privateKey: text('private_key'),
+  isActive: boolean('is_active').default(false).notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
 export const arcaConfigSchema = pgTable('arca_config', {
   organizationId: text('organization_id').primaryKey(),
   cuit: text('cuit').notNull(),
