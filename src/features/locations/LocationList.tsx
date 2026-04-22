@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import { LocationArcaDialog } from './LocationArcaDialog';
 import { LocationForm } from './LocationForm';
 import { LocationMembers } from './LocationMembers';
 
@@ -41,6 +42,7 @@ export const LocationList = ({ isAdmin }: { isAdmin: boolean }) => {
   const [deleting, setDeleting] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [membersLocation, setMembersLocation] = useState<Location | null>(null);
+  const [arcaLocation, setArcaLocation] = useState<Location | null>(null);
 
   const fetchLocations = useCallback(async () => {
     setLoading(true);
@@ -212,6 +214,13 @@ export const LocationList = ({ isAdmin }: { isAdmin: boolean }) => {
                           <Button
                             size="sm"
                             variant="outline"
+                            onClick={() => setArcaLocation(loc)}
+                          >
+                            Facturación
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
                             onClick={() => openEdit(loc)}
                           >
                             Editar
@@ -257,6 +266,14 @@ export const LocationList = ({ isAdmin }: { isAdmin: boolean }) => {
           locationId={membersLocation.id}
           locationName={membersLocation.name}
           onClose={() => setMembersLocation(null)}
+        />
+      )}
+
+      {arcaLocation && (
+        <LocationArcaDialog
+          locationId={arcaLocation.id}
+          locationName={arcaLocation.name}
+          onClose={() => setArcaLocation(null)}
         />
       )}
     </div>
