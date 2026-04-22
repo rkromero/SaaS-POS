@@ -1,3 +1,10 @@
+# [1.53.0](https://github.com/rkromero/SaaS-POS/compare/v1.52.1...v1.53.0) (2026-04-22)
+
+
+### Features
+
+* **arca:** config fiscal por local con fallback a organización (Opción C) ([bd9cd30](https://github.com/rkromero/SaaS-POS/commit/bd9cd3030afe7e4e89acaaf944a25bf261d95f5d))
+
 ## [1.52.1](https://github.com/rkromero/SaaS-POS/compare/v1.52.0...v1.52.1) (2026-04-22)
 
 
