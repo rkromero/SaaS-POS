@@ -7,6 +7,29 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+type HistorySession = {
+  id: number;
+  openingBalance: string;
+  closingBalance: string | null;
+  totalSales: string | null;
+  totalCash: string | null;
+  totalTransfer: string | null;
+  totalCard: string | null;
+  difference: string | null;
+  differencePosnet: string | null;
+  differenceMercadopago: string | null;
+  differenceEnvios: string | null;
+  openingPosnet: string | null;
+  openingMercadopago: string | null;
+  openingEnvios: string | null;
+  closingPosnet: string | null;
+  closingMercadopago: string | null;
+  closingEnvios: string | null;
+  notes: string | null;
+  openedAt: string;
+  closedAt: string | null;
+};
+
 type Session = {
   id: number;
   openingBalance: string;
@@ -55,6 +78,9 @@ export const CajaPage = () => {
   const [saving, setSaving] = useState(false);
   const [closedSession, setClosedSession] = useState<Session | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<HistorySession[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const cancelOpening = () => {
     setMode('view');
@@ -92,8 +118,18 @@ export const CajaPage = () => {
       });
   };
 
+  const loadHistory = () => {
+    setHistoryLoading(true);
+    fetch('/api/caja/history?limit=20')
+      .then(r => r.json())
+      .then(data => setHistory(data.sessions ?? []))
+      .catch(() => {})
+      .finally(() => setHistoryLoading(false));
+  };
+
   useEffect(() => {
     loadStatus();
+    loadHistory();
   }, []);
 
   const handleOpen = async () => {
@@ -143,6 +179,7 @@ export const CajaPage = () => {
       setClosedSession(closed);
       setMode('closed_summary');
       setSession(null);
+      loadHistory();
     } else {
       const data = await res.json().catch(() => ({}));
       setError(data.error ?? `Error ${res.status} al cerrar la caja`);
@@ -378,7 +415,7 @@ export const CajaPage = () => {
 
   // Default view
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {session
         ? (
             <div className="rounded-lg border bg-card p-6 shadow">
@@ -423,6 +460,93 @@ export const CajaPage = () => {
               </Button>
             </div>
           )}
+
+      {/* Historial de cajas */}
+      <div>
+        <h3 className="mb-3 text-base font-semibold">Historial de cajas</h3>
+        {historyLoading && <div className="h-20 animate-pulse rounded-lg bg-muted" />}
+        {!historyLoading && history.length === 0 && (
+          <p className="text-sm text-muted-foreground">No hay cajas cerradas anteriores.</p>
+        )}
+        {!historyLoading && history.length > 0 && (
+          <div className="space-y-2">
+            {history.map(s => (
+              <div key={s.id} className="rounded-lg border bg-card shadow-sm">
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between px-4 py-3 text-left"
+                  onClick={() => setExpandedId(expandedId === s.id ? null : s.id)}
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {new Date(s.openedAt).toLocaleDateString('es-AR', {
+                        weekday: 'short',
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                      })}
+                      {' '}
+                      {new Date(s.openedAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                      {s.closedAt && (
+                        <span className="ml-1 text-muted-foreground">
+                          →
+                          {' '}
+                          {new Date(s.closedAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Ventas:
+                      {' '}
+                      {fmt(s.totalSales)}
+                      {' '}
+                      · Diferencia efectivo:
+                      {' '}
+                      <span className={Number(s.difference ?? 0) < 0 ? 'text-red-600' : Number(s.difference ?? 0) > 0 ? 'text-green-600' : ''}>
+                        {Number(s.difference ?? 0) >= 0 ? '+' : ''}
+                        {fmt(s.difference)}
+                      </span>
+                    </p>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{expandedId === s.id ? '▲' : '▼'}</span>
+                </button>
+
+                {expandedId === s.id && (
+                  <div className="border-t px-4 pb-4 pt-3">
+                    <div className="space-y-3 text-sm">
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ventas del día</p>
+                        <Row label="Total" value={fmt(s.totalSales)} />
+                        <Row label="  · Efectivo" value={fmt(s.totalCash)} />
+                        <Row label="  · Tarjeta (Posnet)" value={fmt(s.totalCard)} />
+                        <Row label="  · Transferencia (MP)" value={fmt(s.totalTransfer)} />
+                      </div>
+                      <hr />
+                      <MethodBlock label="Efectivo" opening={s.openingBalance} closing={s.closingBalance} difference={s.difference} />
+                      {s.closingPosnet != null && (
+                        <MethodBlock label="Posnet" opening={s.openingPosnet} closing={s.closingPosnet} difference={s.differencePosnet} />
+                      )}
+                      {s.closingMercadopago != null && (
+                        <MethodBlock label="MercadoPago" opening={s.openingMercadopago} closing={s.closingMercadopago} difference={s.differenceMercadopago} />
+                      )}
+                      {s.closingEnvios != null && (
+                        <MethodBlock label="Plataforma de envíos" opening={s.openingEnvios} closing={s.closingEnvios} difference={s.differenceEnvios} />
+                      )}
+                      {s.notes && (
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          Notas:
+                          {' '}
+                          {s.notes}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
