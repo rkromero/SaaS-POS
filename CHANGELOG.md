@@ -1,3 +1,10 @@
+# [1.55.0](https://github.com/rkromero/SaaS-POS/compare/v1.54.0...v1.55.0) (2026-04-22)
+
+
+### Features
+
+* **pos:** ventas offline con sync automático al recuperar conexión ([3e58755](https://github.com/rkromero/SaaS-POS/commit/3e587552f423ff95b816cd9846f313afe56232f8))
+
 # [1.54.0](https://github.com/rkromero/SaaS-POS/compare/v1.53.0...v1.54.0) (2026-04-22)
 
 
