@@ -1,3 +1,10 @@
+# [1.58.0](https://github.com/rkromero/SaaS-POS/compare/v1.57.0...v1.58.0) (2026-04-22)
+
+
+### Features
+
+* **settings:** unificar configuracion en una pagina con tabs horizontales ([f674eb5](https://github.com/rkromero/SaaS-POS/commit/f674eb5a412922e86fe76adcd83772d2431c78c3))
+
 # [1.57.0](https://github.com/rkromero/SaaS-POS/compare/v1.56.2...v1.57.0) (2026-04-22)
 
 
