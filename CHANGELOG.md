@@ -1,3 +1,10 @@
+# [1.57.0](https://github.com/rkromero/SaaS-POS/compare/v1.56.2...v1.57.0) (2026-04-22)
+
+
+### Features
+
+* **products:** asignacion masiva de categorias post-importacion ([95a86cb](https://github.com/rkromero/SaaS-POS/commit/95a86cb599c8bee7930e022d16b7f947980b8747))
+
 ## [1.56.2](https://github.com/rkromero/SaaS-POS/compare/v1.56.1...v1.56.2) (2026-04-22)
 
 
