@@ -47,6 +47,8 @@ export async function GET() {
         targetCategoryId: promotionSchema.targetCategoryId,
         targetCategoryName: categorySchema.name,
         comboPrice: promotionSchema.comboPrice,
+        usageLimit: promotionSchema.usageLimit,
+        usageCount: promotionSchema.usageCount,
         createdAt: promotionSchema.createdAt,
         updatedAt: promotionSchema.updatedAt,
       })
@@ -116,6 +118,7 @@ export async function POST(request: Request) {
     targetCategoryId,
     comboPrice,
     comboItems,
+    usageLimit,
   } = body;
 
   if (!name?.trim() || !type) {
@@ -178,6 +181,7 @@ export async function POST(request: Request) {
       discountScope: discountScope ?? null,
       targetCategoryId: targetCategoryId ? Number(targetCategoryId) : null,
       comboPrice: comboPrice ? String(Number(comboPrice).toFixed(2)) : null,
+      usageLimit: usageLimit != null && usageLimit !== '' ? Number(usageLimit) : null,
     })
     .returning();
 

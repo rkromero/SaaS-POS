@@ -1,5 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
-import { and, count, eq, gte, isNull, lte, or, sql } from 'drizzle-orm';
+import { and, count, eq, gte, isNull, lt, lte, or, sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
@@ -152,6 +152,8 @@ async function handlePost(request: Request) {
     eq(promotionSchema.isActive, true),
     or(isNull(promotionSchema.startsAt), lte(promotionSchema.startsAt, now)),
     or(isNull(promotionSchema.endsAt), gte(promotionSchema.endsAt, now)),
+    // Excluir promos que alcanzaron su límite de usos
+    or(isNull(promotionSchema.usageLimit), lt(promotionSchema.usageCount, promotionSchema.usageLimit!)),
   );
 
   const [
@@ -375,6 +377,7 @@ async function handlePost(request: Request) {
   const promotionsEnabled = access.isProOrBetter || access.hasModule('promotions');
   const hasStockExpiration = access.hasModule('stock_expiration');
   let promoDiscount = 0;
+  let appliedDiscountPromoIds: number[] = [];
 
   if (promotionsEnabled && activeDiscountPromos.length > 0) {
     // Calcula el descuento que aplica cada promo a esta venta
@@ -408,14 +411,19 @@ async function handlePost(request: Request) {
       .filter(x => x.amount > 0);
 
     const hasNonStackable = withAmounts.some(x => !x.promo.isStackable);
+    let appliedDiscountPromos: typeof withAmounts;
     if (hasNonStackable) {
       // Si hay alguna exclusiva, solo aplica el mejor descuento único
-      promoDiscount = Math.max(...withAmounts.map(x => x.amount));
+      const best = withAmounts.reduce((a, b) => (b.amount > a.amount ? b : a));
+      promoDiscount = best.amount;
+      appliedDiscountPromos = [best];
     } else {
       // Todas son acumulables
       promoDiscount = withAmounts.reduce((s, x) => s + x.amount, 0);
+      appliedDiscountPromos = withAmounts;
     }
     promoDiscount = Math.min(promoDiscount, rawTotal);
+    appliedDiscountPromoIds = appliedDiscountPromos.map(x => x.promo.id);
   }
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -550,9 +558,25 @@ async function handlePost(request: Request) {
 
   const allItemRows = [...regularItemRows, ...comboItemRows];
 
+  // Collect all promotion IDs used in this sale (for usage_count increment)
+  const usedPromoIds = [
+    ...new Set([
+      ...enrichedItems.map(i => i.promoId).filter((id): id is number => id !== null),
+      ...enrichedCombos.map(c => c.combo.comboId),
+      ...appliedDiscountPromoIds,
+    ]),
+  ];
+
   // Insert sale items + update stock in parallel
   await Promise.all([
     db.insert(saleItemSchema).values(allItemRows),
+
+    // Incrementar usageCount de cada promo usada en esta venta
+    ...usedPromoIds.map(promoId =>
+      db.update(promotionSchema)
+        .set({ usageCount: sql`${promotionSchema.usageCount} + 1` })
+        .where(eq(promotionSchema.id, promoId)),
+    ),
 
     // Stock movements for regular products
     ...enrichedItems

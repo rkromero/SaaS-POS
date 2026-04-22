@@ -907,6 +907,9 @@ export const promotionSchema = pgTable(
     ),
     // combo: precio fijo del combo
     comboPrice: numeric('combo_price', { precision: 10, scale: 2 }),
+    // Límite opcional de usos: null = ilimitada; usageCount se incrementa por venta que la aplique
+    usageLimit: integer('usage_limit'),
+    usageCount: integer('usage_count').default(0).notNull(),
     updatedAt: timestamp('updated_at', { mode: 'date' })
       .defaultNow()
       .$onUpdate(() => new Date())

@@ -29,6 +29,7 @@ type FormState = {
   targetCategoryId: string;
   comboPrice: string;
   comboItems: ComboItemRow[];
+  usageLimit: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -51,6 +52,7 @@ const EMPTY_FORM: FormState = {
     { _key: 1, productId: 0, quantity: 1 },
     { _key: 2, productId: 0, quantity: 1 },
   ],
+  usageLimit: '',
 };
 
 const TYPE_OPTIONS = [
@@ -170,6 +172,7 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
         isStackable: form.isStackable,
         startsAt: form.startsAt || null,
         endsAt: form.endsAt || null,
+        usageLimit: form.usageLimit ? Number(form.usageLimit) : null,
       };
 
       if (form.type === 'product_price') {
@@ -567,6 +570,19 @@ export const PromotionForm = ({ initial, onSaved, onCancel }: Props) => {
               </p>
             </div>
             <Toggle checked={form.isStackable} onChange={v => set('isStackable', v)} />
+          </div>
+          <div className="border-t pt-3">
+            <p className="mb-1 text-sm font-medium text-foreground">Límite de usos</p>
+            <p className="mb-2 text-xs text-muted-foreground">Opcional — dejá vacío para usos ilimitados</p>
+            <Input
+              type="number"
+              min="1"
+              step="1"
+              value={form.usageLimit}
+              onChange={e => set('usageLimit', e.target.value)}
+              placeholder="Ej: 50"
+              className={inputClass}
+            />
           </div>
         </div>
       </div>

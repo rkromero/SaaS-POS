@@ -28,6 +28,8 @@ type Promotion = {
   targetCategoryName: string | null;
   comboPrice: string | null;
   comboItems: ComboItem[];
+  usageLimit: number | null;
+  usageCount: number;
 };
 
 const TYPE_CONFIG = {
@@ -132,6 +134,7 @@ function buildFormInitial(promo: Promotion) {
     comboItems: promo.comboItems.length >= 2
       ? promo.comboItems.map((i, idx) => ({ _key: i.id ?? idx, productId: i.productId, quantity: i.quantity }))
       : [{ _key: 1, productId: 0, quantity: 1 }, { _key: 2, productId: 0, quantity: 1 }],
+    usageLimit: promo.usageLimit ? String(promo.usageLimit) : '',
   };
 }
 
@@ -396,6 +399,22 @@ export const PromotionsPageClient = () => {
                             {promo.startsAt ? `Desde ${formatDate(promo.startsAt)}` : ''}
                             {promo.startsAt && promo.endsAt ? ' — ' : ''}
                             {promo.endsAt ? `Hasta ${formatDate(promo.endsAt)}` : ''}
+                          </p>
+                        )}
+                        {promo.usageLimit != null && (
+                          <p className={`mt-0.5 text-xs font-medium ${
+                            promo.usageCount >= promo.usageLimit
+                              ? 'text-red-500'
+                              : promo.usageCount >= promo.usageLimit * 0.8
+                                ? 'text-amber-600'
+                                : 'text-muted-foreground/60'
+                          }`}
+                          >
+                            {promo.usageCount}
+                            {' / '}
+                            {promo.usageLimit}
+                            {' usos'}
+                            {promo.usageCount >= promo.usageLimit ? ' — límite alcanzado' : ''}
                           </p>
                         )}
                       </div>

@@ -51,6 +51,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     targetCategoryId,
     comboPrice,
     comboItems,
+    usageLimit,
   } = body;
 
   if (!name?.trim()) {
@@ -93,6 +94,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       discountScope: discountScope ?? null,
       targetCategoryId: targetCategoryId ? Number(targetCategoryId) : null,
       comboPrice: comboPrice ? String(Number(comboPrice).toFixed(2)) : null,
+      usageLimit: usageLimit != null && usageLimit !== '' ? Number(usageLimit) : null,
     })
     .where(and(eq(promotionSchema.id, promoId), eq(promotionSchema.organizationId, orgId)))
     .returning();
