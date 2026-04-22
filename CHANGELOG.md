@@ -1,3 +1,10 @@
+## [1.56.2](https://github.com/rkromero/SaaS-POS/compare/v1.56.1...v1.56.2) (2026-04-22)
+
+
+### Bug Fixes
+
+* **promotions:** corregir posicion de bolita en toggle activo/acumulable ([db73e36](https://github.com/rkromero/SaaS-POS/commit/db73e36de00c0927bb00430969decaf70f969441))
+
 ## [1.56.1](https://github.com/rkromero/SaaS-POS/compare/v1.56.0...v1.56.1) (2026-04-22)
 
 
