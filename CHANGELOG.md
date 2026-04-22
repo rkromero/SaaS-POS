@@ -1,3 +1,10 @@
+# [1.54.0](https://github.com/rkromero/SaaS-POS/compare/v1.53.0...v1.54.0) (2026-04-22)
+
+
+### Features
+
+* **locations:** agregar configuración fiscal por local en UI ([b0c4689](https://github.com/rkromero/SaaS-POS/commit/b0c4689d5a5a9f60b91a47ec8d4f767d4ad213ce))
+
 # [1.53.0](https://github.com/rkromero/SaaS-POS/compare/v1.52.1...v1.53.0) (2026-04-22)
 
 
