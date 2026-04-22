@@ -18,9 +18,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   manifest: '/manifest.json',
   appleWebApp: {
-    capable: true,
     statusBarStyle: 'default',
     title: 'Nimbo',
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
   },
   icons: [
     {
