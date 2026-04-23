@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,9 +30,95 @@ const STEP_TITLES = [
 
 function formatCuit(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 10) return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+  if (digits.length <= 2) {
+    return digits;
+  }
+  if (digits.length <= 10) {
+    return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+  }
   return `${digits.slice(0, 2)}-${digits.slice(2, 10)}-${digits.slice(10)}`;
+}
+
+// Traduce errores de ARCA a mensajes accionables para el usuario
+function parseArcaError(msg: string): { title: string; detail: string } {
+  const m = msg?.toLowerCase() ?? '';
+
+  if (m.includes('certificate') || m.includes('certificado') || m.includes('cert')) {
+    return {
+      title: 'Certificado inválido',
+      detail: 'Verificá que copiaste o subiste el archivo .crt completo. Debe empezar con -----BEGIN CERTIFICATE-----.',
+    };
+  }
+  if (m.includes('private key') || m.includes('clave privada') || m.includes('key')) {
+    return {
+      title: 'Clave privada inválida',
+      detail: 'La clave privada (.key) no coincide con el certificado, o no es válida. Verificá que subiste el archivo correcto.',
+    };
+  }
+  if (m.includes('wsfe') || m.includes('web service')) {
+    return {
+      title: 'Servicio WSFE no habilitado',
+      detail: 'Debés adherir el servicio WSFE en ARCA → Administrador de Relaciones de Clave Fiscal → Adherir servicio.',
+    };
+  }
+  if (m.includes('cuit') || m.includes('contribuyente')) {
+    return {
+      title: 'CUIT no coincide',
+      detail: 'El CUIT ingresado no coincide con el del certificado. Verificá que el certificado fue generado para este CUIT.',
+    };
+  }
+  if (m.includes('punto de venta') || m.includes('pdv')) {
+    return {
+      title: 'Punto de venta no válido',
+      detail: 'El número de punto de venta no está registrado en ARCA. Registralo en ARCA → Facturación → Puntos de venta.',
+    };
+  }
+  if (m.includes('timeout') || m.includes('connection') || m.includes('conexión') || m.includes('network')) {
+    return {
+      title: 'Error de conectividad',
+      detail: 'No se pudo conectar con los servidores de ARCA. Verificá tu conexión a internet e intentá nuevamente.',
+    };
+  }
+
+  return {
+    title: 'Error de conexión con ARCA',
+    detail: msg || 'Error desconocido. Si el problema persiste, verificá que todos los datos son correctos.',
+  };
+}
+
+const PREREQS = [
+  {
+    icon: '🔑',
+    title: 'Clave Fiscal nivel 3',
+    desc: 'Necesitás acceder a arca.gob.ar con tu CUIT y Clave Fiscal.',
+  },
+  {
+    icon: '📋',
+    title: 'Punto de venta registrado',
+    desc: 'Un número de punto de venta activo en ARCA para facturación electrónica.',
+  },
+  {
+    icon: '📄',
+    title: 'Certificado digital',
+    desc: 'Archivo .crt y clave privada .key generados desde ARCA para el servicio WSFE.',
+  },
+];
+
+function useFileReader(setter: (v: string) => void) {
+  const ref = useRef<HTMLInputElement>(null);
+  const trigger = () => ref.current?.click();
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = ev => setter((ev.target?.result as string) ?? '');
+    reader.readAsText(file);
+    // Reset so the same file can be re-uploaded
+    e.target.value = '';
+  };
+  return { ref, trigger, onChange };
 }
 
 export const ArcaWizard = () => {
@@ -42,6 +128,7 @@ export const ArcaWizard = () => {
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
+  const [showPrereqs, setShowPrereqs] = useState(false);
 
   const [cuit, setCuit] = useState('');
   const [razonSocial, setRazonSocial] = useState('');
@@ -53,6 +140,9 @@ export const ArcaWizard = () => {
   const [isActive, setIsActive] = useState(false);
   const [hasCert, setHasCert] = useState(false);
   const [hasPrivateKey, setHasPrivateKey] = useState(false);
+
+  const certUpload = useFileReader(setCert);
+  const keyUpload = useFileReader(setPrivateKey);
 
   useEffect(() => {
     fetch('/api/arca/config')
@@ -80,7 +170,11 @@ export const ArcaWizard = () => {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          cuit, razonSocial, puntoVenta, tipoContribuyente, ambiente,
+          cuit,
+          razonSocial,
+          puntoVenta,
+          tipoContribuyente,
+          ambiente,
           ...(cert ? { cert } : {}),
           ...(privateKey ? { privateKey } : {}),
           isActive,
@@ -125,26 +219,125 @@ export const ArcaWizard = () => {
 
   const handleActivate = async () => {
     const ok = await save({ isActive: true });
-    if (ok) setIsActive(true);
+    if (ok) {
+      setIsActive(true);
+    }
   };
 
   const handleDeactivate = async () => {
     const ok = await save({ isActive: false });
-    if (ok) setIsActive(false);
+    if (ok) {
+      setIsActive(false);
+    }
   };
 
   const nextStep = async () => {
     const ok = await save();
-    if (ok) setStep(s => (s + 1) as Step);
+    if (ok) {
+      setStep(s => (s + 1) as Step);
+    }
   };
 
   if (!loaded) {
     return <div className="space-y-3">{[1, 2, 3].map(k => <div key={k} className="h-16 animate-pulse rounded-lg bg-muted" />)}</div>;
   }
 
+  const parsedError = testResult && !testResult.ok ? parseArcaError(testResult.message) : null;
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      {/* Progress */}
+
+      {/* Panel de estado si ya está activo */}
+      {isActive && (
+        <div className="space-y-3 rounded-xl border border-green-200 bg-green-50 p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-full bg-green-100">
+              <span className="text-lg">✓</span>
+            </div>
+            <div>
+              <p className="font-semibold text-green-800">ARCA activo y funcionando</p>
+              <p className="text-sm text-green-700">
+                {razonSocial}
+                {' '}
+                · CUIT
+                {cuit}
+                {' '}
+                · Punto de venta
+                {puntoVenta}
+                {' '}
+                ·
+                {ambiente === 'production' ? 'Producción' : 'Homologación'}
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-green-700">
+            En el POS aparece la opción "Emitir factura electrónica" en cada venta. Usá el wizard de abajo para modificar la configuración.
+          </p>
+        </div>
+      )}
+
+      {/* Checklist de prereqs colapsable */}
+      <div className="rounded-lg border border-amber-200 bg-amber-50">
+        <button
+          type="button"
+          onClick={() => setShowPrereqs(v => !v)}
+          className="flex w-full items-center justify-between px-4 py-3 text-left"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-base">📋</span>
+            <span className="text-sm font-medium text-amber-800">¿Primera vez? Revisá lo que necesitás antes de empezar</span>
+          </div>
+          <span className="text-sm text-amber-600">{showPrereqs ? '▲' : '▼'}</span>
+        </button>
+        {showPrereqs && (
+          <div className="space-y-3 border-t border-amber-200 px-4 py-3">
+            {PREREQS.map(p => (
+              <div key={p.title} className="flex gap-3">
+                <span className="shrink-0 text-lg">{p.icon}</span>
+                <div>
+                  <p className="text-sm font-medium text-amber-900">{p.title}</p>
+                  <p className="text-xs text-amber-700">{p.desc}</p>
+                </div>
+              </div>
+            ))}
+            <div className="space-y-1 rounded-md bg-amber-100 px-3 py-2 text-xs text-amber-800">
+              <p className="font-medium">Cómo generar el certificado digital en ARCA:</p>
+              <ol className="list-inside list-decimal space-y-0.5 text-amber-700">
+                <li>
+                  Ingresá a
+                  <strong>arca.gob.ar</strong>
+                  {' '}
+                  con Clave Fiscal nivel 3
+                </li>
+                <li>
+                  Menú:
+                  <strong>Servicios Interactivos → Administrador de Relaciones de Clave Fiscal</strong>
+                </li>
+                <li>
+                  Adherí el servicio
+                  <strong>"wsfe — Web Services Facturación Electrónica"</strong>
+                </li>
+                <li>
+                  En la sección
+                  <strong>Certificados</strong>
+                  , generá uno nuevo con alias descriptivo (ej: "mi-punto-de-venta")
+                </li>
+                <li>
+                  Descargá los archivos
+                  <strong>.crt</strong>
+                  {' '}
+                  y
+                  <strong>.key</strong>
+                  {' '}
+                  — los necesitás en el Paso 3
+                </li>
+              </ol>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Progress steps */}
       <div className="flex items-center gap-2">
         {([1, 2, 3, 4] as Step[]).map(s => (
           <div key={s} className="flex items-center gap-2">
@@ -159,21 +352,13 @@ export const ArcaWizard = () => {
                     : 'bg-muted text-muted-foreground'
               }`}
             >
-              {s}
+              {s < step ? '✓' : s}
             </button>
             {s < 4 && <div className={`h-0.5 w-10 ${s < step ? 'bg-primary/40' : 'bg-muted'}`} />}
           </div>
         ))}
         <span className="ml-2 text-sm font-medium">{STEP_TITLES[step - 1]}</span>
       </div>
-
-      {/* Estado actual */}
-      {isActive && (
-        <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-700">
-          <span className="size-2 rounded-full bg-green-500" />
-          ARCA activo — emitiendo facturas electrónicas
-        </div>
-      )}
 
       {/* Step 1: Datos fiscales */}
       {step === 1 && (
@@ -200,8 +385,8 @@ export const ArcaWizard = () => {
             <Label>Tipo de contribuyente *</Label>
             <div className="mt-2 grid grid-cols-2 gap-3">
               {[
-                { value: 'monotributo', label: 'Monotributista', desc: 'Emite Factura C' },
-                { value: 'responsable_inscripto', label: 'Resp. Inscripto', desc: 'Emite Factura A y B' },
+                { value: 'monotributo', label: 'Monotributista', desc: 'Emite Factura C sin IVA discriminado' },
+                { value: 'responsable_inscripto', label: 'Resp. Inscripto', desc: 'Emite Factura A (con CUIT) y B (consumidor final) con IVA' },
               ].map(opt => (
                 <button
                   key={opt.value}
@@ -213,7 +398,7 @@ export const ArcaWizard = () => {
                       : 'hover:bg-muted'
                   }`}
                 >
-                  <div className="font-medium text-sm">{opt.label}</div>
+                  <div className="text-sm font-medium">{opt.label}</div>
                   <div className="text-xs text-muted-foreground">{opt.desc}</div>
                 </button>
               ))}
@@ -233,9 +418,22 @@ export const ArcaWizard = () => {
       {/* Step 2: Punto de venta */}
       {step === 2 && (
         <section className="space-y-4 rounded-lg border bg-card p-5">
-          <div className="rounded-lg bg-muted p-4 text-sm space-y-1">
+          <div className="space-y-2 rounded-lg bg-muted p-4 text-sm">
             <p className="font-medium">¿Qué es el punto de venta?</p>
-            <p className="text-muted-foreground">Es un número que ARCA asigna a cada terminal o sucursal que emite facturas electrónicas. Podés registrar uno en <strong>ARCA {'>'} Facturación {'>'} Puntos de venta</strong>.</p>
+            <p className="text-muted-foreground">
+              Es un número que identifica tu terminal de facturación en ARCA. Si todavía no tenés uno,
+              registralo en
+              {' '}
+              <strong>arca.gob.ar → Facturación → Puntos de venta → Administración de puntos de venta</strong>
+              .
+            </p>
+            <p className="text-muted-foreground">
+              Elegí el tipo
+              {' '}
+              <strong>"WebServices"</strong>
+              {' '}
+              al registrarlo — es el que corresponde a facturación electrónica por sistema.
+            </p>
           </div>
           <div>
             <Label>Número de punto de venta *</Label>
@@ -248,7 +446,7 @@ export const ArcaWizard = () => {
               placeholder="Ej: 1"
               className="w-32 font-mono"
             />
-            <p className="mt-1 text-xs text-muted-foreground">Usualmente es el número 1 si es tu primer punto de venta</p>
+            <p className="mt-1 text-xs text-muted-foreground">Si es tu primer punto de venta, probablemente sea el número 1</p>
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex gap-2">
@@ -267,53 +465,14 @@ export const ArcaWizard = () => {
       {/* Step 3: Certificado digital */}
       {step === 3 && (
         <section className="space-y-4 rounded-lg border bg-card p-5">
-          <div className="rounded-lg bg-muted p-4 text-sm space-y-2">
-            <p className="font-medium">Cómo obtener el certificado</p>
-            <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-              <li>Ingresá a <strong>arca.gob.ar</strong> con Clave Fiscal nivel 3</li>
-              <li>Ir a <strong>Servicios Interactivos {'>'} Administrador de Relaciones de Clave Fiscal</strong></li>
-              <li>Adherir el servicio <strong>WSFE</strong> (Web Services Facturación)</li>
-              <li>Generar un certificado digital desde la sección de certificados</li>
-              <li>Descargar el archivo <strong>.crt</strong> (certificado) y la <strong>clave privada</strong></li>
-            </ol>
-          </div>
 
-          <div>
-            <Label>
-              Certificado (.crt)
-              {hasCert && <span className="ml-2 text-xs text-green-600">✓ guardado</span>}
-            </Label>
-            <p className="mb-1 text-xs text-muted-foreground">Pegá el contenido del archivo .crt (comienza con -----BEGIN CERTIFICATE-----)</p>
-            <textarea
-              value={cert}
-              onChange={e => setCert(e.target.value)}
-              placeholder={hasCert ? '(certificado guardado — pegá uno nuevo para actualizarlo)' : '-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----'}
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 font-mono text-xs"
-              rows={5}
-            />
-          </div>
-
-          <div>
-            <Label>
-              Clave privada (.key)
-              {hasPrivateKey && <span className="ml-2 text-xs text-green-600">✓ guardada</span>}
-            </Label>
-            <p className="mb-1 text-xs text-muted-foreground">Pegá el contenido de tu clave privada (comienza con -----BEGIN RSA PRIVATE KEY----- o -----BEGIN PRIVATE KEY-----)</p>
-            <textarea
-              value={privateKey}
-              onChange={e => setPrivateKey(e.target.value)}
-              placeholder={hasPrivateKey ? '(clave guardada — pegá una nueva para actualizarla)' : '-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----'}
-              className="mt-1 w-full rounded-md border bg-background px-3 py-2 font-mono text-xs"
-              rows={5}
-            />
-          </div>
-
+          {/* Ambiente primero — afecta las instrucciones */}
           <div>
             <Label>Ambiente</Label>
             <div className="mt-2 grid grid-cols-2 gap-3">
               {[
-                { value: 'sandbox', label: 'Homologación (pruebas)', desc: 'Para testear sin emitir facturas reales' },
-                { value: 'production', label: 'Producción', desc: 'Facturas reales con validez fiscal' },
+                { value: 'sandbox', label: 'Homologación (pruebas)', desc: 'Para testear el circuito. Usa certificados de prueba de ARCA.' },
+                { value: 'production', label: 'Producción', desc: 'Facturas reales con validez fiscal ante ARCA.' },
               ].map(opt => (
                 <button
                   key={opt.value}
@@ -325,11 +484,92 @@ export const ArcaWizard = () => {
                       : 'hover:bg-muted'
                   }`}
                 >
-                  <div className="font-medium text-sm">{opt.label}</div>
+                  <div className="text-sm font-medium">{opt.label}</div>
                   <div className="text-xs text-muted-foreground">{opt.desc}</div>
                 </button>
               ))}
             </div>
+            {ambiente === 'sandbox' && (
+              <p className="mt-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700">
+                En homologación podés usar certificados de prueba que ARCA provee. Las facturas generadas no tienen validez fiscal.
+              </p>
+            )}
+          </div>
+
+          {/* Certificado (.crt) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>
+                Certificado (.crt)
+                {hasCert && <span className="ml-2 text-xs font-normal text-green-600">✓ guardado</span>}
+              </Label>
+              <div>
+                <input
+                  ref={certUpload.ref}
+                  type="file"
+                  accept=".crt,.pem,.cer"
+                  className="hidden"
+                  onChange={certUpload.onChange}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={certUpload.trigger}
+                  className="h-7 text-xs"
+                >
+                  📂 Subir archivo .crt
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Subí el archivo .crt directamente, o pegá el contenido abajo (empieza con -----BEGIN CERTIFICATE-----)
+            </p>
+            <textarea
+              value={cert}
+              onChange={e => setCert(e.target.value)}
+              placeholder={hasCert ? '(certificado guardado — subí o pegá uno nuevo para actualizarlo)' : '-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----'}
+              className="w-full rounded-md border bg-background px-3 py-2 font-mono text-xs"
+              rows={4}
+            />
+          </div>
+
+          {/* Clave privada (.key) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>
+                Clave privada (.key)
+                {hasPrivateKey && <span className="ml-2 text-xs font-normal text-green-600">✓ guardada</span>}
+              </Label>
+              <div>
+                <input
+                  ref={keyUpload.ref}
+                  type="file"
+                  accept=".key,.pem"
+                  className="hidden"
+                  onChange={keyUpload.onChange}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={keyUpload.trigger}
+                  className="h-7 text-xs"
+                >
+                  📂 Subir archivo .key
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Subí el archivo .key directamente, o pegá el contenido abajo
+            </p>
+            <textarea
+              value={privateKey}
+              onChange={e => setPrivateKey(e.target.value)}
+              placeholder={hasPrivateKey ? '(clave guardada — subí o pegá una nueva para actualizarla)' : '-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----'}
+              className="w-full rounded-md border bg-background px-3 py-2 font-mono text-xs"
+              rows={4}
+            />
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
@@ -350,7 +590,7 @@ export const ArcaWizard = () => {
       {step === 4 && (
         <section className="space-y-4 rounded-lg border bg-card p-5">
           <p className="text-sm text-muted-foreground">
-            Probá la conexión con ARCA para verificar que el certificado y los datos son correctos antes de activar.
+            Probá la conexión con ARCA para verificar que el certificado y los datos son correctos.
           </p>
 
           <Button
@@ -359,17 +599,37 @@ export const ArcaWizard = () => {
             disabled={testing}
             className="w-full"
           >
-            {testing ? 'Probando conexión...' : '🔌 Probar conexión con ARCA'}
+            {testing ? 'Conectando con ARCA...' : '🔌 Probar conexión con ARCA'}
           </Button>
 
-          {testResult && (
-            <div className={`rounded-lg border p-3 text-sm ${
-              testResult.ok
-                ? 'border-green-200 bg-green-50 text-green-700'
-                : 'border-red-200 bg-red-50 text-red-700'
-            }`}>
-              {testResult.ok ? '✓ ' : '✗ '}
-              {testResult.message}
+          {testResult?.ok && (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+              ✓
+              {' '}
+              {testResult.message || 'Conexión exitosa. Los datos son correctos.'}
+            </div>
+          )}
+
+          {testResult && !testResult.ok && parsedError && (
+            <div className="space-y-1.5 rounded-lg border border-red-200 bg-red-50 p-3">
+              <p className="text-sm font-semibold text-red-700">
+                ✗
+                {parsedError.title}
+              </p>
+              <p className="text-xs text-red-600">{parsedError.detail}</p>
+              <div className="border-t border-red-200 pt-1.5 text-xs text-red-500">
+                ¿Sigue fallando? Revisá el
+                {' '}
+                <button
+                  type="button"
+                  onClick={() => setStep(3)}
+                  className="underline hover:no-underline"
+                >
+                  Paso 3 (certificados)
+                </button>
+                {' '}
+                y verificá que el CUIT y el punto de venta en ARCA sean los correctos.
+              </div>
             </div>
           )}
 
@@ -378,7 +638,7 @@ export const ArcaWizard = () => {
               ? (
                   <div className="space-y-3">
                     <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-                      ✓ ARCA está activo. Las ventas podrán emitir factura electrónica.
+                      ✓ ARCA está activo. Las ventas en el POS incluyen la opción de emitir factura electrónica.
                     </div>
                     <Button
                       variant="outline"
@@ -393,17 +653,17 @@ export const ArcaWizard = () => {
               : (
                   <div className="space-y-3">
                     <p className="text-sm text-muted-foreground">
-                      Una vez activado, al registrar ventas en el POS aparecerá la opción de emitir factura electrónica.
+                      Una vez activado, en cada venta del POS aparecerá la opción de emitir factura electrónica.
                     </p>
                     <Button
                       onClick={handleActivate}
                       disabled={saving || !testResult?.ok}
                       className="w-full"
                     >
-                      {saving ? 'Activando...' : '✓ Activar ARCA'}
+                      {saving ? 'Activando...' : '✓ Activar facturación ARCA'}
                     </Button>
                     {!testResult?.ok && (
-                      <p className="text-center text-xs text-muted-foreground">Probá la conexión primero</p>
+                      <p className="text-center text-xs text-muted-foreground">Probá la conexión primero para activar</p>
                     )}
                   </div>
                 )}
