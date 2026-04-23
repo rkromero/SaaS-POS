@@ -1292,22 +1292,6 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
             </div>
           </div>
 
-          {/* Lista de precio + Numeración (próximamente) */}
-          <div className="grid shrink-0 grid-cols-2 gap-2 border-b px-3 py-2">
-            <div className="space-y-0.5">
-              <p className="text-xs text-muted-foreground">Lista de precio</p>
-              <select disabled className="h-8 w-full cursor-not-allowed rounded border border-input bg-background px-2 text-xs opacity-60">
-                <option>General</option>
-              </select>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-xs text-muted-foreground">Numeración</p>
-              <select disabled className="h-8 w-full cursor-not-allowed rounded border border-input bg-background px-2 text-xs opacity-60">
-                <option>Ventas —</option>
-              </select>
-            </div>
-          </div>
-
           {/* Cliente — siempre visible */}
           <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2">
             <span className="shrink-0 text-sm text-muted-foreground">Cliente</span>
