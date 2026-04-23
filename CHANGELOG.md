@@ -1,3 +1,10 @@
+## [1.65.2](https://github.com/rkromero/SaaS-POS/compare/v1.65.1...v1.65.2) (2026-04-23)
+
+
+### Bug Fixes
+
+* **customers:** búsqueda de teléfono por substring en lugar de sufijo ([d2275c6](https://github.com/rkromero/SaaS-POS/commit/d2275c66dfc6bf51452a4c9caa4b723ea5560d5a))
+
 ## [1.65.1](https://github.com/rkromero/SaaS-POS/compare/v1.65.0...v1.65.1) (2026-04-23)
 
 
