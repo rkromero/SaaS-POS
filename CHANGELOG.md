@@ -1,3 +1,10 @@
+## [1.62.1](https://github.com/rkromero/SaaS-POS/compare/v1.62.0...v1.62.1) (2026-04-23)
+
+
+### Bug Fixes
+
+* **pos:** eliminar controles de Lista de precio y Numeración obsoletos ([f0d6d07](https://github.com/rkromero/SaaS-POS/commit/f0d6d0766d87f6ad2421ff581bc7d806b3fb80c9))
+
 # [1.62.0](https://github.com/rkromero/SaaS-POS/compare/v1.61.2...v1.62.0) (2026-04-23)
 
 
