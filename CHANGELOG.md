@@ -1,3 +1,10 @@
+## [1.69.1](https://github.com/rkromero/SaaS-POS/compare/v1.69.0...v1.69.1) (2026-04-23)
+
+
+### Bug Fixes
+
+* **arca:** corregir timeout en generate-csr por generación sincrónica RSA ([ae8b7f7](https://github.com/rkromero/SaaS-POS/commit/ae8b7f7710b241ba0c70a1706a863c71f7c43f74))
+
 # [1.69.0](https://github.com/rkromero/SaaS-POS/compare/v1.68.1...v1.69.0) (2026-04-23)
 
 
