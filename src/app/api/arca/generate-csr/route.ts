@@ -1,8 +1,10 @@
+import crypto from 'node:crypto';
+
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import * as forge from 'node-forge';
 
-export const maxDuration = 60;
+export const maxDuration = 30;
 
 export async function POST(req: Request) {
   const { orgId, orgRole } = await auth();
@@ -17,29 +19,41 @@ export async function POST(req: Request) {
 
   const cuitClean = cuit.replace(/\D/g, '');
 
-  // Async key generation — the sync version blocks the event loop and times out on Vercel
-  const keys = await new Promise<forge.pki.KeyPair>((resolve, reject) => {
-    forge.pki.rsa.generateKeyPair({ bits: 2048, workers: -1 }, (err, keypair) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(keypair);
-      }
-    });
-  });
+  // Node native crypto (OpenSSL) — async, fast, no Web Workers needed
+  const { privateKey: nativeKey } = await new Promise<crypto.KeyPairKeyObjectResult>(
+    (resolve, reject) => {
+      crypto.generateKeyPair('rsa', { modulusLength: 2048 }, (err, pub, priv) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({ privateKey: priv, publicKey: pub });
+        }
+      });
+    },
+  );
+
+  // Export as PKCS1 PEM so forge can parse it
+  const privateKeyPem = nativeKey.export({ type: 'pkcs1', format: 'pem' }) as string;
+
+  // Use forge only for CSR creation (fast once the key is ready)
+  const forgeKey = forge.pki.privateKeyFromPem(privateKeyPem);
+  const forgePublicKey = forge.pki.setRsaPublicKey(
+    (forgeKey as forge.pki.rsa.PrivateKey).n,
+    (forgeKey as forge.pki.rsa.PrivateKey).e,
+  );
 
   const csr = forge.pki.createCertificationRequest();
-  csr.publicKey = keys.publicKey;
+  csr.publicKey = forgePublicKey;
   csr.setSubject([
     { name: 'countryName', value: 'AR' },
     { name: 'organizationName', value: razonSocial },
     { shortName: 'serialNumber', value: `CUIT ${cuitClean}` },
     { name: 'commonName', value: alias },
   ]);
-  csr.sign(keys.privateKey as forge.pki.rsa.PrivateKey, forge.md.sha256.create());
+  csr.sign(forgeKey as forge.pki.rsa.PrivateKey, forge.md.sha256.create());
 
   return NextResponse.json({
-    privateKey: forge.pki.privateKeyToPem(keys.privateKey),
+    privateKey: privateKeyPem,
     csr: forge.pki.certificationRequestToPem(csr),
   });
 }
