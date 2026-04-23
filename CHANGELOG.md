@@ -1,3 +1,10 @@
+# [1.65.0](https://github.com/rkromero/SaaS-POS/compare/v1.64.0...v1.65.0) (2026-04-23)
+
+
+### Features
+
+* **pos:** selector de cliente con búsqueda por nombre/teléfono y creación rápida ([a6f3f18](https://github.com/rkromero/SaaS-POS/commit/a6f3f18a792eee0e0034185f6940db3538dd100c))
+
 # [1.64.0](https://github.com/rkromero/SaaS-POS/compare/v1.63.0...v1.64.0) (2026-04-23)
 
 
