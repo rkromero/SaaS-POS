@@ -1,3 +1,15 @@
+# [1.64.0](https://github.com/rkromero/SaaS-POS/compare/v1.63.0...v1.64.0) (2026-04-23)
+
+
+### Bug Fixes
+
+* **pos:** agregar margen izquierdo para evitar superposición con botón de colapso del sidebar ([cb585d2](https://github.com/rkromero/SaaS-POS/commit/cb585d2cfabaea88e973e9d79a04df7e5a79b968))
+
+
+### Features
+
+* **pos:** mover email/whatsapp al sticky bottom y eliminar métodos de pago del panel principal ([45be68a](https://github.com/rkromero/SaaS-POS/commit/45be68acb59da2ed9b4bbff391bddbf73e7e4460))
+
 # [1.63.0](https://github.com/rkromero/SaaS-POS/compare/v1.62.1...v1.63.0) (2026-04-23)
 
 
