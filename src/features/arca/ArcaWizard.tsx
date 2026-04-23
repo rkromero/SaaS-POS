@@ -86,24 +86,6 @@ function parseArcaError(msg: string): { title: string; detail: string } {
   };
 }
 
-const PREREQS = [
-  {
-    icon: '🔑',
-    title: 'Clave Fiscal nivel 3',
-    desc: 'Necesitás acceder a arca.gob.ar con tu CUIT y Clave Fiscal.',
-  },
-  {
-    icon: '📋',
-    title: 'Punto de venta registrado',
-    desc: 'Un número de punto de venta activo en ARCA para facturación electrónica.',
-  },
-  {
-    icon: '📄',
-    title: 'Certificado digital',
-    desc: 'Archivo .crt y clave privada .key generados desde ARCA para el servicio WSFE.',
-  },
-];
-
 function useFileReader(setter: (v: string) => void) {
   const ref = useRef<HTMLInputElement>(null);
   const trigger = () => ref.current?.click();
@@ -290,49 +272,100 @@ export const ArcaWizard = () => {
           <span className="text-sm text-amber-600">{showPrereqs ? '▲' : '▼'}</span>
         </button>
         {showPrereqs && (
-          <div className="space-y-3 border-t border-amber-200 px-4 py-3">
-            {PREREQS.map(p => (
-              <div key={p.title} className="flex gap-3">
-                <span className="shrink-0 text-lg">{p.icon}</span>
-                <div>
-                  <p className="text-sm font-medium text-amber-900">{p.title}</p>
-                  <p className="text-xs text-amber-700">{p.desc}</p>
-                </div>
-              </div>
-            ))}
-            <div className="space-y-1 rounded-md bg-amber-100 px-3 py-2 text-xs text-amber-800">
-              <p className="font-medium">Cómo generar el certificado digital en ARCA:</p>
-              <ol className="list-inside list-decimal space-y-0.5 text-amber-700">
+          <div className="space-y-4 border-t border-amber-200 p-4">
+
+            {/* Tarea 1: Habilitar WSFE */}
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-amber-900">1. Habilitar el servicio de facturación en ARCA</p>
+              <p className="text-xs text-amber-700">
+                Esto le dice a ARCA que tu CUIT está autorizado a usar la API de facturación electrónica.
+              </p>
+              <ol className="ml-1 list-inside list-decimal space-y-1 text-xs text-amber-700">
                 <li>
                   Ingresá a
                   <strong>arca.gob.ar</strong>
                   {' '}
-                  con Clave Fiscal nivel 3
+                  con tu CUIT y Clave Fiscal (nivel 3)
                 </li>
                 <li>
-                  Menú:
-                  <strong>Servicios Interactivos → Administrador de Relaciones de Clave Fiscal</strong>
+                  En el buscador del portal escribí
+                  <strong>"Administrador de Relaciones"</strong>
                 </li>
                 <li>
-                  Adherí el servicio
-                  <strong>"wsfe — Web Services Facturación Electrónica"</strong>
+                  Abrí
+                  <strong>"Administrador de Relaciones de Clave Fiscal"</strong>
                 </li>
+                <li>Seleccioná tu CUIT como representado (o el de tu empresa)</li>
                 <li>
-                  En la sección
-                  <strong>Certificados</strong>
-                  , generá uno nuevo con alias descriptivo (ej: "mi-punto-de-venta")
-                </li>
-                <li>
-                  Descargá los archivos
-                  <strong>.crt</strong>
+                  Buscá el servicio
+                  <strong>"wsfev1"</strong>
                   {' '}
-                  y
-                  <strong>.key</strong>
-                  {' '}
-                  — los necesitás en el Paso 3
+                  en el listado y hacé clic en
+                  <strong>Adherir</strong>
                 </li>
               </ol>
+              <p className="text-xs italic text-amber-600">
+                Si no encontrás "wsfev1" en el listado, buscá "Facturación Electrónica" — el nombre exacto puede variar según la versión del portal.
+              </p>
             </div>
+
+            {/* Tarea 2: Registrar punto de venta */}
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-amber-900">2. Registrar un punto de venta tipo WebServices</p>
+              <ol className="ml-1 list-inside list-decimal space-y-1 text-xs text-amber-700">
+                <li>
+                  En ARCA, buscá
+                  <strong>"Administración de Puntos de Venta"</strong>
+                </li>
+                <li>
+                  Creá un nuevo punto de venta con tipo
+                  <strong>"WebServices"</strong>
+                </li>
+                <li>Anotá el número asignado — lo necesitás en el Paso 2 de este wizard</li>
+              </ol>
+            </div>
+
+            {/* Tarea 3: Certificado */}
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-amber-900">3. Obtener el certificado digital (.crt + .key)</p>
+              <p className="text-xs text-amber-700">
+                El certificado es lo que le permite al sistema identificarse ante ARCA. Se genera una clave privada (.key) y ARCA firma el certificado (.crt).
+              </p>
+              <p className="text-xs text-amber-700">
+                Hay dos formas de obtenerlo:
+              </p>
+              <div className="space-y-2 text-xs text-amber-700">
+                <div className="rounded bg-amber-100 px-2 py-1.5">
+                  <p className="font-medium text-amber-800">Opción A — Desde ARCA (más fácil)</p>
+                  <ol className="ml-1 mt-1 list-inside list-decimal space-y-0.5">
+                    <li>
+                      En ARCA, buscá
+                      <strong>"Acceso Web Services"</strong>
+                      {' '}
+                      o
+                      <strong>"Certificados Digitales"</strong>
+                    </li>
+                    <li>Generá un nuevo certificado con un nombre descriptivo (ej: "mi-pos")</li>
+                    <li>
+                      Descargá el
+                      <strong>.crt</strong>
+                      {' '}
+                      y el
+                      <strong>.key</strong>
+                      {' '}
+                      que genera ARCA
+                    </li>
+                  </ol>
+                </div>
+                <div className="rounded bg-amber-100 px-2 py-1.5">
+                  <p className="font-medium text-amber-800">Opción B — Con tu contador</p>
+                  <p className="mt-0.5">
+                    Si no encontrás la opción en el portal, pedile a tu contador que te genere los archivos .crt y .key para el servicio WSFE. Es un trámite estándar.
+                  </p>
+                </div>
+              </div>
+            </div>
+
           </div>
         )}
       </div>
