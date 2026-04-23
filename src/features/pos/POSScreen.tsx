@@ -1,10 +1,11 @@
 'use client';
 
-import { Maximize2, Minimize2, MoreHorizontal, Package, Plus, Printer, Scan, Settings, ShoppingBasket, Star, UserPlus, WifiOff, X } from 'lucide-react';
+import { ChevronDown, Maximize2, Minimize2, MoreHorizontal, Package, Plus, Printer, Scan, Settings, ShoppingBasket, Star, UserPlus, WifiOff, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
@@ -1064,15 +1065,23 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
           {/* Location + search bar */}
           <div className="flex flex-wrap gap-2 pt-0.5">
             {locations.length > 1 && (
-              <select
-                value={selectedLocationId}
-                onChange={e => setSelectedLocationId(e.target.value)}
-                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-              >
-                {locations.map(loc => (
-                  <option key={loc.id} value={loc.id}>{loc.name}</option>
-                ))}
-              </select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-9 gap-1.5">
+                    {locations.find(l => String(l.id) === selectedLocationId)?.name ?? 'Sucursal'}
+                    <ChevronDown className="size-4 opacity-60" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuRadioGroup value={selectedLocationId} onValueChange={setSelectedLocationId}>
+                    {locations.map(loc => (
+                      <DropdownMenuRadioItem key={loc.id} value={String(loc.id)}>
+                        {loc.name}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
 
             <div className="relative flex-1">
@@ -1087,16 +1096,26 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
               />
             </div>
 
-            <select
-              value={filterCategory}
-              onChange={e => setFilterCategory(e.target.value)}
-              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-            >
-              <option value="">Todas las categorías</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9 gap-1.5">
+                  {filterCategory
+                    ? (categories.find(c => String(c.id) === filterCategory)?.name ?? 'Categoría')
+                    : 'Todas las categorías'}
+                  <ChevronDown className="size-4 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuRadioGroup value={filterCategory} onValueChange={setFilterCategory}>
+                  <DropdownMenuRadioItem value="">Todas las categorías</DropdownMenuRadioItem>
+                  {categories.map(cat => (
+                    <DropdownMenuRadioItem key={cat.id} value={String(cat.id)}>
+                      {cat.name}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Botón fullscreen */}
             <Button
