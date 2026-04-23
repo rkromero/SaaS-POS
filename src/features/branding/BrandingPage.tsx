@@ -1,10 +1,14 @@
 'use client';
 
+import { useLocale } from 'next-intl';
+import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { usePathname, useRouter } from '@/libs/i18nNavigation';
+import { AppConfig } from '@/utils/AppConfig';
 
 type BrandingData = {
   logoUrl: string | null;
@@ -19,6 +23,11 @@ type BrandingData = {
 };
 
 export const BrandingPage = ({ isPaidPlan }: { isPaidPlan: boolean }) => {
+  const { theme, setTheme } = useTheme();
+  const router = useRouter();
+  const pathname = usePathname();
+  const locale = useLocale();
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -87,17 +96,68 @@ export const BrandingPage = ({ isPaidPlan }: { isPaidPlan: boolean }) => {
     }
   };
 
+  const appearanceSection = (
+    <section className="rounded-lg border bg-card p-5">
+      <h2 className="mb-4 font-semibold">Apariencia e idioma</h2>
+      <div className="space-y-5">
+        {/* Dark / light mode */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-foreground">Modo oscuro</p>
+            <p className="text-xs text-muted-foreground">Cambiá entre tema claro y oscuro</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className={`relative h-5 w-9 overflow-hidden rounded-full transition-colors focus:outline-none ${
+              theme === 'dark' ? 'bg-primary' : 'bg-muted-foreground/30'
+            }`}
+          >
+            <span
+              className={`absolute left-0.5 top-0.5 size-4 rounded-full bg-white shadow-sm transition-transform ${
+                theme === 'dark' ? 'translate-x-4' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Language */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-foreground">Idioma</p>
+            <p className="text-xs text-muted-foreground">Idioma de la interfaz</p>
+          </div>
+          <select
+            value={locale}
+            onChange={(e) => {
+              router.push(pathname, { locale: e.target.value });
+              router.refresh();
+            }}
+            className="h-8 rounded-md border border-input bg-background px-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+          >
+            {AppConfig.locales.map(l => (
+              <option key={l.id} value={l.id}>{l.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </section>
+  );
+
   if (!isPaidPlan) {
     return (
-      <div className="mx-auto max-w-lg rounded-lg border bg-card p-8 text-center">
-        <div className="mb-3 text-4xl">🎨</div>
-        <h2 className="mb-2 text-lg font-bold">Personalización de marca</h2>
-        <p className="mb-4 text-sm text-muted-foreground">
-          Agregá tu logo, colores y datos en los tickets con un plan de pago.
-        </p>
-        <Button onClick={() => window.location.href = '/dashboard/billing'}>
-          Ver planes
-        </Button>
+      <div className="mx-auto max-w-2xl space-y-6">
+        {appearanceSection}
+        <div className="rounded-lg border bg-card p-8 text-center">
+          <div className="mb-3 text-4xl">🎨</div>
+          <h2 className="mb-2 text-lg font-bold">Personalización de marca</h2>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Agregá tu logo, colores y datos en los tickets con un plan de pago.
+          </p>
+          <Button onClick={() => window.location.href = '/dashboard/settings?tab=plans'}>
+            Ver planes
+          </Button>
+        </div>
       </div>
     );
   }
@@ -108,6 +168,7 @@ export const BrandingPage = ({ isPaidPlan }: { isPaidPlan: boolean }) => {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      {appearanceSection}
 
       {/* Logo y Marca */}
       <section className="rounded-lg border bg-card p-5">
@@ -133,7 +194,7 @@ export const BrandingPage = ({ isPaidPlan }: { isPaidPlan: boolean }) => {
             />
             {logoUrl && (
               <div className="mt-2 inline-flex items-center gap-2 rounded border bg-muted p-2">
-                <img src={logoUrl} alt="Preview" className="h-10 max-w-[8rem] object-contain" onError={e => (e.currentTarget.style.display = 'none')} />
+                <img src={logoUrl} alt="Preview" className="h-10 max-w-32 object-contain" onError={e => (e.currentTarget.style.display = 'none')} />
                 <span className="text-xs text-muted-foreground">Preview</span>
               </div>
             )}
