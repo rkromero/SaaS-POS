@@ -1,3 +1,10 @@
+# [1.59.0](https://github.com/rkromero/SaaS-POS/compare/v1.58.0...v1.59.0) (2026-04-23)
+
+
+### Features
+
+* **settings:** mover idioma y modo oscuro a personalizacion, limpiar sidebar ([6c5767d](https://github.com/rkromero/SaaS-POS/commit/6c5767db7f923f2c0a443740a70b7e1d42829fd1))
+
 # [1.58.0](https://github.com/rkromero/SaaS-POS/compare/v1.57.0...v1.58.0) (2026-04-22)
 
 
