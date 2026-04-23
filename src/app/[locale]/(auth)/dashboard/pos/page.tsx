@@ -17,7 +17,9 @@ export default async function POSPage() {
   }
 
   return (
-    <div className="h-full">
+    // Escapa el padding del wrapper del dashboard (px-4 pb-16 pt-6 sm:px-6)
+    // para que el POS ocupe el viewport completo y las tabs queden al fondo.
+    <div className="-mx-4 -mb-16 -mt-6 h-screen overflow-hidden sm:-mx-6">
       <POSScreen orgName={orgName} />
     </div>
   );
