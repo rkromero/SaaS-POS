@@ -1113,7 +1113,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
           </div>
 
           {/* Product grid */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto pt-2">
             {loading
               ? <p className="text-sm text-muted-foreground">Cargando productos...</p>
               : (
