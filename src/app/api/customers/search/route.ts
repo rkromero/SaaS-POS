@@ -24,8 +24,8 @@ export async function GET(request: Request) {
     }
     const digits = q.replace(/\D/g, '');
     const conditions = [ilike(customerSchema.name, `%${q}%`)];
-    if (digits.length >= 4) {
-      conditions.push(like(customerSchema.whatsapp, `%${digits.slice(-8)}`));
+    if (digits.length >= 3) {
+      conditions.push(like(customerSchema.whatsapp, `%${digits}%`));
     }
     const results = await db
       .select({
