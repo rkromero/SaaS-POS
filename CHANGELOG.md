@@ -1,3 +1,10 @@
+# [1.69.0](https://github.com/rkromero/SaaS-POS/compare/v1.68.1...v1.69.0) (2026-04-23)
+
+
+### Features
+
+* **arca:** generación automática de CSR para eliminar barrera técnica ([acfd459](https://github.com/rkromero/SaaS-POS/commit/acfd459267531967d800308ee92d8c3290ed7d45))
+
 ## [1.68.1](https://github.com/rkromero/SaaS-POS/compare/v1.68.0...v1.68.1) (2026-04-23)
 
 
