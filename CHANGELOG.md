@@ -1,3 +1,10 @@
+# [1.60.0](https://github.com/rkromero/SaaS-POS/compare/v1.59.1...v1.60.0) (2026-04-23)
+
+
+### Features
+
+* **landing:** rediseño infográfico zigzag de dos secciones ([4aad690](https://github.com/rkromero/SaaS-POS/commit/4aad690a27e2b3b97842867cfcf438ed4f95e493))
+
 ## [1.59.1](https://github.com/rkromero/SaaS-POS/compare/v1.59.0...v1.59.1) (2026-04-23)
 
 
