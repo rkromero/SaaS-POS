@@ -1,3 +1,10 @@
+# [1.66.0](https://github.com/rkromero/SaaS-POS/compare/v1.65.2...v1.66.0) (2026-04-23)
+
+
+### Features
+
+* **pos:** producto no encontrado al escanear → dialog de creación rápida ([fb6b339](https://github.com/rkromero/SaaS-POS/commit/fb6b339fe7aa9a079dcd313f312b74e76a82ce41))
+
 ## [1.65.2](https://github.com/rkromero/SaaS-POS/compare/v1.65.1...v1.65.2) (2026-04-23)
 
 
