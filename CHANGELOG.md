@@ -1,3 +1,10 @@
+## [1.67.1](https://github.com/rkromero/SaaS-POS/compare/v1.67.0...v1.67.1) (2026-04-23)
+
+
+### Bug Fixes
+
+* **pos:** corregir detección de escáner en modal crear producto ([760c3df](https://github.com/rkromero/SaaS-POS/commit/760c3dfb615407dbb522d76b21cc0f7b43a82791))
+
 # [1.67.0](https://github.com/rkromero/SaaS-POS/compare/v1.66.0...v1.67.0) (2026-04-23)
 
 
