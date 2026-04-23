@@ -277,46 +277,28 @@ export const ArcaWizard = () => {
             {/* Tarea 1: Habilitar WSFE */}
             <div className="space-y-2">
               <p className="text-sm font-semibold text-amber-900">1. Habilitar el servicio de facturación en ARCA</p>
-              <p className="text-xs text-amber-700">
-                Esto autoriza a tu CUIT a usar la API de facturación electrónica.
-              </p>
-              <ol className="ml-1 list-inside list-decimal space-y-1 text-xs text-amber-700">
-                <li>
-                  Ingresá a
-                  <strong>serviciosweb.afip.gob.ar</strong>
-                  {' '}
-                  con tu CUIT y Clave Fiscal nivel 3
-                </li>
-                <li>
-                  Buscá
-                  <strong>"Administrador de Relaciones de Clave Fiscal"</strong>
-                  {' '}
-                  y abrilo
-                </li>
-                <li>
-                  Aparece una lista de organismos — buscá el logo de
-                  <strong>ARCA</strong>
-                  {' '}
-                  y hacé clic
-                </li>
-                <li>
-                  Se despliegan dos opciones: elegí
-                  <strong>"WebServices"</strong>
-                  {' '}
-                  (no "Servicios Interactivos")
-                </li>
-                <li>
-                  En el listado buscá
-                  {' '}
-                  <strong>"Facturación Electrónica"</strong>
-                  {' '}
-                  (descripción: "Factura electrónica") y hacé clic para adherirlo
-                </li>
-              </ol>
-              <p className="text-xs italic text-amber-600">
-                El nombre técnico es "wsfev1" pero en pantalla aparece como "Facturación Electrónica".
-                No es "Factura Electrónica con Detalle - MTXCA" ni "Factura electrónica de exportacion".
-              </p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="space-y-1 rounded bg-amber-100 p-2">
+                  <p className="font-semibold text-amber-900">Persona física (monotributista / autónomo)</p>
+                  <p className="text-amber-700">
+                    <strong>No necesitás hacer este paso.</strong>
+                    {' '}
+                    El servicio ya está habilitado para tu CUIT.
+                    Pasá directamente al Paso 2 (Punto de venta) y luego al certificado.
+                  </p>
+                </div>
+                <div className="space-y-1 rounded bg-amber-100 p-2">
+                  <p className="font-semibold text-amber-900">Empresa (SRL, SA, etc.)</p>
+                  <p className="text-amber-700">
+                    Entrá con el CUIT de la empresa → Administrador de Relaciones → ARCA → WebServices
+                    →
+                    {' '}
+                    <strong>"Facturación Electrónica"</strong>
+                    . El autorizado debe ser el CUIT de la persona
+                    física representante (distinto al de la empresa).
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Tarea 2: Registrar punto de venta */}
