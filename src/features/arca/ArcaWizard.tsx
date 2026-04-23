@@ -103,6 +103,133 @@ function useFileReader(setter: (v: string) => void) {
   return { ref, trigger, onChange };
 }
 
+function downloadText(filename: string, content: string) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type: 'text/plain' }));
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function Step3CsrHelper({
+  cuit,
+  razonSocial,
+  onPrivateKey,
+}: {
+  cuit: string;
+  razonSocial: string;
+  onPrivateKey: (key: string) => void;
+}) {
+  const [generating, setGenerating] = useState(false);
+  const [csr, setCsr] = useState('');
+  const [done, setDone] = useState(false);
+
+  const generate = async () => {
+    setGenerating(true);
+    try {
+      const res = await fetch('/api/arca/generate-csr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cuit, razonSocial, alias: 'mi-pos' }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return;
+      }
+      setCsr(data.csr);
+      onPrivateKey(data.privateKey);
+      downloadText('mi-pos.csr', data.csr);
+      setDone(true);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  if (done) {
+    return (
+      <div className="space-y-3 rounded-lg border border-green-200 bg-green-50 p-4">
+        <p className="text-sm font-semibold text-green-800">✓ Archivo CSR generado y descargado</p>
+        <p className="text-xs text-green-700">
+          Tu clave privada ya está cargada abajo. Ahora:
+        </p>
+        <ol className="ml-1 list-inside list-decimal space-y-1 text-xs text-green-700">
+          <li>
+            Andá a ARCA → buscá
+            <strong>"Acceso Web Services"</strong>
+            {' '}
+            o
+            <strong>"Gestión de Certificados"</strong>
+          </li>
+          <li>
+            Subí el archivo
+            <strong>mi-pos.csr</strong>
+            {' '}
+            que se descargó
+          </li>
+          <li>
+            ARCA te va a dar un archivo
+            <strong>.crt</strong>
+            {' '}
+            — descargalo
+          </li>
+          <li>
+            Subí ese
+            <strong>.crt</strong>
+            {' '}
+            en el campo de abajo
+          </li>
+        </ol>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => downloadText('mi-pos.csr', csr)}
+            className="text-xs"
+          >
+            ⬇ Volver a descargar el CSR
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
+      <p className="text-sm font-semibold text-blue-900">1. Generá el certificado automáticamente</p>
+      <p className="text-xs text-blue-700">
+        Hacé clic y el sistema genera los archivos necesarios. Se va a descargar un archivo
+        {' '}
+        <strong>mi-pos.csr</strong>
+        {' '}
+        que tenés que subir en el portal de ARCA para obtener el certificado final.
+      </p>
+      <Button
+        type="button"
+        onClick={generate}
+        disabled={generating || !cuit || !razonSocial}
+        className="w-full bg-blue-600 text-white hover:bg-blue-700"
+      >
+        {generating ? 'Generando...' : '⚙ Generar y descargar CSR'}
+      </Button>
+      {!cuit || !razonSocial
+        ? <p className="text-center text-xs text-blue-600">Completá el CUIT y la Razón Social en el Paso 1 primero</p>
+        : null}
+      <p className="text-center text-xs text-blue-500">
+        ¿Ya tenés los archivos .crt y .key?
+        {' '}
+        <button
+          type="button"
+          className="underline"
+          onClick={() => setDone(true)}
+        >
+          Saltear este paso
+        </button>
+      </p>
+    </div>
+  );
+}
+
 export const ArcaWizard = () => {
   const [step, setStep] = useState<Step>(1);
   const [saving, setSaving] = useState(false);
@@ -491,12 +618,12 @@ export const ArcaWizard = () => {
       {step === 3 && (
         <section className="space-y-4 rounded-lg border bg-card p-5">
 
-          {/* Ambiente primero — afecta las instrucciones */}
+          {/* Ambiente */}
           <div>
             <Label>Ambiente</Label>
             <div className="mt-2 grid grid-cols-2 gap-3">
               {[
-                { value: 'sandbox', label: 'Homologación (pruebas)', desc: 'Para testear el circuito. Usa certificados de prueba de ARCA.' },
+                { value: 'sandbox', label: 'Homologación (pruebas)', desc: 'Para testear sin emitir facturas reales.' },
                 { value: 'production', label: 'Producción', desc: 'Facturas reales con validez fiscal ante ARCA.' },
               ].map(opt => (
                 <button
@@ -514,18 +641,20 @@ export const ArcaWizard = () => {
                 </button>
               ))}
             </div>
-            {ambiente === 'sandbox' && (
-              <p className="mt-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700">
-                En homologación podés usar certificados de prueba que ARCA provee. Las facturas generadas no tienen validez fiscal.
-              </p>
-            )}
           </div>
 
-          {/* Certificado (.crt) */}
+          {/* Generación automática de CSR */}
+          <Step3CsrHelper
+            cuit={cuit}
+            razonSocial={razonSocial}
+            onPrivateKey={setPrivateKey}
+          />
+
+          {/* Certificado (.crt) — lo sube el usuario después de arca */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>
-                Certificado (.crt)
+                2. Pegá o subí el certificado .crt que te dio ARCA
                 {hasCert && <span className="ml-2 text-xs font-normal text-green-600">✓ guardado</span>}
               </Label>
               <div>
@@ -543,23 +672,20 @@ export const ArcaWizard = () => {
                   onClick={certUpload.trigger}
                   className="h-7 text-xs"
                 >
-                  📂 Subir archivo .crt
+                  📂 Subir .crt
                 </Button>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Subí el archivo .crt directamente, o pegá el contenido abajo (empieza con -----BEGIN CERTIFICATE-----)
-            </p>
             <textarea
               value={cert}
               onChange={e => setCert(e.target.value)}
-              placeholder={hasCert ? '(certificado guardado — subí o pegá uno nuevo para actualizarlo)' : '-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----'}
+              placeholder={hasCert ? '(guardado — subí o pegá uno nuevo para actualizarlo)' : '-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----'}
               className="w-full rounded-md border bg-background px-3 py-2 font-mono text-xs"
               rows={4}
             />
           </div>
 
-          {/* Clave privada (.key) */}
+          {/* Clave privada — pre-llenada por el generador, o manual */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>
@@ -581,17 +707,17 @@ export const ArcaWizard = () => {
                   onClick={keyUpload.trigger}
                   className="h-7 text-xs"
                 >
-                  📂 Subir archivo .key
+                  📂 Subir .key
                 </Button>
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Subí el archivo .key directamente, o pegá el contenido abajo
+              Si usaste el generador de arriba, ya está completa. Si la generaste vos, pegala acá.
             </p>
             <textarea
               value={privateKey}
               onChange={e => setPrivateKey(e.target.value)}
-              placeholder={hasPrivateKey ? '(clave guardada — subí o pegá una nueva para actualizarla)' : '-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----'}
+              placeholder={hasPrivateKey ? '(guardada — pegá una nueva para actualizarla)' : '-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----'}
               className="w-full rounded-md border bg-background px-3 py-2 font-mono text-xs"
               rows={4}
             />
