@@ -1,3 +1,13 @@
+## [1.68.1](https://github.com/rkromero/SaaS-POS/compare/v1.68.0...v1.68.1) (2026-04-23)
+
+
+### Bug Fixes
+
+* **arca:** aclarar que personas físicas no necesitan Administrador de Relaciones ([6519c1b](https://github.com/rkromero/SaaS-POS/commit/6519c1b86a3bf544a42aec1739b9173513780fa2))
+* **arca:** clarificar instrucciones del wizard de configuración ([7a8e3a5](https://github.com/rkromero/SaaS-POS/commit/7a8e3a58565d39eeefc7c9a0971d1a2a628b995c))
+* **arca:** corregir nombre del servicio WSFE en la UI del portal ([0b8b8d1](https://github.com/rkromero/SaaS-POS/commit/0b8b8d103f9e612abb46f5ae7b7b35be05a034f0))
+* **arca:** instrucciones exactas de navegación en portal ARCA ([93d9443](https://github.com/rkromero/SaaS-POS/commit/93d94434f4aef100e556555de702a67180f6125b))
+
 # [1.68.0](https://github.com/rkromero/SaaS-POS/compare/v1.67.2...v1.68.0) (2026-04-23)
 
 
