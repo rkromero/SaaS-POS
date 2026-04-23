@@ -1,3 +1,10 @@
+# [1.67.0](https://github.com/rkromero/SaaS-POS/compare/v1.66.0...v1.67.0) (2026-04-23)
+
+
+### Features
+
+* **pos:** auto-completar nombre e imagen desde Open Food Facts al crear producto ([8400026](https://github.com/rkromero/SaaS-POS/commit/8400026146fab9694788fcf141fa3144c6f68c4d))
+
 # [1.66.0](https://github.com/rkromero/SaaS-POS/compare/v1.65.2...v1.66.0) (2026-04-23)
 
 
