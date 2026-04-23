@@ -1,6 +1,6 @@
 'use client';
 
-import { Maximize2, Minimize2, Package, Star, WifiOff } from 'lucide-react';
+import { Maximize2, Minimize2, MoreHorizontal, Package, Plus, Printer, Scan, Settings, ShoppingBasket, Star, UserPlus, WifiOff } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -830,7 +830,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     // En modo fullscreen, el div ocupa h-screen con su propio fondo y padding.
     <div
       ref={posRef}
-      className={isFullscreen ? 'flex h-screen flex-col gap-3 bg-background p-4' : ''}
+      className={`flex flex-col gap-3 ${isFullscreen ? 'h-screen bg-background p-4' : ''}`}
     >
       {/* Barra superior interna — solo visible en fullscreen */}
       {isFullscreen && (
@@ -880,7 +880,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
         </div>
       )}
 
-      <div className={`flex gap-4 ${isFullscreen ? 'min-h-0 flex-1' : 'h-[calc(100vh-130px)]'}`}>
+      <div className={`flex gap-4 ${isFullscreen ? 'min-h-0 flex-1' : 'h-[calc(100vh-170px)]'}`}>
         {/* LEFT — Product grid */}
         <div className="flex flex-1 flex-col gap-3 overflow-hidden">
           {/* Location + search bar */}
@@ -897,14 +897,17 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
               </select>
             )}
 
-            <Input
-              ref={searchRef}
-              className="flex-1"
-              placeholder="Buscar o escanear código de barras..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
-            />
+            <div className="relative flex-1">
+              <Scan className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/50" />
+              <Input
+                ref={searchRef}
+                className="w-full pl-9"
+                placeholder="Buscar o escanear código de barras..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
+              />
+            </div>
 
             <select
               value={filterCategory}
@@ -1082,319 +1085,406 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
           </div>
         </div>
 
-        {/* RIGHT — Cart + checkout */}
-        <div className="flex w-80 flex-col gap-3 rounded-lg border bg-card p-4 shadow-sm">
-          <h2 className="font-semibold">Carrito</h2>
+        {/* RIGHT — Ticket de venta */}
+        <div className="flex w-[360px] flex-col overflow-hidden rounded-lg border bg-card shadow-sm">
 
-          {/* Cart items */}
-          <div className="flex-1 space-y-2 overflow-y-auto">
-            {cart.length === 0
-              ? (
-                  <p className="text-sm text-muted-foreground">
-                    Tocá un producto para agregarlo.
-                  </p>
-                )
-              : cart.map((item) => {
-                const isCombo = item.type === 'combo';
-                const label = isCombo
-                  ? (item as { type: 'combo'; combo: POSCombo; quantity: number }).combo.name
-                  : (item as { type: 'product'; product: POSProduct; quantity: number }).product.name;
-                const unitPrice = isCombo
-                  ? Number((item as { type: 'combo'; combo: POSCombo; quantity: number }).combo.comboPrice)
-                  : Number(
-                    (item as { type: 'product'; product: POSProduct; quantity: number }).product.promoPrice
-                    ?? (item as { type: 'product'; product: POSProduct; quantity: number }).product.price,
-                  );
-                const origPrice = isCombo
-                  ? null
-                  : (item as { type: 'product'; product: POSProduct; quantity: number }).product.promoPrice
-                      ? Number((item as { type: 'product'; product: POSProduct; quantity: number }).product.price)
-                      : null;
-                const itemKey = isCombo
-                  ? `c-${(item as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id}`
-                  : `p-${(item as { type: 'product'; product: POSProduct; quantity: number }).product.id}`;
-
-                return (
-                  <div key={itemKey} className="flex items-center gap-2 rounded-md border px-2 py-1.5">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 truncate">
-                        {isCombo && (
-                          <span className="shrink-0 rounded bg-violet-900 px-1 py-0.5 text-[9px] font-semibold uppercase text-violet-300">
-                            Combo
-                          </span>
-                        )}
-                        <span className="truncate text-sm font-medium">{label}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        {origPrice !== null && (
-                          <span className="line-through opacity-50">
-                            $
-                            {origPrice.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-                          </span>
-                        )}
-                        <span className={origPrice !== null ? 'font-medium text-emerald-500' : ''}>
-                          $
-                          {unitPrice.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="size-6 p-0 text-xs"
-                        onClick={() => updateQuantity(itemKey, item.quantity - 1)}
-                      >
-                        −
-                      </Button>
-                      <span className="w-5 text-center text-sm">{item.quantity}</span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="size-6 p-0 text-xs"
-                        disabled={item.type === 'product' && item.product.stock !== null && item.quantity >= item.product.stock}
-                        onClick={() => updateQuantity(itemKey, item.quantity + 1)}
-                      >
-                        +
-                      </Button>
-                    </div>
-                    <span className="w-16 text-right text-sm font-semibold">
-                      $
-                      {(unitPrice * item.quantity).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                );
-              })}
+          {/* Panel header */}
+          <div className="flex shrink-0 items-center justify-between border-b px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">Ticket de venta</span>
+              <button
+                type="button"
+                className="flex size-5 items-center justify-center rounded border text-muted-foreground hover:bg-muted"
+                title="Nueva venta (próximamente)"
+                disabled
+              >
+                <Plus className="size-3" />
+              </button>
+            </div>
+            <div className="flex items-center gap-0.5 text-muted-foreground">
+              <button type="button" className="rounded p-1.5 hover:bg-muted" title="Configuración" disabled>
+                <Settings className="size-4" />
+              </button>
+              <button type="button" className="rounded p-1.5 hover:bg-muted" title="Imprimir" disabled>
+                <Printer className="size-4" />
+              </button>
+              <button type="button" className="rounded p-1.5 hover:bg-muted" title="Más opciones" disabled>
+                <MoreHorizontal className="size-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Customer + payment */}
-          {cart.length > 0 && (
-            <div className="space-y-3 border-t pt-3">
-              {/* Campos de cliente: ocultos cuando se selecciona fiado */}
-              {paymentMethod !== 'fiado' && (
-                <>
-                  <div className="space-y-1">
-                    <Label htmlFor="customerName">Cliente *</Label>
-                    <Input
-                      id="customerName"
-                      value={customerName}
-                      onChange={e => setCustomerName(e.target.value)}
-                      placeholder="Nombre del cliente"
-                    />
-                  </div>
+          {/* Lista de precio + Numeración (próximamente) */}
+          <div className="grid shrink-0 grid-cols-2 gap-2 border-b px-3 py-2">
+            <div className="space-y-0.5">
+              <p className="text-xs text-muted-foreground">Lista de precio</p>
+              <select disabled className="h-8 w-full cursor-not-allowed rounded border border-input bg-background px-2 text-xs opacity-60">
+                <option>General</option>
+              </select>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-xs text-muted-foreground">Numeración</p>
+              <select disabled className="h-8 w-full cursor-not-allowed rounded border border-input bg-background px-2 text-xs opacity-60">
+                <option>Ventas —</option>
+              </select>
+            </div>
+          </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <Label htmlFor="customerEmail" className="text-xs">Email</Label>
-                      <Input
-                        id="customerEmail"
-                        type="email"
-                        className="text-xs"
-                        value={customerEmail}
-                        onChange={e => setCustomerEmail(e.target.value)}
-                        placeholder="opcional"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="customerWhatsapp" className="text-xs">WhatsApp</Label>
-                      <Input
-                        id="customerWhatsapp"
-                        className="text-xs"
-                        value={customerWhatsapp}
-                        onChange={e => setCustomerWhatsapp(e.target.value)}
-                        placeholder="opcional"
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
+          {/* Cliente — siempre visible */}
+          <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2">
+            <span className="shrink-0 text-sm text-muted-foreground">Cliente</span>
+            <Input
+              className="h-8 flex-1 text-sm"
+              value={customerName}
+              onChange={e => setCustomerName(e.target.value)}
+              placeholder="Consumidor final"
+            />
+            <Button size="sm" variant="outline" className="h-8 shrink-0 gap-1 px-2 text-xs" disabled title="Próximamente">
+              <UserPlus className="size-3.5" />
+              Nuevo
+            </Button>
+          </div>
 
-              {/* Búsqueda de cliente por WhatsApp cuando el pago es fiado */}
-              {paymentMethod === 'fiado' && (
-                <div className="space-y-2">
-                  <Label htmlFor="fiadoPhone">WhatsApp del cliente *</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="fiadoPhone"
-                      className="flex-1"
-                      value={fiadoPhone}
-                      onChange={e => setFiadoPhone(e.target.value)}
-                      placeholder="Ej: 1123456789"
-                      onBlur={() => searchFiadoCustomer(fiadoPhone)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          searchFiadoCustomer(fiadoPhone);
-                        }
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={fiadoSearching}
-                      onClick={() => searchFiadoCustomer(fiadoPhone)}
-                    >
-                      {fiadoSearching ? '...' : 'Buscar'}
-                    </Button>
-                  </div>
-
-                  {/* Cliente encontrado */}
-                  {fiadoCustomer && (
-                    <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm dark:border-green-800 dark:bg-green-950">
-                      <p className="font-medium text-green-800 dark:text-green-200">{fiadoCustomer.name}</p>
-                      {fiadoCustomer.whatsapp && (
-                        <p className="text-xs text-green-600 dark:text-green-400">{fiadoCustomer.whatsapp}</p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Cliente no encontrado */}
-                  {fiadoNotFound && !fiadoCustomer && (
-                    <p className="text-xs text-destructive">
-                      Cliente no encontrado. Registralo primero en la sección Fiado.
+          {/* Área del carrito — scrollable */}
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {cart.length === 0
+              ? (
+                  <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-muted-foreground">
+                    <ShoppingBasket className="size-14 opacity-20" />
+                    <p className="text-center text-sm leading-relaxed">
+                      Acá verás los productos que elijas para tu primera venta
                     </p>
-                  )}
-                </div>
-              )}
-
-              <div className="space-y-1">
-                <Label>Método de pago</Label>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {PAYMENT_METHODS.map(pm => (
-                    <button
-                      key={pm.value}
-                      type="button"
-                      onClick={() => {
-                        setPaymentMethod(pm.value);
-                        // Al salir de fiado, limpiar el estado de búsqueda
-                        if (pm.value !== 'fiado') {
-                          setFiadoPhone('');
-                          setFiadoCustomer(null);
-                          setFiadoNotFound(false);
-                        }
-                      }}
-                      className={`rounded-md border px-2 py-1.5 text-xs font-medium transition-colors ${
-                        paymentMethod === pm.value
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'bg-background hover:bg-muted'
-                      }`}
-                    >
-                      {pm.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Loyalty — fidelización de clientes */}
-              {loyaltyActive && (
-                <LoyaltyCustomerPanel
-                  cartTotal={rawTotal}
-                  onCustomerChange={id => setLoyaltyCustomerId(id)}
-                  onRewardChange={(rewardId, discount) => {
-                    setLoyaltyRewardId(rewardId);
-                    setLoyaltyDiscount(discount);
-                  }}
-                />
-              )}
-
-              {/* Descuento de promociones */}
-              {promoDiscount > 0 && (
-                <div className="flex justify-between text-sm text-indigo-500">
-                  <span>Descuento promoción</span>
-                  <span>
-                    -$
-                    {promoDiscount.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              )}
-
-              {/* Descuento de fidelización aplicado */}
-              {loyaltyDiscount > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
-                  <span>Descuento fidelización</span>
-                  <span>
-                    -$
-                    {loyaltyDiscount.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              )}
-
-              {/* ARCA — factura electrónica */}
-              {arcaActive && (
-                <div className="space-y-2 rounded-lg border bg-muted/40 p-3">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="emitirFactura"
-                      checked={emitirFactura}
-                      onChange={e => setEmitirFactura(e.target.checked)}
-                      className="size-4"
-                    />
-                    <Label htmlFor="emitirFactura" className="cursor-pointer text-sm font-medium">
-                      Emitir factura electrónica (ARCA)
-                    </Label>
                   </div>
-                  {emitirFactura && (
-                    <div className="space-y-2 pl-6">
-                      <div className="grid grid-cols-2 gap-1.5">
-                        {[
-                          { value: 'consumidor_final', label: 'Consumidor Final' },
-                          { value: 'con_cuit', label: 'Con CUIT' },
-                        ].map(opt => (
-                          <button
-                            key={opt.value}
-                            type="button"
-                            onClick={() => setBuyerType(opt.value as any)}
-                            className={`rounded border px-2 py-1.5 text-xs font-medium transition-colors ${
-                              buyerType === opt.value
-                                ? 'border-primary bg-primary text-primary-foreground'
-                                : 'bg-background hover:bg-muted'
-                            }`}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
+                )
+              : (
+                  <div className="space-y-2 p-3">
+                    {cart.map((item) => {
+                      const isCombo = item.type === 'combo';
+                      const label = isCombo
+                        ? (item as { type: 'combo'; combo: POSCombo; quantity: number }).combo.name
+                        : (item as { type: 'product'; product: POSProduct; quantity: number }).product.name;
+                      const unitPrice = isCombo
+                        ? Number((item as { type: 'combo'; combo: POSCombo; quantity: number }).combo.comboPrice)
+                        : Number(
+                          (item as { type: 'product'; product: POSProduct; quantity: number }).product.promoPrice
+                          ?? (item as { type: 'product'; product: POSProduct; quantity: number }).product.price,
+                        );
+                      const origPrice = isCombo
+                        ? null
+                        : (item as { type: 'product'; product: POSProduct; quantity: number }).product.promoPrice
+                            ? Number((item as { type: 'product'; product: POSProduct; quantity: number }).product.price)
+                            : null;
+                      const itemKey = isCombo
+                        ? `c-${(item as { type: 'combo'; combo: POSCombo; quantity: number }).combo.id}`
+                        : `p-${(item as { type: 'product'; product: POSProduct; quantity: number }).product.id}`;
+
+                      return (
+                        <div key={itemKey} className="flex items-center gap-2 rounded-md border px-2 py-1.5">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 truncate">
+                              {isCombo && (
+                                <span className="shrink-0 rounded bg-violet-900 px-1 py-0.5 text-[9px] font-semibold uppercase text-violet-300">
+                                  Combo
+                                </span>
+                              )}
+                              <span className="truncate text-sm font-medium">{label}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              {origPrice !== null && (
+                                <span className="line-through opacity-50">
+                                  $
+                                  {origPrice.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                                </span>
+                              )}
+                              <span className={origPrice !== null ? 'font-medium text-emerald-500' : ''}>
+                                $
+                                {unitPrice.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="size-6 p-0 text-xs"
+                              onClick={() => updateQuantity(itemKey, item.quantity - 1)}
+                            >
+                              −
+                            </Button>
+                            <span className="w-5 text-center text-sm">{item.quantity}</span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="size-6 p-0 text-xs"
+                              disabled={item.type === 'product' && item.product.stock !== null && item.quantity >= item.product.stock}
+                              onClick={() => updateQuantity(itemKey, item.quantity + 1)}
+                            >
+                              +
+                            </Button>
+                          </div>
+                          <span className="w-16 text-right text-sm font-semibold">
+                            $
+                            {(unitPrice * item.quantity).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      );
+                    })}
+
+                    {/* Campos adicionales del cliente y método de pago */}
+                    <div className="space-y-3 border-t pt-3">
+                      {/* Campos de cliente: ocultos cuando se selecciona fiado */}
+                      {paymentMethod !== 'fiado' && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <Label htmlFor="customerEmail" className="text-xs">Email</Label>
+                            <Input
+                              id="customerEmail"
+                              type="email"
+                              className="h-8 text-xs"
+                              value={customerEmail}
+                              onChange={e => setCustomerEmail(e.target.value)}
+                              placeholder="opcional"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label htmlFor="customerWhatsapp" className="text-xs">WhatsApp</Label>
+                            <Input
+                              id="customerWhatsapp"
+                              className="h-8 text-xs"
+                              value={customerWhatsapp}
+                              onChange={e => setCustomerWhatsapp(e.target.value)}
+                              placeholder="opcional"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Búsqueda de cliente por WhatsApp cuando el pago es fiado */}
+                      {paymentMethod === 'fiado' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="fiadoPhone">WhatsApp del cliente *</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="fiadoPhone"
+                              className="flex-1"
+                              value={fiadoPhone}
+                              onChange={e => setFiadoPhone(e.target.value)}
+                              placeholder="Ej: 1123456789"
+                              onBlur={() => searchFiadoCustomer(fiadoPhone)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  searchFiadoCustomer(fiadoPhone);
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={fiadoSearching}
+                              onClick={() => searchFiadoCustomer(fiadoPhone)}
+                            >
+                              {fiadoSearching ? '...' : 'Buscar'}
+                            </Button>
+                          </div>
+                          {fiadoCustomer && (
+                            <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm dark:border-green-800 dark:bg-green-950">
+                              <p className="font-medium text-green-800 dark:text-green-200">{fiadoCustomer.name}</p>
+                              {fiadoCustomer.whatsapp && (
+                                <p className="text-xs text-green-600 dark:text-green-400">{fiadoCustomer.whatsapp}</p>
+                              )}
+                            </div>
+                          )}
+                          {fiadoNotFound && !fiadoCustomer && (
+                            <p className="text-xs text-destructive">
+                              Cliente no encontrado. Registralo primero en la sección Fiado.
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Método de pago */}
+                      <div className="space-y-1">
+                        <Label>Método de pago</Label>
+                        <div className="grid grid-cols-3 gap-1">
+                          {PAYMENT_METHODS.map(pm => (
+                            <button
+                              key={pm.value}
+                              type="button"
+                              onClick={() => {
+                                setPaymentMethod(pm.value);
+                                if (pm.value !== 'fiado') {
+                                  setFiadoPhone('');
+                                  setFiadoCustomer(null);
+                                  setFiadoNotFound(false);
+                                }
+                              }}
+                              className={`rounded-md border px-2 py-1.5 text-xs font-medium transition-colors ${
+                                paymentMethod === pm.value
+                                  ? 'border-primary bg-primary text-primary-foreground'
+                                  : 'bg-background hover:bg-muted'
+                              }`}
+                            >
+                              {pm.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                      {buyerType === 'con_cuit' && (
-                        <Input
-                          value={buyerCuit}
-                          onChange={e => setBuyerCuit(e.target.value)}
-                          placeholder="CUIT del comprador"
-                          className="h-8 font-mono text-xs"
+
+                      {/* Loyalty — fidelización de clientes */}
+                      {loyaltyActive && (
+                        <LoyaltyCustomerPanel
+                          cartTotal={rawTotal}
+                          onCustomerChange={id => setLoyaltyCustomerId(id)}
+                          onRewardChange={(rewardId, discount) => {
+                            setLoyaltyRewardId(rewardId);
+                            setLoyaltyDiscount(discount);
+                          }}
                         />
                       )}
-                    </div>
-                  )}
-                </div>
-              )}
 
-              {/* Total + confirm */}
-              <div className="border-t pt-2">
-                <div className="mb-2 flex justify-between text-lg font-bold">
-                  <span>Total</span>
+                      {/* Descuento de promociones */}
+                      {promoDiscount > 0 && (
+                        <div className="flex justify-between text-sm text-indigo-500">
+                          <span>Descuento promoción</span>
+                          <span>
+                            -$
+                            {promoDiscount.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Descuento de fidelización aplicado */}
+                      {loyaltyDiscount > 0 && (
+                        <div className="flex justify-between text-sm text-green-600">
+                          <span>Descuento fidelización</span>
+                          <span>
+                            -$
+                            {loyaltyDiscount.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* ARCA — factura electrónica */}
+                      {arcaActive && (
+                        <div className="space-y-2 rounded-lg border bg-muted/40 p-3">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="emitirFactura"
+                              checked={emitirFactura}
+                              onChange={e => setEmitirFactura(e.target.checked)}
+                              className="size-4"
+                            />
+                            <Label htmlFor="emitirFactura" className="cursor-pointer text-sm font-medium">
+                              Emitir factura electrónica (ARCA)
+                            </Label>
+                          </div>
+                          {emitirFactura && (
+                            <div className="space-y-2 pl-6">
+                              <div className="grid grid-cols-2 gap-1.5">
+                                {[
+                                  { value: 'consumidor_final', label: 'Consumidor Final' },
+                                  { value: 'con_cuit', label: 'Con CUIT' },
+                                ].map(opt => (
+                                  <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => setBuyerType(opt.value as any)}
+                                    className={`rounded border px-2 py-1.5 text-xs font-medium transition-colors ${
+                                      buyerType === opt.value
+                                        ? 'border-primary bg-primary text-primary-foreground'
+                                        : 'bg-background hover:bg-muted'
+                                    }`}
+                                  >
+                                    {opt.label}
+                                  </button>
+                                ))}
+                              </div>
+                              {buyerType === 'con_cuit' && (
+                                <Input
+                                  value={buyerCuit}
+                                  onChange={e => setBuyerCuit(e.target.value)}
+                                  placeholder="CUIT del comprador"
+                                  className="h-8 font-mono text-xs"
+                                />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+          </div>
+
+          {/* Sticky bottom — botón Vender + barra de estado */}
+          <div className="shrink-0 border-t">
+            {checkoutError && (
+              <p className="px-3 pt-2 text-xs text-destructive">{checkoutError}</p>
+            )}
+            <div className="px-3 py-2">
+              <Button
+                className="w-full"
+                size="lg"
+                disabled={submitting || cart.length === 0}
+                onClick={openCheckoutFlow}
+              >
+                <span className="flex w-full items-center justify-between">
+                  <span>{submitting ? 'Procesando...' : 'Vender'}</span>
                   <span>
                     $
                     {total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
                   </span>
-                </div>
-
-                {checkoutError && (
-                  <p className="mb-2 text-xs text-destructive">{checkoutError}</p>
-                )}
-
-                <Button
-                  className="w-full"
-                  size="lg"
-                  disabled={submitting || cart.length === 0}
-                  onClick={openCheckoutFlow}
-                >
-                  {submitting ? 'Procesando...' : 'Confirmar venta'}
-                </Button>
-              </div>
+                </span>
+              </Button>
             </div>
-          )}
+            <div className="flex items-center justify-between border-t px-3 py-2 text-sm text-muted-foreground">
+              <span>
+                {cart.reduce((s, i) => s + i.quantity, 0)}
+                {' '}
+                Producto
+                {cart.reduce((s, i) => s + i.quantity, 0) !== 1 ? 's' : ''}
+              </span>
+              <button
+                type="button"
+                className="text-sm hover:text-foreground"
+                onClick={() => {
+                  setCart([]);
+                  setCheckoutError('');
+                  setCustomerName('Consumidor final');
+                  setLoyaltyCustomerId(null);
+                  setLoyaltyRewardId(null);
+                  setLoyaltyDiscount(0);
+                  setFiadoPhone('');
+                  setFiadoCustomer(null);
+                  setFiadoNotFound(false);
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Barra de tabs inferior */}
+      <div className="flex shrink-0 items-center gap-0.5 border-t pt-1.5">
+        <button
+          type="button"
+          className="flex h-8 items-center gap-1.5 rounded-t-md border border-b-0 bg-card px-3 text-sm font-medium shadow-sm"
+        >
+          Venta principal
+        </button>
+        <button
+          type="button"
+          disabled
+          className="flex size-8 items-center justify-center rounded-md text-muted-foreground"
+          title="Nueva venta (próximamente)"
+        >
+          <Plus className="size-4" />
+        </button>
       </div>
 
       {/* Flujo de cobro — Modal 1: teléfono para fidelización */}
