@@ -1,6 +1,6 @@
 'use client';
 
-import { Maximize2, Minimize2, MoreHorizontal, Package, Plus, Printer, Scan, Settings, ShoppingBasket, Star, UserPlus, WifiOff } from 'lucide-react';
+import { Maximize2, Minimize2, MoreHorizontal, Package, Plus, Printer, Scan, Settings, ShoppingBasket, Star, UserPlus, WifiOff, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -87,11 +87,61 @@ const PAYMENT_METHODS = [
 
 const MERCADOPAGO_IDX = PAYMENT_METHODS.findIndex(pm => pm.value === 'mercadopago');
 
+const FRESH_TAB_STATE = {
+  cart: [] as CartItem[],
+  customerName: 'Consumidor final',
+  customerEmail: '',
+  customerWhatsapp: '',
+  paymentMethod: 'cash',
+  checkoutError: '',
+  fiadoPhone: '',
+  fiadoCustomer: null as FiadoCustomer | null,
+  fiadoNotFound: false,
+  emitirFactura: false,
+  buyerType: 'consumidor_final' as 'consumidor_final' | 'con_cuit',
+  buyerCuit: '',
+  loyaltyCustomerId: null as number | null,
+  loyaltyRewardId: null as number | null,
+  loyaltyDiscount: 0,
+  completedSale: null as CompletedSale | null,
+  checkoutFlowStep: 'idle' as 'idle' | 'loyalty' | 'payment',
+  modalLoyaltyPhone: '',
+  modalLoyaltyError: '',
+  modalPaymentIdx: MERCADOPAGO_IDX >= 0 ? MERCADOPAGO_IDX : 0,
+  modalFoundCustomer: null as FiadoCustomer | null,
+};
+
 type FiadoCustomer = {
   id: number;
   name: string;
   whatsapp: string | null;
   email: string | null;
+};
+
+type SaleTab = {
+  id: string;
+  label: string;
+  cart: CartItem[];
+  customerName: string;
+  customerEmail: string;
+  customerWhatsapp: string;
+  paymentMethod: string;
+  checkoutError: string;
+  fiadoPhone: string;
+  fiadoCustomer: FiadoCustomer | null;
+  fiadoNotFound: boolean;
+  emitirFactura: boolean;
+  buyerType: 'consumidor_final' | 'con_cuit';
+  buyerCuit: string;
+  loyaltyCustomerId: number | null;
+  loyaltyRewardId: number | null;
+  loyaltyDiscount: number;
+  completedSale: CompletedSale | null;
+  checkoutFlowStep: 'idle' | 'loyalty' | 'payment';
+  modalLoyaltyPhone: string;
+  modalLoyaltyError: string;
+  modalPaymentIdx: number;
+  modalFoundCustomer: FiadoCustomer | null;
 };
 
 type POSScreenProps = {
@@ -164,6 +214,12 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const [modalPaymentIdx, setModalPaymentIdx] = useState(MERCADOPAGO_IDX);
   // Cliente encontrado/creado en Modal 1 — usado como cliente fiado si se elige ese método
   const [modalFoundCustomer, setModalFoundCustomer] = useState<FiadoCustomer | null>(null);
+
+  // Pestañas de ventas paralelas
+  const [saleTabs, setSaleTabs] = useState<SaleTab[]>([
+    { id: 'tab-1', label: 'Venta 1', ...FRESH_TAB_STATE },
+  ]);
+  const [activeTabId, setActiveTabId] = useState('tab-1');
 
   // Escucha cambios de fullscreen (también el ESC del browser)
   useEffect(() => {
@@ -736,8 +792,82 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   // El ref siempre apunta a openCheckoutFlow para el listener global de doble Enter
   handleCheckoutRef.current = openCheckoutFlow;
 
-  const handleNewSale = () => {
-    setCompletedSale(null);
+  // ── Helpers de pestañas paralelas ──────────────────────────────────────────
+
+  const getActiveTabSnapshot = useCallback((): SaleTab => ({
+    id: activeTabId,
+    label: saleTabs.find(t => t.id === activeTabId)?.label ?? 'Venta',
+    cart,
+    customerName,
+    customerEmail,
+    customerWhatsapp,
+    paymentMethod,
+    checkoutError,
+    fiadoPhone,
+    fiadoCustomer,
+    fiadoNotFound,
+    emitirFactura,
+    buyerType,
+    buyerCuit,
+    loyaltyCustomerId,
+    loyaltyRewardId,
+    loyaltyDiscount,
+    completedSale,
+    checkoutFlowStep,
+    modalLoyaltyPhone,
+    modalLoyaltyError,
+    modalPaymentIdx,
+    modalFoundCustomer,
+  }), [activeTabId, saleTabs, cart, customerName, customerEmail, customerWhatsapp, paymentMethod, checkoutError, fiadoPhone, fiadoCustomer, fiadoNotFound, emitirFactura, buyerType, buyerCuit, loyaltyCustomerId, loyaltyRewardId, loyaltyDiscount, completedSale, checkoutFlowStep, modalLoyaltyPhone, modalLoyaltyError, modalPaymentIdx, modalFoundCustomer]);
+
+  const restoreTabState = useCallback((tab: SaleTab) => {
+    setCart(tab.cart);
+    setCustomerName(tab.customerName);
+    setCustomerEmail(tab.customerEmail);
+    setCustomerWhatsapp(tab.customerWhatsapp);
+    setPaymentMethod(tab.paymentMethod);
+    setCheckoutError(tab.checkoutError);
+    setFiadoPhone(tab.fiadoPhone);
+    setFiadoCustomer(tab.fiadoCustomer);
+    setFiadoNotFound(tab.fiadoNotFound);
+    setEmitirFactura(tab.emitirFactura);
+    setBuyerType(tab.buyerType);
+    setBuyerCuit(tab.buyerCuit);
+    setLoyaltyCustomerId(tab.loyaltyCustomerId);
+    setLoyaltyRewardId(tab.loyaltyRewardId);
+    setLoyaltyDiscount(tab.loyaltyDiscount);
+    setCompletedSale(tab.completedSale);
+    setCheckoutFlowStep(tab.checkoutFlowStep);
+    setModalLoyaltyPhone(tab.modalLoyaltyPhone);
+    setModalLoyaltyError(tab.modalLoyaltyError);
+    setModalPaymentIdx(tab.modalPaymentIdx);
+    setModalFoundCustomer(tab.modalFoundCustomer);
+  }, []);
+
+  const switchToTab = useCallback((targetId: string) => {
+    if (targetId === activeTabId) {
+      return;
+    }
+    const target = saleTabs.find(t => t.id === targetId);
+    if (!target) {
+      return;
+    }
+    const snapshot = getActiveTabSnapshot();
+    setSaleTabs(prev => prev.map(t => t.id === activeTabId ? snapshot : t));
+    restoreTabState(target);
+    setActiveTabId(targetId);
+    setTimeout(() => searchRef.current?.focus(), 100);
+  }, [activeTabId, saleTabs, getActiveTabSnapshot, restoreTabState]);
+
+  const addNewTab = useCallback(() => {
+    const snapshot = getActiveTabSnapshot();
+    const newId = `tab-${Date.now()}`;
+    const newTab: SaleTab = {
+      id: newId,
+      label: `Venta ${saleTabs.length + 1}`,
+      ...FRESH_TAB_STATE,
+    };
+    setSaleTabs(prev => [...prev.map(t => t.id === activeTabId ? snapshot : t), newTab]);
     setCart([]);
     setCustomerName('Consumidor final');
     setCustomerEmail('');
@@ -752,10 +882,58 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     setBuyerCuit('');
     setLoyaltyCustomerId(null);
     setLoyaltyRewardId(null);
-    setModalFoundCustomer(null);
     setLoyaltyDiscount(0);
-    fetchProducts(true); // fuerza refetch para mostrar stock actualizado tras la venta
+    setCompletedSale(null);
+    setCheckoutFlowStep('idle');
+    setModalLoyaltyPhone('');
+    setModalLoyaltyError('');
+    setModalPaymentIdx(MERCADOPAGO_IDX >= 0 ? MERCADOPAGO_IDX : 0);
+    setModalFoundCustomer(null);
+    setActiveTabId(newId);
     setTimeout(() => searchRef.current?.focus(), 100);
+  }, [activeTabId, saleTabs, getActiveTabSnapshot]);
+
+  const closeActiveTab = useCallback(() => {
+    if (saleTabs.length <= 1) {
+      setCart([]);
+      setCustomerName('Consumidor final');
+      setCustomerEmail('');
+      setCustomerWhatsapp('');
+      setPaymentMethod('cash');
+      setCheckoutError('');
+      setFiadoPhone('');
+      setFiadoCustomer(null);
+      setFiadoNotFound(false);
+      setEmitirFactura(false);
+      setBuyerType('consumidor_final');
+      setBuyerCuit('');
+      setLoyaltyCustomerId(null);
+      setLoyaltyRewardId(null);
+      setLoyaltyDiscount(0);
+      setCompletedSale(null);
+      setCheckoutFlowStep('idle');
+      setModalLoyaltyPhone('');
+      setModalLoyaltyError('');
+      setModalPaymentIdx(MERCADOPAGO_IDX >= 0 ? MERCADOPAGO_IDX : 0);
+      setModalFoundCustomer(null);
+      fetchProducts(true);
+      setTimeout(() => searchRef.current?.focus(), 100);
+      return;
+    }
+    const idx = saleTabs.findIndex(t => t.id === activeTabId);
+    const nextTab = saleTabs[idx > 0 ? idx - 1 : 1];
+    if (!nextTab) {
+      return;
+    }
+    setSaleTabs(prev => prev.filter(t => t.id !== activeTabId));
+    restoreTabState(nextTab);
+    setActiveTabId(nextTab.id);
+    fetchProducts(true);
+    setTimeout(() => searchRef.current?.focus(), 100);
+  }, [activeTabId, saleTabs, restoreTabState, fetchProducts]);
+
+  const handleNewSale = () => {
+    closeActiveTab();
   };
 
   // Barcode scanner: detect rapid input (chars < 80ms apart) followed by Enter
@@ -1450,17 +1628,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
               <button
                 type="button"
                 className="text-sm hover:text-foreground"
-                onClick={() => {
-                  setCart([]);
-                  setCheckoutError('');
-                  setCustomerName('Consumidor final');
-                  setLoyaltyCustomerId(null);
-                  setLoyaltyRewardId(null);
-                  setLoyaltyDiscount(0);
-                  setFiadoPhone('');
-                  setFiadoCustomer(null);
-                  setFiadoNotFound(false);
-                }}
+                onClick={closeActiveTab}
               >
                 Cancelar
               </button>
@@ -1470,18 +1638,54 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
       </div>
 
       {/* Barra de tabs inferior */}
-      <div className="flex shrink-0 items-center gap-0.5 border-t pt-1.5">
+      <div className="flex shrink-0 items-center gap-0.5 border-t px-1 pt-1.5">
+        {saleTabs.map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => switchToTab(tab.id)}
+            className={`flex h-8 items-center gap-1 rounded-t-md border border-b-0 px-3 text-sm font-medium transition-colors ${
+              tab.id === activeTabId
+                ? 'bg-card shadow-sm'
+                : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+            }`}
+          >
+            <span>{tab.label}</span>
+            {saleTabs.length > 1 && (
+              <span
+                role="button"
+                tabIndex={-1}
+                aria-label="Cerrar pestaña"
+                className="ml-0.5 rounded-sm p-0.5 opacity-50 hover:bg-muted-foreground/20 hover:opacity-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (tab.id === activeTabId) {
+                    closeActiveTab();
+                  } else {
+                    setSaleTabs(prev => prev.filter(t => t.id !== tab.id));
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.stopPropagation();
+                    if (tab.id === activeTabId) {
+                      closeActiveTab();
+                    } else {
+                      setSaleTabs(prev => prev.filter(t => t.id !== tab.id));
+                    }
+                  }
+                }}
+              >
+                <X className="size-3" />
+              </span>
+            )}
+          </button>
+        ))}
         <button
           type="button"
-          className="flex h-8 items-center gap-1.5 rounded-t-md border border-b-0 bg-card px-3 text-sm font-medium shadow-sm"
-        >
-          Venta principal
-        </button>
-        <button
-          type="button"
-          disabled
-          className="flex size-8 items-center justify-center rounded-md text-muted-foreground"
-          title="Nueva venta (próximamente)"
+          onClick={addNewTab}
+          className="flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+          title="Nueva venta en paralelo"
         >
           <Plus className="size-4" />
         </button>
