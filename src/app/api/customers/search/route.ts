@@ -1,5 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
-import { and, eq, like, or } from 'drizzle-orm';
+import { and, eq, ilike, like, or } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       return NextResponse.json([]);
     }
     const digits = q.replace(/\D/g, '');
-    const conditions = [like(customerSchema.name, `%${q}%`)];
+    const conditions = [ilike(customerSchema.name, `%${q}%`)];
     if (digits.length >= 4) {
       conditions.push(like(customerSchema.whatsapp, `%${digits.slice(-8)}`));
     }
