@@ -193,8 +193,13 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const [createProductName, setCreateProductName] = useState('');
   const [createProductPrice, setCreateProductPrice] = useState('');
   const [createProductBarcode, setCreateProductBarcode] = useState('');
+  const [createProductImageUrl, setCreateProductImageUrl] = useState('');
+  const [createProductSuggestedImage, setCreateProductSuggestedImage] = useState<string | null>(null);
+  const [createProductFetchingInfo, setCreateProductFetchingInfo] = useState(false);
   const [createProductError, setCreateProductError] = useState('');
   const [createProductLoading, setCreateProductLoading] = useState(false);
+  const createProductBarcodeRef = useRef<HTMLInputElement>(null);
+  const createProductBarcodeDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Customer selector: búsqueda y creación rápida
   const [customerQuery, setCustomerQuery] = useState('');
@@ -349,8 +354,57 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   useEffect(() => {
     if (showCreateProduct) {
       setTimeout(() => createProductNameRef.current?.focus(), 50);
+    } else {
+      // Limpiar al cerrar
+      setCreateProductSuggestedImage(null);
+      setCreateProductImageUrl('');
+      setCreateProductFetchingInfo(false);
     }
   }, [showCreateProduct]);
+
+  // Consulta Open Food Facts cuando el barcode del modal tiene ≥8 chars
+  useEffect(() => {
+    if (createProductBarcodeDebounce.current) {
+      clearTimeout(createProductBarcodeDebounce.current);
+    }
+    if (!showCreateProduct || createProductBarcode.length < 8) {
+      setCreateProductSuggestedImage(null);
+      return;
+    }
+    createProductBarcodeDebounce.current = setTimeout(async () => {
+      setCreateProductFetchingInfo(true);
+      setCreateProductSuggestedImage(null);
+      try {
+        const res = await fetch(
+          `https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(createProductBarcode)}.json`,
+        );
+        if (!res.ok) {
+          return;
+        }
+        const data = await res.json();
+        if (data.status === 1 && data.product) {
+          const img: string | null = data.product.image_front_url ?? data.product.image_url ?? null;
+          const offName: string | null = data.product.product_name ?? null;
+          if (img) {
+            setCreateProductSuggestedImage(img);
+          }
+          // Auto-completar nombre solo si el campo está vacío
+          if (offName && !createProductName.trim()) {
+            setCreateProductName(offName);
+          }
+        }
+      } catch {
+        // Silencioso
+      } finally {
+        setCreateProductFetchingInfo(false);
+      }
+    }, 800);
+    return () => {
+      if (createProductBarcodeDebounce.current) {
+        clearTimeout(createProductBarcodeDebounce.current);
+      }
+    };
+  }, [createProductBarcode, showCreateProduct]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -879,6 +933,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
           name: createProductName.trim(),
           price: createProductPrice,
           barcode: createProductBarcode.trim() || null,
+          imageUrl: createProductImageUrl || createProductSuggestedImage || null,
         }),
       });
       const data = await res.json();
@@ -909,12 +964,14 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
       setCreateProductName('');
       setCreateProductPrice('');
       setCreateProductBarcode('');
+      setCreateProductImageUrl('');
+      setCreateProductSuggestedImage(null);
     } catch {
       setCreateProductError('Error de conexión');
     } finally {
       setCreateProductLoading(false);
     }
-  }, [createProductName, createProductPrice, createProductBarcode, fetchProducts, addToCart]);
+  }, [createProductName, createProductPrice, createProductBarcode, createProductImageUrl, createProductSuggestedImage, fetchProducts, addToCart]);
 
   // handleLoyaltyModalSubmit: busca o crea el cliente por WhatsApp y avanza al Modal 2
   const handleLoyaltyModalSubmit = useCallback(async () => {
@@ -2094,6 +2151,32 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
           <div className="w-80 rounded-lg border bg-background p-4 shadow-xl">
             <h3 className="mb-3 text-sm font-semibold">Nuevo producto</h3>
             {createProductError && <p className="mb-2 text-xs text-destructive">{createProductError}</p>}
+
+            {/* Imagen sugerida de Open Food Facts */}
+            {(createProductSuggestedImage || createProductFetchingInfo) && (
+              <div className="mb-3 flex items-center gap-3 rounded-md border bg-muted/40 p-2">
+                {createProductFetchingInfo
+                  ? (
+                      <div className="flex size-14 shrink-0 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
+                        ...
+                      </div>
+                    )
+                  : createProductSuggestedImage && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={createProductSuggestedImage}
+                      alt="Imagen sugerida"
+                      className="size-14 shrink-0 rounded object-contain"
+                    />
+                  )}
+                <div className="min-w-0 flex-1 text-xs text-muted-foreground">
+                  {createProductFetchingInfo
+                    ? 'Buscando info del producto...'
+                    : 'Imagen encontrada en Open Food Facts'}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <div>
                 <Label className="text-xs">Nombre *</Label>
@@ -2103,7 +2186,21 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
                   onChange={e => setCreateProductName(e.target.value)}
                   className="mt-0.5 h-8 text-sm"
                   placeholder="Nombre del producto"
-                  onKeyDown={e => e.key === 'Enter' && handleCreateProduct()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleCreateProduct();
+                      return;
+                    }
+                    // Detectar escáner (chars muy rápidos) y redirigir al campo barcode
+                    const now = Date.now();
+                    const diff = now - lastKeyTime.current;
+                    lastKeyTime.current = now;
+                    if (diff < 80 && e.key.length === 1) {
+                      e.preventDefault();
+                      setCreateProductBarcode(prev => prev + e.key);
+                      createProductBarcodeRef.current?.focus();
+                    }
+                  }}
                 />
               </div>
               <div>
@@ -2122,10 +2219,11 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
               <div>
                 <Label className="text-xs">Código de barras</Label>
                 <Input
+                  ref={createProductBarcodeRef}
                   value={createProductBarcode}
                   onChange={e => setCreateProductBarcode(e.target.value)}
                   className="mt-0.5 h-8 font-mono text-sm"
-                  placeholder="Código escaneado"
+                  placeholder="Escaneá o escribí el código"
                   onKeyDown={e => e.key === 'Enter' && handleCreateProduct()}
                 />
               </div>
