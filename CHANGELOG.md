@@ -1,3 +1,16 @@
+# [1.63.0](https://github.com/rkromero/SaaS-POS/compare/v1.62.1...v1.63.0) (2026-04-23)
+
+
+### Bug Fixes
+
+* **pos:** agregar separación entre barra de filtros y grid de productos ([e0cea2e](https://github.com/rkromero/SaaS-POS/commit/e0cea2e04500c2fe5a6714876b961441231ff5b0))
+* **pos:** ampliar panel derecho de ticket de 360px a 420px ([01fc823](https://github.com/rkromero/SaaS-POS/commit/01fc82349dc6c3740c8f04b6e0f22ece384654eb))
+
+
+### Features
+
+* **pos:** reemplazar select nativos por DropdownMenu de Radix UI ([a24883b](https://github.com/rkromero/SaaS-POS/commit/a24883bb10b4b1838d66490dddcca04c17b70425))
+
 ## [1.62.1](https://github.com/rkromero/SaaS-POS/compare/v1.62.0...v1.62.1) (2026-04-23)
 
 
