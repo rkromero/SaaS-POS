@@ -830,7 +830,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     // En modo fullscreen, el div ocupa h-screen con su propio fondo y padding.
     <div
       ref={posRef}
-      className={`flex flex-col gap-3 ${isFullscreen ? 'h-screen bg-background p-4' : ''}`}
+      className={`flex flex-col gap-3 ${isFullscreen ? 'h-screen bg-background p-4' : 'h-full'}`}
     >
       {/* Barra superior interna — solo visible en fullscreen */}
       {isFullscreen && (
@@ -880,7 +880,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
         </div>
       )}
 
-      <div className={`flex gap-4 ${isFullscreen ? 'min-h-0 flex-1' : 'h-[calc(100vh-170px)]'}`}>
+      <div className="flex min-h-0 flex-1 gap-4">
         {/* LEFT — Product grid */}
         <div className="flex flex-1 flex-col gap-3 overflow-hidden">
           {/* Location + search bar */}
