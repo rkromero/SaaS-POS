@@ -306,14 +306,16 @@ export const ArcaWizard = () => {
                   (no "Servicios Interactivos")
                 </li>
                 <li>
-                  En el listado de servicios buscá
-                  <strong>"wsfev1"</strong>
+                  En el listado buscá
                   {' '}
-                  y hacé clic en el ícono para adherirlo
+                  <strong>"Facturación Electrónica"</strong>
+                  {' '}
+                  (descripción: "Factura electrónica") y hacé clic para adherirlo
                 </li>
               </ol>
               <p className="text-xs italic text-amber-600">
-                Si ya ves ARCA con "Servicios Interactivos" y "WebServices" debajo, estás en el paso correcto — hacé clic en WebServices.
+                El nombre técnico es "wsfev1" pero en pantalla aparece como "Facturación Electrónica".
+                No es "Factura Electrónica con Detalle - MTXCA" ni "Factura electrónica de exportacion".
               </p>
             </div>
 
