@@ -1,3 +1,10 @@
+## [1.69.2](https://github.com/rkromero/SaaS-POS/compare/v1.69.1...v1.69.2) (2026-04-23)
+
+
+### Bug Fixes
+
+* **arca:** reemplazar forge RSA gen por Node crypto nativo para evitar crash ([e60c14e](https://github.com/rkromero/SaaS-POS/commit/e60c14ed9a2538aa66dd721ecf43b9d8951d8df9))
+
 ## [1.69.1](https://github.com/rkromero/SaaS-POS/compare/v1.69.0...v1.69.1) (2026-04-23)
 
 
