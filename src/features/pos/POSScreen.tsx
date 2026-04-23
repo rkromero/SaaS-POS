@@ -90,6 +90,7 @@ const MERCADOPAGO_IDX = PAYMENT_METHODS.findIndex(pm => pm.value === 'mercadopag
 
 const FRESH_TAB_STATE = {
   cart: [] as CartItem[],
+  selectedCustomer: null as FiadoCustomer | null,
   customerName: 'Consumidor final',
   customerEmail: '',
   customerWhatsapp: '',
@@ -123,6 +124,7 @@ type SaleTab = {
   id: string;
   label: string;
   cart: CartItem[];
+  selectedCustomer: FiadoCustomer | null;
   customerName: string;
   customerEmail: string;
   customerWhatsapp: string;
@@ -176,12 +178,27 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const modalPaymentListRef = useRef<HTMLDivElement>(null);
 
   // Checkout form
+  const [selectedCustomer, setSelectedCustomer] = useState<FiadoCustomer | null>(null);
   const [customerName, setCustomerName] = useState('Consumidor final');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerWhatsapp, setCustomerWhatsapp] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [submitting, setSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
+
+  // Customer selector: búsqueda y creación rápida
+  const [customerQuery, setCustomerQuery] = useState('');
+  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
+  const [customerDropdownResults, setCustomerDropdownResults] = useState<FiadoCustomer[]>([]);
+  const [customerSearchLoading, setCustomerSearchLoading] = useState(false);
+  const customerDropdownRef = useRef<HTMLDivElement>(null);
+  const customerPortalRef = useRef<HTMLDivElement>(null);
+  const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [showCreateCustomer, setShowCreateCustomer] = useState(false);
+  const [createName, setCreateName] = useState('');
+  const [createPhone, setCreatePhone] = useState('');
+  const [createError, setCreateError] = useState('');
+  const [createLoading, setCreateLoading] = useState(false);
 
   // Fiado: búsqueda de cliente por WhatsApp
   const [fiadoPhone, setFiadoPhone] = useState('');
@@ -227,6 +244,48 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     document.addEventListener('fullscreenchange', handleChange);
     return () => document.removeEventListener('fullscreenchange', handleChange);
   }, []);
+
+  // Click outside para cerrar el dropdown (se verifica tanto el row como el portal)
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const inRow = customerDropdownRef.current?.contains(target);
+      const inPortal = customerPortalRef.current?.contains(target);
+      if (!inRow && !inPortal) {
+        setCustomerDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Búsqueda debounced de clientes por nombre o teléfono
+  useEffect(() => {
+    if (customerQuery.length < 2) {
+      setCustomerDropdownResults([]);
+      setCustomerDropdownOpen(false);
+      return;
+    }
+    // Calcular posición y abrir dropdown inmediatamente (muestra "Buscando..." + "Crear cliente")
+    if (customerDropdownRef.current) {
+      const rect = customerDropdownRef.current.getBoundingClientRect();
+      setDropdownRect({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+    }
+    setCustomerSearchLoading(true);
+    setCustomerDropdownOpen(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/customers/search?q=${encodeURIComponent(customerQuery)}`);
+        const data = await res.json();
+        setCustomerDropdownResults(Array.isArray(data) ? data : []);
+      } catch {
+        setCustomerDropdownResults([]);
+      } finally {
+        setCustomerSearchLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [customerQuery]);
 
   // Listener global: doble Enter abre el flujo de cobro; Escape cierra cualquier modal activo
   useEffect(() => {
@@ -536,13 +595,13 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
 
     const effectivePm = overridePaymentMethod ?? paymentMethod;
 
-    // Para fiado: acepta tanto el cliente del sidebar como el cliente encontrado en Modal 1
-    const effectiveFiadoCustomer = fiadoCustomer ?? modalFoundCustomer;
+    // Para fiado: el cliente seleccionado en el selector tiene prioridad sobre fiadoCustomer/modalFoundCustomer
+    const effectiveFiadoCustomer = selectedCustomer ?? fiadoCustomer ?? modalFoundCustomer;
 
     // Validación extra para fiado
     if (effectivePm === 'fiado') {
       if (!effectiveFiadoCustomer) {
-        setCheckoutError('Ingresá el teléfono del cliente en el primer paso o buscalo en el campo Fiado');
+        setCheckoutError('Seleccioná o creá un cliente antes de registrar una venta en fiado');
         return;
       }
     } else if (!customerName.trim()) {
@@ -553,10 +612,12 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     setCheckoutError('');
     setSubmitting(true);
 
-    // Para fiado, usamos los datos del cliente encontrado
+    // Para fiado usamos los datos del cliente encontrado; si hay selectedCustomer, se usa en cualquier método
     const effectiveCustomerName = effectivePm === 'fiado' ? effectiveFiadoCustomer!.name : customerName;
     const effectiveCustomerWhatsapp = effectivePm === 'fiado' ? effectiveFiadoCustomer!.whatsapp : customerWhatsapp;
-    const effectiveCustomerId = effectivePm === 'fiado' ? effectiveFiadoCustomer!.id : undefined;
+    const effectiveCustomerId = effectivePm === 'fiado'
+      ? effectiveFiadoCustomer!.id
+      : selectedCustomer?.id;
 
     try {
       const response = await fetch('/api/sales', {
@@ -696,7 +757,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     } finally {
       setSubmitting(false);
     }
-  }, [cart, paymentMethod, fiadoCustomer, modalFoundCustomer, customerName, customerEmail, customerWhatsapp, selectedLocationId, loyaltyCustomerId, loyaltyRewardId, emitirFactura, arcaActive, buyerType, buyerCuit, locations, refreshCount]);
+  }, [cart, paymentMethod, selectedCustomer, fiadoCustomer, modalFoundCustomer, customerName, customerEmail, customerWhatsapp, selectedLocationId, loyaltyCustomerId, loyaltyRewardId, emitirFactura, arcaActive, buyerType, buyerCuit, locations, refreshCount]);
 
   // openCheckoutFlow: abre el flujo de cobro por teclado (Modal 1 → Modal 2 → checkout)
   const openCheckoutFlow = useCallback(() => {
@@ -708,6 +769,71 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     setModalPaymentIdx(MERCADOPAGO_IDX >= 0 ? MERCADOPAGO_IDX : 0);
     setCheckoutFlowStep(loyaltyActive ? 'loyalty' : 'payment');
   }, [cart.length, submitting, loyaltyActive]);
+
+  // ── Customer selector handlers ───────────────────────────────────────────────
+
+  const selectCustomer = useCallback((c: FiadoCustomer) => {
+    setSelectedCustomer(c);
+    setCustomerQuery('');
+    setCustomerDropdownOpen(false);
+    setCustomerDropdownResults([]);
+    // Sincronizar campos de texto para el flujo de venta
+    setCustomerName(c.name);
+    setCustomerWhatsapp(c.whatsapp ?? '');
+    setCustomerEmail(c.email ?? '');
+  }, []);
+
+  const clearSelectedCustomer = useCallback(() => {
+    setSelectedCustomer(null);
+    setCustomerName('Consumidor final');
+    setCustomerEmail('');
+    setCustomerWhatsapp('');
+    setCustomerQuery('');
+  }, []);
+
+  const openCreateCustomer = useCallback(() => {
+    const digits = customerQuery.replace(/\D/g, '');
+    const isPhone = digits.length >= 6 && digits === customerQuery.replace(/\s/g, '');
+    setCreateName(isPhone ? '' : customerQuery);
+    setCreatePhone(isPhone ? customerQuery : '');
+    setCreateError('');
+    setCustomerDropdownOpen(false);
+    setShowCreateCustomer(true);
+  }, [customerQuery]);
+
+  const handleCreateCustomer = useCallback(async () => {
+    if (!createName.trim()) {
+      setCreateError('El nombre es requerido');
+      return;
+    }
+    const digits = createPhone.replace(/\D/g, '');
+    if (digits.length < 6) {
+      setCreateError('El teléfono debe tener al menos 6 dígitos');
+      return;
+    }
+    setCreateLoading(true);
+    setCreateError('');
+    try {
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: createName.trim(), whatsapp: digits }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCreateError(data.error ?? 'Error al crear el cliente');
+        return;
+      }
+      selectCustomer({ id: data.id, name: data.name, whatsapp: data.whatsapp ?? digits, email: data.email ?? null });
+      setShowCreateCustomer(false);
+      setCreateName('');
+      setCreatePhone('');
+    } catch {
+      setCreateError('Error de conexión');
+    } finally {
+      setCreateLoading(false);
+    }
+  }, [createName, createPhone, selectCustomer]);
 
   // handleLoyaltyModalSubmit: busca o crea el cliente por WhatsApp y avanza al Modal 2
   const handleLoyaltyModalSubmit = useCallback(async () => {
@@ -772,6 +898,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     id: activeTabId,
     label: saleTabs.find(t => t.id === activeTabId)?.label ?? 'Venta',
     cart,
+    selectedCustomer,
     customerName,
     customerEmail,
     customerWhatsapp,
@@ -792,10 +919,11 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     modalLoyaltyError,
     modalPaymentIdx,
     modalFoundCustomer,
-  }), [activeTabId, saleTabs, cart, customerName, customerEmail, customerWhatsapp, paymentMethod, checkoutError, fiadoPhone, fiadoCustomer, fiadoNotFound, emitirFactura, buyerType, buyerCuit, loyaltyCustomerId, loyaltyRewardId, loyaltyDiscount, completedSale, checkoutFlowStep, modalLoyaltyPhone, modalLoyaltyError, modalPaymentIdx, modalFoundCustomer]);
+  }), [activeTabId, saleTabs, cart, selectedCustomer, customerName, customerEmail, customerWhatsapp, paymentMethod, checkoutError, fiadoPhone, fiadoCustomer, fiadoNotFound, emitirFactura, buyerType, buyerCuit, loyaltyCustomerId, loyaltyRewardId, loyaltyDiscount, completedSale, checkoutFlowStep, modalLoyaltyPhone, modalLoyaltyError, modalPaymentIdx, modalFoundCustomer]);
 
   const restoreTabState = useCallback((tab: SaleTab) => {
     setCart(tab.cart);
+    setSelectedCustomer(tab.selectedCustomer);
     setCustomerName(tab.customerName);
     setCustomerEmail(tab.customerEmail);
     setCustomerWhatsapp(tab.customerWhatsapp);
@@ -843,9 +971,11 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     };
     setSaleTabs(prev => [...prev.map(t => t.id === activeTabId ? snapshot : t), newTab]);
     setCart([]);
+    setSelectedCustomer(null);
     setCustomerName('Consumidor final');
     setCustomerEmail('');
     setCustomerWhatsapp('');
+    setCustomerQuery('');
     setPaymentMethod('cash');
     setCheckoutError('');
     setFiadoPhone('');
@@ -870,9 +1000,11 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const closeActiveTab = useCallback(() => {
     if (saleTabs.length <= 1) {
       setCart([]);
+      setSelectedCustomer(null);
       setCustomerName('Consumidor final');
       setCustomerEmail('');
       setCustomerWhatsapp('');
+      setCustomerQuery('');
       setPaymentMethod('cash');
       setCheckoutError('');
       setFiadoPhone('');
@@ -1284,19 +1416,44 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
             </div>
           </div>
 
-          {/* Cliente — siempre visible */}
-          <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2">
+          {/* Cliente — selector con búsqueda por nombre o teléfono */}
+          <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2" ref={customerDropdownRef}>
             <span className="shrink-0 text-sm text-muted-foreground">Cliente</span>
-            <Input
-              className="h-8 flex-1 text-sm"
-              value={customerName}
-              onChange={e => setCustomerName(e.target.value)}
-              placeholder="Consumidor final"
-            />
-            <Button size="sm" variant="outline" className="h-8 shrink-0 gap-1 px-2 text-xs" disabled title="Próximamente">
-              <UserPlus className="size-3.5" />
-              Nuevo
-            </Button>
+            <div className="relative flex-1">
+              {selectedCustomer
+                ? (
+                    <div className="flex h-8 items-center gap-1.5 rounded-md border bg-muted/50 px-2 text-sm">
+                      <span className="flex-1 truncate font-medium">{selectedCustomer.name}</span>
+                      {selectedCustomer.whatsapp && (
+                        <span className="shrink-0 text-xs text-muted-foreground">{selectedCustomer.whatsapp}</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={clearSelectedCustomer}
+                        className="rounded p-0.5 hover:bg-muted"
+                        title="Cambiar cliente"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  )
+                : (
+                    <Input
+                      className="h-8 text-sm"
+                      value={customerQuery}
+                      onChange={e => setCustomerQuery(e.target.value)}
+                      onFocus={() => {
+                        if (customerQuery.length >= 2 && customerDropdownRef.current) {
+                          const rect = customerDropdownRef.current.getBoundingClientRect();
+                          setDropdownRect({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+                          setCustomerDropdownOpen(true);
+                        }
+                      }}
+                      placeholder="Buscar por nombre o teléfono..."
+                      autoComplete="off"
+                    />
+                  )}
+            </div>
           </div>
 
           {/* Área del carrito — scrollable */}
@@ -1772,6 +1929,95 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
           orgName={orgName}
           onClose={handleNewSale}
         />
+      )}
+
+      {/* Dropdown selector de cliente — position:fixed escapa overflow:hidden del ticket panel */}
+      {customerDropdownOpen && dropdownRect && (
+        <div
+          ref={customerPortalRef}
+          style={{ position: 'fixed', top: dropdownRect.top, left: dropdownRect.left, width: dropdownRect.width, zIndex: 9999 }}
+          className="rounded-md border bg-popover shadow-lg"
+        >
+          {customerSearchLoading && (
+            <div className="px-3 py-2 text-xs text-muted-foreground">Buscando...</div>
+          )}
+          {!customerSearchLoading && customerDropdownResults.length === 0 && (
+            <div className="px-3 py-2 text-xs text-muted-foreground">
+              Sin resultados para "
+              {customerQuery}
+              "
+            </div>
+          )}
+          {customerDropdownResults.map(c => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => selectCustomer(c)}
+              className="flex w-full flex-col px-3 py-2 text-left hover:bg-muted"
+            >
+              <span className="text-sm font-medium">{c.name}</span>
+              {c.whatsapp && <span className="text-xs text-muted-foreground">{c.whatsapp}</span>}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={openCreateCustomer}
+            className="flex w-full items-center gap-1.5 border-t px-3 py-2 text-sm text-primary hover:bg-muted"
+          >
+            <UserPlus className="size-3.5" />
+            Crear cliente
+          </button>
+        </div>
+      )}
+
+      {/* Modal crear cliente rápido */}
+      {showCreateCustomer && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
+          <div className="w-80 rounded-lg border bg-background p-4 shadow-xl">
+            <h3 className="mb-3 text-sm font-semibold">Nuevo cliente</h3>
+            {createError && <p className="mb-2 text-xs text-destructive">{createError}</p>}
+            <div className="space-y-2">
+              <div>
+                <Label className="text-xs">Nombre *</Label>
+                <Input
+                  value={createName}
+                  onChange={e => setCreateName(e.target.value)}
+                  className="mt-0.5 h-8 text-sm"
+                  placeholder="Nombre del cliente"
+                  onKeyDown={e => e.key === 'Enter' && handleCreateCustomer()}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Teléfono / WhatsApp *</Label>
+                <Input
+                  value={createPhone}
+                  onChange={e => setCreatePhone(e.target.value)}
+                  className="mt-0.5 h-8 text-sm"
+                  placeholder="Ej: 1122334455"
+                  onKeyDown={e => e.key === 'Enter' && handleCreateCustomer()}
+                />
+              </div>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => setShowCreateCustomer(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                size="sm"
+                className="flex-1"
+                disabled={createLoading}
+                onClick={handleCreateCustomer}
+              >
+                {createLoading ? 'Creando...' : 'Crear'}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
