@@ -176,6 +176,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   // Refs para el foco de los modales del flujo de cobro
   const modalLoyaltyInputRef = useRef<HTMLInputElement>(null);
   const modalPaymentListRef = useRef<HTMLDivElement>(null);
+  const createProductNameRef = useRef<HTMLInputElement>(null);
 
   // Checkout form
   const [selectedCustomer, setSelectedCustomer] = useState<FiadoCustomer | null>(null);
@@ -185,6 +186,15 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [submitting, setSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
+
+  // Producto no encontrado — dialogs de escaneo
+  const [notFoundBarcode, setNotFoundBarcode] = useState<string | null>(null);
+  const [showCreateProduct, setShowCreateProduct] = useState(false);
+  const [createProductName, setCreateProductName] = useState('');
+  const [createProductPrice, setCreateProductPrice] = useState('');
+  const [createProductBarcode, setCreateProductBarcode] = useState('');
+  const [createProductError, setCreateProductError] = useState('');
+  const [createProductLoading, setCreateProductLoading] = useState(false);
 
   // Customer selector: búsqueda y creación rápida
   const [customerQuery, setCustomerQuery] = useState('');
@@ -336,6 +346,12 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     }
   }, [checkoutFlowStep]);
 
+  useEffect(() => {
+    if (showCreateProduct) {
+      setTimeout(() => createProductNameRef.current?.focus(), 50);
+    }
+  }, [showCreateProduct]);
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       posRef.current?.requestFullscreen();
@@ -407,7 +423,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   }, [fetchProducts]);
 
   // Cart operations
-  const addToCart = (product: POSProduct) => {
+  const addToCart = useCallback((product: POSProduct) => {
     setCart((prev) => {
       const existing = prev.find(i => i.type === 'product' && i.product.id === product.id);
       const currentQty = existing ? existing.quantity : 0;
@@ -424,7 +440,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
       }
       return [...prev, { type: 'product' as const, product, quantity: 1 }];
     });
-  };
+  }, []);
 
   // Recibe productos desde el consultor de precios global (F10)
   useEffect(() => {
@@ -835,6 +851,71 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     }
   }, [createName, createPhone, selectCustomer]);
 
+  const openCreateProductFromScan = useCallback((barcode: string) => {
+    setCreateProductName('');
+    setCreateProductPrice('');
+    setCreateProductBarcode(barcode);
+    setCreateProductError('');
+    setNotFoundBarcode(null);
+    setShowCreateProduct(true);
+  }, []);
+
+  const handleCreateProduct = useCallback(async () => {
+    if (!createProductName.trim()) {
+      setCreateProductError('El nombre es requerido');
+      return;
+    }
+    if (!createProductPrice || Number.isNaN(Number(createProductPrice)) || Number(createProductPrice) <= 0) {
+      setCreateProductError('El precio debe ser mayor a 0');
+      return;
+    }
+    setCreateProductLoading(true);
+    setCreateProductError('');
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: createProductName.trim(),
+          price: createProductPrice,
+          barcode: createProductBarcode.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCreateProductError(data.error ?? 'Error al crear el producto');
+        return;
+      }
+      // Refresh products y agregar el nuevo al carrito
+      await fetchProducts(true);
+      // Construir el producto POS para agregar al carrito inmediatamente
+      const newProduct: POSProduct = {
+        id: data.id,
+        name: data.name,
+        description: data.description ?? null,
+        price: data.price,
+        promoPrice: null,
+        promoName: null,
+        promoId: null,
+        sku: data.sku ?? null,
+        barcode: data.barcode ?? null,
+        imageUrl: data.imageUrl ?? null,
+        categoryId: data.categoryId ?? null,
+        categoryName: null,
+        stock: null,
+      };
+      addToCart(newProduct);
+      setShowCreateProduct(false);
+      setCreateProductName('');
+      setCreateProductPrice('');
+      setCreateProductBarcode('');
+    } catch {
+      setCreateProductError('Error de conexión');
+    } finally {
+      setCreateProductLoading(false);
+    }
+  }, [createProductName, createProductPrice, createProductBarcode, fetchProducts, addToCart]);
+
   // handleLoyaltyModalSubmit: busca o crea el cliente por WhatsApp y avanza al Modal 2
   const handleLoyaltyModalSubmit = useCallback(async () => {
     const digits = modalLoyaltyPhone.replace(/\D/g, '');
@@ -1083,6 +1164,11 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
           e.preventDefault();
           return;
         }
+        // Producto no encontrado por código de barras
+        setNotFoundBarcode(sku.trim());
+        setSearch('');
+        e.preventDefault();
+        return;
       }
 
       // Normal Enter: if only one product matches, add it
@@ -1967,6 +2053,102 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
             <UserPlus className="size-3.5" />
             Crear cliente
           </button>
+        </div>
+      )}
+
+      {/* Dialog: producto no encontrado por escaneo */}
+      {notFoundBarcode && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
+          <div className="w-80 rounded-lg border bg-background p-5 shadow-xl">
+            <h3 className="mb-1 text-sm font-semibold">Producto no encontrado</h3>
+            <p className="mb-4 text-sm text-muted-foreground">
+              No existe ningún producto con el código
+              {' '}
+              <span className="font-mono font-medium text-foreground">{notFoundBarcode}</span>
+              . ¿Querés crearlo?
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => setNotFoundBarcode(null)}
+              >
+                No
+              </Button>
+              <Button
+                size="sm"
+                className="flex-1"
+                onClick={() => openCreateProductFromScan(notFoundBarcode)}
+              >
+                Sí, crear
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal crear producto rápido desde escaneo */}
+      {showCreateProduct && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
+          <div className="w-80 rounded-lg border bg-background p-4 shadow-xl">
+            <h3 className="mb-3 text-sm font-semibold">Nuevo producto</h3>
+            {createProductError && <p className="mb-2 text-xs text-destructive">{createProductError}</p>}
+            <div className="space-y-2">
+              <div>
+                <Label className="text-xs">Nombre *</Label>
+                <Input
+                  ref={createProductNameRef}
+                  value={createProductName}
+                  onChange={e => setCreateProductName(e.target.value)}
+                  className="mt-0.5 h-8 text-sm"
+                  placeholder="Nombre del producto"
+                  onKeyDown={e => e.key === 'Enter' && handleCreateProduct()}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Precio de venta *</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={createProductPrice}
+                  onChange={e => setCreateProductPrice(e.target.value)}
+                  className="mt-0.5 h-8 text-sm"
+                  placeholder="Ej: 1500"
+                  onKeyDown={e => e.key === 'Enter' && handleCreateProduct()}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Código de barras</Label>
+                <Input
+                  value={createProductBarcode}
+                  onChange={e => setCreateProductBarcode(e.target.value)}
+                  className="mt-0.5 h-8 font-mono text-sm"
+                  placeholder="Código escaneado"
+                  onKeyDown={e => e.key === 'Enter' && handleCreateProduct()}
+                />
+              </div>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => setShowCreateProduct(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                size="sm"
+                className="flex-1"
+                disabled={createProductLoading}
+                onClick={handleCreateProduct}
+              >
+                {createProductLoading ? 'Creando...' : 'Crear y agregar'}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
