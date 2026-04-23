@@ -1,3 +1,10 @@
+## [1.67.2](https://github.com/rkromero/SaaS-POS/compare/v1.67.1...v1.67.2) (2026-04-23)
+
+
+### Bug Fixes
+
+* **products:** escáner en formulario nuevo producto va a campo barcode ([c42950d](https://github.com/rkromero/SaaS-POS/commit/c42950d825e8a003ce02334995dde79a7d571dfd))
+
 ## [1.67.1](https://github.com/rkromero/SaaS-POS/compare/v1.67.0...v1.67.1) (2026-04-23)
 
 
