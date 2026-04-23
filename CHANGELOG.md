@@ -1,3 +1,10 @@
+# [1.61.0](https://github.com/rkromero/SaaS-POS/compare/v1.60.0...v1.61.0) (2026-04-23)
+
+
+### Features
+
+* **pos:** restructurar layout siguiendo distribución de POS de referencia ([304b6a9](https://github.com/rkromero/SaaS-POS/commit/304b6a92e22575d7e12170003e3b0b70d7e22dff))
+
 # [1.60.0](https://github.com/rkromero/SaaS-POS/compare/v1.59.1...v1.60.0) (2026-04-23)
 
 
