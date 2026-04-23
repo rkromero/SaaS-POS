@@ -1264,7 +1264,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
         </div>
 
         {/* RIGHT — Ticket de venta */}
-        <div className="flex w-[360px] flex-col overflow-hidden rounded-lg border bg-card shadow-sm">
+        <div className="flex w-[420px] flex-col overflow-hidden rounded-lg border bg-card shadow-sm">
 
           {/* Panel header */}
           <div className="flex shrink-0 items-center justify-between border-b px-4 py-2.5">
