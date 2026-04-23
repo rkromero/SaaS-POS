@@ -1,3 +1,10 @@
+## [1.59.1](https://github.com/rkromero/SaaS-POS/compare/v1.59.0...v1.59.1) (2026-04-23)
+
+
+### Bug Fixes
+
+* **pos:** borde input busqueda y color boton ABRIR POS ([20fce5c](https://github.com/rkromero/SaaS-POS/commit/20fce5c4c8ea357c9c363fe173411c111b39c9f4))
+
 # [1.59.0](https://github.com/rkromero/SaaS-POS/compare/v1.58.0...v1.59.0) (2026-04-23)
 
 
