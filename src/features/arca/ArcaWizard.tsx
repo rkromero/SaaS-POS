@@ -278,34 +278,42 @@ export const ArcaWizard = () => {
             <div className="space-y-2">
               <p className="text-sm font-semibold text-amber-900">1. Habilitar el servicio de facturación en ARCA</p>
               <p className="text-xs text-amber-700">
-                Esto le dice a ARCA que tu CUIT está autorizado a usar la API de facturación electrónica.
+                Esto autoriza a tu CUIT a usar la API de facturación electrónica.
               </p>
               <ol className="ml-1 list-inside list-decimal space-y-1 text-xs text-amber-700">
                 <li>
                   Ingresá a
-                  <strong>arca.gob.ar</strong>
+                  <strong>serviciosweb.afip.gob.ar</strong>
                   {' '}
-                  con tu CUIT y Clave Fiscal (nivel 3)
+                  con tu CUIT y Clave Fiscal nivel 3
                 </li>
                 <li>
-                  En el buscador del portal escribí
-                  <strong>"Administrador de Relaciones"</strong>
-                </li>
-                <li>
-                  Abrí
+                  Buscá
                   <strong>"Administrador de Relaciones de Clave Fiscal"</strong>
+                  {' '}
+                  y abrilo
                 </li>
-                <li>Seleccioná tu CUIT como representado (o el de tu empresa)</li>
                 <li>
-                  Buscá el servicio
+                  Aparece una lista de organismos — buscá el logo de
+                  <strong>ARCA</strong>
+                  {' '}
+                  y hacé clic
+                </li>
+                <li>
+                  Se despliegan dos opciones: elegí
+                  <strong>"WebServices"</strong>
+                  {' '}
+                  (no "Servicios Interactivos")
+                </li>
+                <li>
+                  En el listado de servicios buscá
                   <strong>"wsfev1"</strong>
                   {' '}
-                  en el listado y hacé clic en
-                  <strong>Adherir</strong>
+                  y hacé clic en el ícono para adherirlo
                 </li>
               </ol>
               <p className="text-xs italic text-amber-600">
-                Si no encontrás "wsfev1" en el listado, buscá "Facturación Electrónica" — el nombre exacto puede variar según la versión del portal.
+                Si ya ves ARCA con "Servicios Interactivos" y "WebServices" debajo, estás en el paso correcto — hacé clic en WebServices.
               </p>
             </div>
 
