@@ -1,3 +1,10 @@
+## [1.65.1](https://github.com/rkromero/SaaS-POS/compare/v1.65.0...v1.65.1) (2026-04-23)
+
+
+### Bug Fixes
+
+* **customers:** búsqueda de nombre case-insensitive con ILIKE en PostgreSQL ([c387647](https://github.com/rkromero/SaaS-POS/commit/c3876471296dbf18ca04a1812dc8da8af3caa9db))
+
 # [1.65.0](https://github.com/rkromero/SaaS-POS/compare/v1.64.0...v1.65.0) (2026-04-23)
 
 
