@@ -123,23 +123,28 @@ function Step3CsrHelper({
   const [generating, setGenerating] = useState(false);
   const [csr, setCsr] = useState('');
   const [done, setDone] = useState(false);
+  const [genError, setGenError] = useState('');
 
   const generate = async () => {
     setGenerating(true);
+    setGenError('');
     try {
       const res = await fetch('/api/arca/generate-csr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cuit, razonSocial, alias: 'mi-pos' }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        setGenError(data.error ?? 'Error al generar. Intentá de nuevo.');
         return;
       }
       setCsr(data.csr);
       onPrivateKey(data.privateKey);
       downloadText('mi-pos.csr', data.csr);
       setDone(true);
+    } catch {
+      setGenError('Error de conexión. Intentá de nuevo.');
     } finally {
       setGenerating(false);
     }
@@ -212,9 +217,12 @@ function Step3CsrHelper({
       >
         {generating ? 'Generando...' : '⚙ Generar y descargar CSR'}
       </Button>
-      {!cuit || !razonSocial
-        ? <p className="text-center text-xs text-blue-600">Completá el CUIT y la Razón Social en el Paso 1 primero</p>
-        : null}
+      {(!cuit || !razonSocial) && (
+        <p className="text-center text-xs text-blue-600">Completá el CUIT y la Razón Social en el Paso 1 primero</p>
+      )}
+      {genError && (
+        <p className="text-center text-xs text-red-600">{genError}</p>
+      )}
       <p className="text-center text-xs text-blue-500">
         ¿Ya tenés los archivos .crt y .key?
         {' '}

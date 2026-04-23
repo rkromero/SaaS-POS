@@ -2,6 +2,8 @@ import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import * as forge from 'node-forge';
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   const { orgId, orgRole } = await auth();
   if (!orgId || orgRole !== 'org:admin') {
@@ -15,7 +17,16 @@ export async function POST(req: Request) {
 
   const cuitClean = cuit.replace(/\D/g, '');
 
-  const keys = forge.pki.rsa.generateKeyPair(2048);
+  // Async key generation — the sync version blocks the event loop and times out on Vercel
+  const keys = await new Promise<forge.pki.KeyPair>((resolve, reject) => {
+    forge.pki.rsa.generateKeyPair({ bits: 2048, workers: -1 }, (err, keypair) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(keypair);
+      }
+    });
+  });
 
   const csr = forge.pki.createCertificationRequest();
   csr.publicKey = keys.publicKey;
@@ -25,7 +36,7 @@ export async function POST(req: Request) {
     { shortName: 'serialNumber', value: `CUIT ${cuitClean}` },
     { name: 'commonName', value: alias },
   ]);
-  csr.sign(keys.privateKey, forge.md.sha256.create());
+  csr.sign(keys.privateKey as forge.pki.rsa.PrivateKey, forge.md.sha256.create());
 
   return NextResponse.json({
     privateKey: forge.pki.privateKeyToPem(keys.privateKey),
