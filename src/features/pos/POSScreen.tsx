@@ -884,7 +884,7 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
         {/* LEFT — Product grid */}
         <div className="flex flex-1 flex-col gap-3 overflow-hidden">
           {/* Location + search bar */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 pt-0.5">
             {locations.length > 1 && (
               <select
                 value={selectedLocationId}
