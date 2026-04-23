@@ -1,5 +1,6 @@
 'use client';
 
+import { BarChart2, Bell, ClipboardList, Package, ShoppingCart, Users, Wallet } from 'lucide-react';
 import { Inter } from 'next/font/google';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -487,10 +488,10 @@ export const LandingPage = () => {
         </div>
       </div>
 
-      {/* ══ ANTES / DESPUÉS ═════════════════════════════════════════════════ */}
+      {/* ══ CÓMO MANEJABAS EL NEGOCIO ══════════════════════════════════════ */}
       <section id="funciones" style={{ background: C.white, paddingTop: 96, paddingBottom: 96 }}>
         <div style={wrap}>
-          <div style={{ textAlign: 'center', paddingBottom: 64 }}>
+          <div style={{ textAlign: 'center', paddingBottom: 80 }}>
             <R><Tag>El cambio que buscás</Tag></R>
             <R delay={80}>
               <h2 style={h2base}>
@@ -506,140 +507,155 @@ export const LandingPage = () => {
             </R>
           </div>
 
-          {/* Comparativa cards con flecha */}
-          <div data-compare-list>
-            {[
-              [
-                'Anotás las ventas en un cuaderno y al final del día no cierra',
-                'Cada venta queda registrada automáticamente, con número de comprobante',
-              ],
-              [
-                'No sabés cuánto stock te queda hasta que se te acaba',
-                'Recibís una alerta antes de quedarte sin stock, no cuando ya se acabó',
-              ],
-              [
-                'Cerrás la caja haciendo cuentas a mano y siempre falta o sobra',
-                'El cierre de caja te dice cuánto deberías tener y la diferencia exacta',
-              ],
-              [
-                'El fiado lo manejás de memoria y hay clientes que "se olvidaron"',
-                'El fiado queda en el sistema: quién debe, cuánto y desde cuándo',
-              ],
-              [
-                'No sabés qué productos te conviene tener ni cuáles no se mueven',
-                'Ves en tiempo real cuáles son tus productos más rentables',
-              ],
-              [
-                'Perdés tiempo buscando precios, anotando, calculando — todos los días',
-                'Cobrás en segundos — el sistema hace todo el resto solo',
-              ],
-            ].map(([bad, good], i) => (
-              <R key={i} delay={i * 60}>
-                <div data-compare-item>
-                  {/* Bad */}
-                  <div data-compare-bad>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
-                      <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#fee2e2', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                          <path d="M1 1l6 6M7 1L1 7" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" />
-                        </svg>
-                      </span>
-                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#ef4444' }}>Sin sistema</span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: 14, color: '#7f1d1d', lineHeight: 1.65 }}>{bad}</p>
+          <div data-zz-list>
+            {/* Block 1 — illus izquierda / texto derecha */}
+            <R>
+              <div data-zz-block>
+                <div data-zz-illus><IllusRegistro /></div>
+                <div data-zz-text>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 12, background: C.blueLight, marginBottom: 20 }}>
+                    <ShoppingCart size={22} color={C.blue} aria-hidden="true" />
                   </div>
-
-                  {/* Arrow */}
-                  <div data-compare-arrow>
-                    <svg data-arrow-h width="28" height="16" viewBox="0 0 28 16" fill="none">
-                      <path d="M0 8h24M18 2l6 6-6 6" stroke={C.e400} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <svg data-arrow-v width="16" height="28" viewBox="0 0 16 28" fill="none">
-                      <path d="M8 0v24M2 18l6 6 6-6" stroke={C.e400} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-
-                  {/* Good */}
-                  <div data-compare-good>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
-                      <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#d1fae5', border: '1px solid #6ee7b7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
-                          <path d="M1 3.5l2.5 2.5L8 1" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </span>
-                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#059669' }}>Con Nimbo</span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: 14, color: '#064e3b', lineHeight: 1.65 }}>{good}</p>
-                  </div>
+                  <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1.25rem,2.5vw,1.6rem)', fontWeight: 700, color: C.textDark, marginBottom: 16, lineHeight: 1.3 }}>
+                    Cada venta queda registrada automáticamente
+                  </h3>
+                  <p style={{ fontSize: 16, color: C.textSoft, lineHeight: 1.75 }}>
+                    Cada venta queda registrada con número de comprobante. Sin cuadernos, sin cuentas a mano al final del día. Cobrás en segundos — el sistema hace todo el resto solo.
+                  </p>
                 </div>
-              </R>
-            ))}
+              </div>
+            </R>
+
+            {/* Block 2 — texto izquierda / illus derecha */}
+            <R delay={80}>
+              <div data-zz-block data-rev="">
+                <div data-zz-illus><IllusStock /></div>
+                <div data-zz-text>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 12, background: C.blueLight, marginBottom: 20 }}>
+                    <Package size={22} color={C.blue} aria-hidden="true" />
+                  </div>
+                  <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1.25rem,2.5vw,1.6rem)', fontWeight: 700, color: C.textDark, marginBottom: 16, lineHeight: 1.3 }}>
+                    Recibís una alerta antes de quedarte sin stock
+                  </h3>
+                  <p style={{ fontSize: 16, color: C.textSoft, lineHeight: 1.75 }}>
+                    Definís un mínimo por producto y el sistema te alerta cuando llegás a ese límite — no cuando ya se acabó. Nunca más una venta perdida por stock agotado.
+                  </p>
+                </div>
+              </div>
+            </R>
+
+            {/* Block 3 — illus izquierda / texto derecha */}
+            <R delay={160}>
+              <div data-zz-block>
+                <div data-zz-illus><IllusCaja /></div>
+                <div data-zz-text>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 12, background: C.blueLight, marginBottom: 20 }}>
+                    <Wallet size={22} color={C.blue} aria-hidden="true" />
+                  </div>
+                  <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1.25rem,2.5vw,1.6rem)', fontWeight: 700, color: C.textDark, marginBottom: 16, lineHeight: 1.3 }}>
+                    El cierre de caja te dice cuánto deberías tener y la diferencia exacta
+                  </h3>
+                  <p style={{ fontSize: 16, color: C.textSoft, lineHeight: 1.75 }}>
+                    Ingresás el fondo inicial y el total contado. El sistema muestra el desglose por método de pago y si hay diferencias. Sin cuentas a mano, sin nervios al cerrar el turno.
+                  </p>
+                </div>
+              </div>
+            </R>
+
+            {/* Block 4 — texto izquierda / illus derecha */}
+            <R delay={240}>
+              <div data-zz-block data-rev="">
+                <div data-zz-illus><IllusFiado /></div>
+                <div data-zz-text>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 12, background: C.blueLight, marginBottom: 20 }}>
+                    <Users size={22} color={C.blue} aria-hidden="true" />
+                  </div>
+                  <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1.25rem,2.5vw,1.6rem)', fontWeight: 700, color: C.textDark, marginBottom: 16, lineHeight: 1.3 }}>
+                    El fiado queda en el sistema, no en tu memoria ni en la del cliente
+                  </h3>
+                  <p style={{ fontSize: 16, color: C.textSoft, lineHeight: 1.75 }}>
+                    Ves el saldo exacto, el historial y cuándo empezó cada deuda. La plata que perdías en fiado "olvidado" vuelve a vos. Y sabés exactamente qué productos te convienen y cuáles no se mueven.
+                  </p>
+                </div>
+              </div>
+            </R>
           </div>
         </div>
       </section>
 
-      {/* ══ LO QUE GANÁS ════════════════════════════════════════════════════ */}
-      <section style={{ background: C.n900, padding: '96px 0' }}>
+      {/* ══ TRES COSAS QUE CAMBIAN ══════════════════════════════════════════ */}
+      <section style={{ background: C.n50, padding: '96px 0' }}>
         <div style={wrap}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <R><Tag dark>Resultados concretos</Tag></R>
+          <div style={{ textAlign: 'center', marginBottom: 80 }}>
+            <R><Tag>Resultados concretos</Tag></R>
             <R delay={80}>
-              <h2 style={{ ...h2base, color: C.white }}>
+              <h2 style={h2base}>
                 Tres cosas que cambian
                 <br />
                 desde el día uno
               </h2>
             </R>
             <R delay={160}>
-              <p style={{ fontSize: 16, color: 'rgba(255,255,255,.5)', marginTop: 14 }}>
+              <p style={{ fontSize: 16, color: C.textSoft, marginTop: 14 }}>
                 No son funciones. Son resultados que sentís en la caja.
               </p>
             </R>
           </div>
 
-          <div data-benefits-grid>
-            {[
-              {
-                num: '01',
-                icon: '🎯',
-                title: 'Sabés exactamente en qué estás parado',
-                body: 'En cualquier momento del día podés ver cuánto vendiste, cuánto en efectivo, cuánto digital, cuánto fiaste y cuánto te queda en caja. No esperás al cierre para enterarte cómo fue el día.',
-                highlighted: true,
-              },
-              {
-                num: '02',
-                icon: '📦',
-                title: 'Nunca más perdés una venta por falta de stock',
-                body: 'El sistema te avisa cuando un producto está por agotarse, antes de que el cliente llegue y no lo encuentre. Definís vos el mínimo y Nimbo cuida el resto.',
-                highlighted: false,
-              },
-              {
-                num: '03',
-                icon: '💰',
-                title: 'Recuperás la plata que te debían sin pelear',
-                body: 'El fiado ya no depende de tu memoria ni de la del cliente. Ves el saldo exacto, el historial y podés cobrar con un clic. La plata que perdías en fiado "olvidado" vuelve a vos.',
-                highlighted: false,
-              },
-            ].map((b, i) => (
-              <R key={b.num} delay={i * 80}>
-                <div style={{
-                  background: b.highlighted ? C.e600 : 'rgba(255,255,255,.05)',
-                  border: `1px solid ${b.highlighted ? C.e500 : 'rgba(255,255,255,.1)'}`,
-                  borderRadius: 20,
-                  padding: '36px 28px',
-                  height: '100%',
-                  boxShadow: b.highlighted ? '0 12px 40px rgba(0,82,255,.22)' : 'none',
-                }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: 11, fontWeight: 700, color: b.highlighted ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.3)', letterSpacing: '.1em' }}>{b.num}</span>
-                    <span style={{ fontSize: 28 }}>{b.icon}</span>
+          <div data-bz-list>
+            {/* Block 1 — mockup izquierda / texto derecha */}
+            <R>
+              <div data-bz-block>
+                <div data-bz-mockup><MockupDashboard /></div>
+                <div data-bz-text>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 12, background: C.blueLight, marginBottom: 20 }}>
+                    <BarChart2 size={22} color={C.blue} aria-hidden="true" />
                   </div>
-                  <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', fontWeight: 700, color: C.white, marginBottom: 14, lineHeight: 1.35 }}>{b.title}</h3>
-                  <p style={{ fontSize: 14, lineHeight: 1.75, color: b.highlighted ? 'rgba(255,255,255,.85)' : 'rgba(255,255,255,.55)' }}>{b.body}</p>
+                  <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1.25rem,2.5vw,1.6rem)', fontWeight: 700, color: C.textDark, marginBottom: 16, lineHeight: 1.3 }}>
+                    Sabés exactamente en qué estás parado
+                  </h3>
+                  <p style={{ fontSize: 16, color: C.textSoft, lineHeight: 1.75 }}>
+                    En cualquier momento del día podés ver cuánto vendiste, cuánto en efectivo, cuánto digital, cuánto fiaste y cuánto te queda en caja. No esperás al cierre para enterarte cómo fue el día.
+                  </p>
                 </div>
-              </R>
-            ))}
+              </div>
+            </R>
+
+            {/* Block 2 — texto izquierda / mockup derecha */}
+            <R delay={80}>
+              <div data-bz-block data-rev="">
+                <div data-bz-mockup><MockupStock /></div>
+                <div data-bz-text>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 12, background: C.blueLight, marginBottom: 20 }}>
+                    <Bell size={22} color={C.blue} aria-hidden="true" />
+                  </div>
+                  <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1.25rem,2.5vw,1.6rem)', fontWeight: 700, color: C.textDark, marginBottom: 16, lineHeight: 1.3 }}>
+                    Nunca más perdés una venta por falta de stock
+                  </h3>
+                  <p style={{ fontSize: 16, color: C.textSoft, lineHeight: 1.75 }}>
+                    El sistema te avisa cuando un producto está por agotarse, antes de que el cliente llegue y no lo encuentre. Definís vos el mínimo y Nimbo cuida el resto.
+                  </p>
+                </div>
+              </div>
+            </R>
+
+            {/* Block 3 — mockup izquierda / texto derecha */}
+            <R delay={160}>
+              <div data-bz-block>
+                <div data-bz-mockup><MockupFiado /></div>
+                <div data-bz-text>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 12, background: C.blueLight, marginBottom: 20 }}>
+                    <ClipboardList size={22} color={C.blue} aria-hidden="true" />
+                  </div>
+                  <h3 style={{ fontFamily: 'var(--font-inter)', fontSize: 'clamp(1.25rem,2.5vw,1.6rem)', fontWeight: 700, color: C.textDark, marginBottom: 16, lineHeight: 1.3 }}>
+                    Recuperás la plata que te debían sin pelear
+                  </h3>
+                  <p style={{ fontSize: 16, color: C.textSoft, lineHeight: 1.75 }}>
+                    El fiado ya no depende de tu memoria ni de la del cliente. Ves el saldo exacto, el historial y podés cobrar con un clic. La plata que perdías en fiado "olvidado" vuelve a vos.
+                  </p>
+                </div>
+              </div>
+            </R>
           </div>
         </div>
       </section>
@@ -1128,6 +1144,27 @@ export const LandingPage = () => {
           [data-db-row]        { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
           [data-pricing-grid]  { grid-template-columns: repeat(4, 1fr); }
         }
+
+        /* ── Zigzag Section 1 ───────────────────────────────────────────── */
+        [data-zz-list]  { display: flex; flex-direction: column; gap: 72px; }
+        [data-zz-block] { display: flex; flex-direction: column; gap: 32px; align-items: center; }
+        [data-zz-illus], [data-zz-text] { width: 100%; }
+
+        /* ── Benefits zigzag Section 2 ──────────────────────────────────── */
+        [data-bz-list]   { display: flex; flex-direction: column; gap: 72px; }
+        [data-bz-block]  { display: flex; flex-direction: column; gap: 32px; align-items: center; }
+        [data-bz-mockup], [data-bz-text] { width: 100%; }
+
+        @media (min-width: 768px) {
+          [data-zz-list]  { gap: 100px; }
+          [data-zz-block] { flex-direction: row; gap: 72px; align-items: center; }
+          [data-zz-block][data-rev] { flex-direction: row-reverse; }
+          [data-zz-illus], [data-zz-text] { flex: 1; }
+          [data-bz-list]  { gap: 100px; }
+          [data-bz-block] { flex-direction: row; gap: 72px; align-items: center; }
+          [data-bz-block][data-rev] { flex-direction: row-reverse; }
+          [data-bz-mockup], [data-bz-text] { flex: 1; }
+        }
       `}
       </style>
     </div>
@@ -1287,6 +1324,286 @@ function PlanCard({
         {ctaLabel}
       </Link>
       {note && <p style={{ fontSize: 11, color: C.textMuted, textAlign: 'center', marginTop: 10 }}>{note}</p>}
+    </div>
+  );
+}
+
+// ─── SVG Illustrations (Section 1 — zigzag) ──────────────────────────────────
+
+function IllusRegistro() {
+  return (
+    <svg viewBox="0 0 440 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" style={{ width: '100%', maxWidth: 440, display: 'block', margin: '0 auto' }}>
+      <title>Registro automático: de cuaderno a comprobante digital</title>
+      <ellipse cx="220" cy="150" rx="200" ry="135" fill="#eef2ff" />
+      {/* Notebook viejo */}
+      <rect x="36" y="65" width="138" height="175" rx="10" fill="#dde0e6" />
+      <rect x="36" y="65" width="16" height="175" rx="6" fill="#c7cbd4" />
+      <rect x="68" y="100" width="90" height="7" rx="3.5" fill="#c7cbd4" />
+      <rect x="68" y="118" width="66" height="7" rx="3.5" fill="#c7cbd4" />
+      <rect x="68" y="136" width="80" height="7" rx="3.5" fill="#c7cbd4" />
+      <rect x="68" y="154" width="58" height="7" rx="3.5" fill="#c7cbd4" />
+      <rect x="68" y="172" width="76" height="7" rx="3.5" fill="#c7cbd4" />
+      <rect x="68" y="190" width="50" height="7" rx="3.5" fill="#c7cbd4" />
+      <line x1="50" y1="78" x2="162" y2="228" stroke="#ef4444" strokeWidth="5" strokeLinecap="round" />
+      <line x1="162" y1="78" x2="50" y2="228" stroke="#ef4444" strokeWidth="5" strokeLinecap="round" />
+      {/* Flecha */}
+      <path d="M196 150 H248" stroke="#0052ff" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="6 5" />
+      <path d="M238 141 L250 150 L238 159" stroke="#0052ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      {/* Badge comprobante */}
+      <rect x="262" y="30" width="134" height="22" rx="11" fill="#0052ff" />
+      <rect x="274" y="37" width="54" height="5" rx="2.5" fill="rgba(255,255,255,0.55)" />
+      <rect x="336" y="37" width="48" height="5" rx="2.5" fill="rgba(255,255,255,0.3)" />
+      {/* Tarjeta recibo */}
+      <rect x="262" y="48" width="134" height="200" rx="14" fill="white" />
+      <rect x="278" y="68" width="104" height="8" rx="4" fill="#eef2ff" />
+      <rect x="278" y="84" width="68" height="6" rx="3" fill="#c7d2ff" />
+      <line x1="278" y1="104" x2="382" y2="104" stroke="#dde0e6" strokeWidth="1" />
+      <rect x="278" y="114" width="68" height="5" rx="2.5" fill="#eef0f3" />
+      <circle cx="372" cy="116" r="9" fill="#d1fae5" />
+      <path d="M368 116 l2.5 2.5 5-5" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="278" y="132" width="54" height="5" rx="2.5" fill="#eef0f3" />
+      <circle cx="372" cy="134" r="9" fill="#d1fae5" />
+      <path d="M368 134 l2.5 2.5 5-5" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="278" y="150" width="78" height="5" rx="2.5" fill="#eef0f3" />
+      <circle cx="372" cy="152" r="9" fill="#d1fae5" />
+      <path d="M368 152 l2.5 2.5 5-5" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <line x1="278" y1="172" x2="382" y2="172" stroke="#dde0e6" strokeWidth="1" />
+      <rect x="278" y="181" width="36" height="6" rx="3" fill="#c7cbd4" />
+      <rect x="336" y="179" width="46" height="10" rx="5" fill="#0052ff" />
+    </svg>
+  );
+}
+
+function IllusStock() {
+  return (
+    <svg viewBox="0 0 440 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" style={{ width: '100%', maxWidth: 440, display: 'block', margin: '0 auto' }}>
+      <title>Alerta automática antes de quedarse sin stock</title>
+      <ellipse cx="220" cy="150" rx="200" ry="135" fill="#eef2ff" />
+      {/* Estantes */}
+      <rect x="60" y="218" width="320" height="8" rx="4" fill="#dde0e6" />
+      <rect x="60" y="145" width="320" height="8" rx="4" fill="#dde0e6" />
+      <rect x="70" y="145" width="10" height="81" rx="4" fill="#c7cbd4" />
+      <rect x="360" y="145" width="10" height="81" rx="4" fill="#c7cbd4" />
+      {/* Cajas llenas */}
+      <rect x="90" y="168" width="64" height="48" rx="8" fill="#c7d2ff" />
+      <rect x="102" y="183" width="40" height="6" rx="3" fill="rgba(255,255,255,0.6)" />
+      <rect x="102" y="196" width="28" height="5" rx="2.5" fill="rgba(255,255,255,0.4)" />
+      <rect x="172" y="168" width="64" height="48" rx="8" fill="#c7d2ff" />
+      <rect x="184" y="183" width="40" height="6" rx="3" fill="rgba(255,255,255,0.6)" />
+      <rect x="184" y="196" width="28" height="5" rx="2.5" fill="rgba(255,255,255,0.4)" />
+      {/* Caja casi vacía */}
+      <rect x="254" y="195" width="64" height="21" rx="8" fill="#fee2e2" />
+      <rect x="266" y="203" width="40" height="6" rx="3" fill="rgba(239,68,68,0.3)" />
+      {/* Badge ! */}
+      <circle cx="302" cy="172" r="17" fill="#ef4444" />
+      <rect x="300" y="162" width="4" height="10" rx="2" fill="white" />
+      <circle cx="302" cy="176" r="2.5" fill="white" />
+      {/* Panel de alerta */}
+      <rect x="262" y="50" width="158" height="70" rx="14" fill="white" />
+      <rect x="266" y="54" width="150" height="62" rx="11" fill="#fff5f5" />
+      <circle cx="292" cy="79" r="13" fill="#fee2e2" />
+      <path d="M292 70 a6 6 0 0 1 6 6 v4 l2.5 2 h-17 l2.5-2 v-4 a6 6 0 0 1 6-6 z" fill="#ef4444" />
+      <rect x="289" y="88" width="6" height="4" rx="2" fill="#ef4444" />
+      <rect x="314" y="66" width="94" height="7" rx="3.5" fill="#5b616e" />
+      <rect x="314" y="79" width="72" height="5.5" rx="2.75" fill="#c7cbd4" />
+      <rect x="314" y="91" width="84" height="5.5" rx="2.75" fill="#c7cbd4" />
+      <path d="M302 120 L302 151" stroke="#ef4444" strokeWidth="2" strokeDasharray="4 3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IllusCaja() {
+  return (
+    <svg viewBox="0 0 440 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" style={{ width: '100%', maxWidth: 440, display: 'block', margin: '0 auto' }}>
+      <title>Cierre de caja automático con desglose y diferencia exacta</title>
+      <ellipse cx="220" cy="150" rx="200" ry="135" fill="#eef2ff" />
+      {/* Card principal */}
+      <rect x="80" y="52" width="280" height="202" rx="16" fill="white" />
+      {/* Header oscuro */}
+      <rect x="80" y="52" width="280" height="44" rx="16" fill="#0a0b0d" />
+      <rect x="80" y="80" width="280" height="16" fill="#0a0b0d" />
+      <rect x="96" y="67" width="80" height="6" rx="3" fill="rgba(255,255,255,0.4)" />
+      <rect x="286" y="65" width="62" height="10" rx="5" fill="rgba(255,255,255,0.12)" />
+      <rect x="292" y="68" width="50" height="5" rx="2.5" fill="rgba(255,255,255,0.3)" />
+      {/* Labels columnas */}
+      <rect x="96" y="114" width="60" height="5.5" rx="2.75" fill="#c7cbd4" />
+      <rect x="234" y="114" width="60" height="5.5" rx="2.75" fill="#c7cbd4" />
+      {/* Barras Efectivo */}
+      <rect x="96" y="128" width="114" height="68" rx="8" fill="#eef2ff" />
+      <rect x="110" y="162" width="36" height="28" rx="4" fill="#c7d2ff" />
+      <rect x="154" y="148" width="36" height="42" rx="4" fill="#0052ff" />
+      {/* Barras Digital */}
+      <rect x="230" y="128" width="114" height="68" rx="8" fill="#eef2ff" />
+      <rect x="244" y="150" width="36" height="40" rx="4" fill="#c7d2ff" />
+      <rect x="288" y="140" width="36" height="50" rx="4" fill="#578bfa" />
+      {/* Separador */}
+      <line x1="96" y1="208" x2="344" y2="208" stroke="#dde0e6" strokeWidth="1" />
+      <rect x="96" y="217" width="58" height="6" rx="3" fill="#c7cbd4" />
+      <rect x="262" y="215" width="82" height="10" rx="5" fill="#0052ff" />
+      {/* Badge diferencia $0 */}
+      <rect x="142" y="238" width="156" height="24" rx="12" fill="#d1fae5" />
+      <circle cx="160" cy="250" r="8" fill="#059669" />
+      <path d="M156 250 l2.5 2.5 5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="175" y="245" width="110" height="5" rx="2.5" fill="#059669" />
+    </svg>
+  );
+}
+
+function IllusFiado() {
+  return (
+    <svg viewBox="0 0 440 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" style={{ width: '100%', maxWidth: 440, display: 'block', margin: '0 auto' }}>
+      <title>Fiado organizado: quién debe, cuánto y desde cuándo</title>
+      <ellipse cx="220" cy="150" rx="200" ry="135" fill="#eef2ff" />
+      {/* Card */}
+      <rect x="70" y="42" width="300" height="222" rx="16" fill="white" />
+      {/* Header */}
+      <rect x="70" y="42" width="300" height="44" rx="16" fill="#0a0b0d" />
+      <rect x="70" y="70" width="300" height="16" fill="#0a0b0d" />
+      <rect x="86" y="57" width="90" height="6" rx="3" fill="rgba(255,255,255,0.4)" />
+      <rect x="308" y="55" width="48" height="10" rx="5" fill="#0052ff" />
+      {/* Fila 1 */}
+      <circle cx="98" cy="114" r="16" fill="#eef2ff" />
+      <rect x="92" y="110" width="12" height="4" rx="2" fill="#c7d2ff" />
+      <rect x="92" y="117" width="12" height="3" rx="1.5" fill="#c7d2ff" />
+      <rect x="124" y="107" width="80" height="7" rx="3.5" fill="#eef0f3" />
+      <rect x="124" y="120" width="56" height="5" rx="2.5" fill="#dde0e6" />
+      <rect x="292" y="105" width="62" height="18" rx="9" fill="#fee2e2" />
+      <rect x="300" y="112" width="46" height="5" rx="2.5" fill="#ef4444" />
+      <line x1="78" y1="135" x2="362" y2="135" stroke="#eef0f3" strokeWidth="1" />
+      {/* Fila 2 */}
+      <circle cx="98" cy="157" r="16" fill="#d1fae5" />
+      <rect x="92" y="153" width="12" height="4" rx="2" fill="#6ee7b7" />
+      <rect x="92" y="160" width="12" height="3" rx="1.5" fill="#6ee7b7" />
+      <rect x="124" y="150" width="70" height="7" rx="3.5" fill="#eef0f3" />
+      <rect x="124" y="163" width="46" height="5" rx="2.5" fill="#dde0e6" />
+      <rect x="292" y="148" width="62" height="18" rx="9" fill="#d1fae5" />
+      <rect x="300" y="155" width="46" height="5" rx="2.5" fill="#059669" />
+      <line x1="78" y1="178" x2="362" y2="178" stroke="#eef0f3" strokeWidth="1" />
+      {/* Fila 3 */}
+      <circle cx="98" cy="200" r="16" fill="#eef2ff" />
+      <rect x="92" y="196" width="12" height="4" rx="2" fill="#c7d2ff" />
+      <rect x="92" y="203" width="12" height="3" rx="1.5" fill="#c7d2ff" />
+      <rect x="124" y="193" width="88" height="7" rx="3.5" fill="#eef0f3" />
+      <rect x="124" y="206" width="60" height="5" rx="2.5" fill="#dde0e6" />
+      <rect x="284" y="191" width="70" height="18" rx="9" fill="#eef2ff" />
+      <rect x="292" y="198" width="54" height="5" rx="2.5" fill="#0052ff" />
+      {/* Total */}
+      <line x1="78" y1="229" x2="362" y2="229" stroke="#dde0e6" strokeWidth="1" />
+      <rect x="86" y="238" width="60" height="6" rx="3" fill="#c7cbd4" />
+      <rect x="296" y="236" width="56" height="10" rx="5" fill="#0052ff" />
+    </svg>
+  );
+}
+
+// ─── Mockup components (Section 2 — zigzag con UI) ────────────────────────────
+
+function MockupDashboard() {
+  return (
+    <div style={{ background: C.white, borderRadius: 20, boxShadow: '0 20px 60px rgba(15,23,42,.10), 0 0 0 1px rgba(15,23,42,.05)', overflow: 'hidden', maxWidth: 480, margin: '0 auto', width: '100%' }}>
+      <div style={{ background: C.n900, padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: C.e400 }} />
+          <span style={{ color: C.white, fontWeight: 600, fontSize: 13 }}>📊 Dashboard — Local Centro</span>
+        </div>
+        <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 11 }}>14 abr 2026</span>
+      </div>
+      <div style={{ padding: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          {([
+            { label: 'Ventas hoy', val: '$84.500', delta: '↑ 12%', dc: C.e600 },
+            { label: 'Ventas mes', val: '$1.2M', delta: '↑ 8%', dc: C.e600 },
+            { label: 'Fiado pend.', val: '$43.200', delta: '7 clientes', dc: '#d97706' },
+            { label: 'Caja actual', val: '$21.800', delta: 'Abierta', dc: '#059669' },
+          ] as const).map(m => (
+            <div key={m.label} style={{ background: C.n50, borderRadius: 10, padding: 12, border: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 10, color: C.textMuted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 5 }}>{m.label}</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: 15, fontWeight: 700, color: C.textDark }}>{m.val}</div>
+              <div style={{ fontSize: 10, color: m.dc, fontWeight: 600, marginTop: 3 }}>{m.delta}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ background: C.n50, borderRadius: 10, padding: 12, border: `1px solid ${C.border}` }}>
+          <div style={{ fontSize: 11, color: C.textSoft, fontWeight: 600, marginBottom: 10 }}>Ventas últimos 7 días</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 56 }}>
+            {[35, 55, 40, 75, 60, 90, 65].map((h, i) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <div key={i} style={{ flex: 1, height: `${h}%`, background: i === 5 ? C.e500 : C.e200, borderRadius: '3px 3px 0 0' }} />
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
+            {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(d => (
+              <span key={d} style={{ flex: 1, textAlign: 'center', fontSize: 9, color: C.textMuted }}>{d}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MockupStock() {
+  return (
+    <div style={{ background: C.white, borderRadius: 20, boxShadow: '0 20px 60px rgba(15,23,42,.10), 0 0 0 1px rgba(15,23,42,.05)', overflow: 'hidden', maxWidth: 480, margin: '0 auto', width: '100%' }}>
+      <div style={{ background: C.n900, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />
+        <span style={{ color: C.white, fontWeight: 600, fontSize: 13 }}>📦 Stock — Productos con alerta</span>
+      </div>
+      <div style={{ background: '#fff5f5', borderBottom: '1px solid #fecaca', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{ fontSize: 16 }}>⚠️</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#b91c1c' }}>3 productos requieren reposición urgente</span>
+      </div>
+      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {([
+          { name: 'Coca Cola 1.5L', stock: '2 ud.', min: 'Mín: 12' },
+          { name: 'Papas Fritas 100g', stock: '5 ud.', min: 'Mín: 20' },
+          { name: 'Agua Mineral 500ml', stock: '3 ud.', min: 'Mín: 24' },
+        ] as const).map(p => (
+          <div key={p.name} style={{ display: 'flex', alignItems: 'center', background: C.n50, borderRadius: 10, padding: '10px 12px', border: `1px solid ${C.border}`, gap: 10 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 8, background: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>📦</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: C.textDark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+              <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{p.min}</div>
+            </div>
+            <span style={{ background: '#fee2e2', color: '#b91c1c', borderRadius: 100, padding: '3px 10px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{p.stock}</span>
+            <button type="button" style={{ background: C.e600, color: C.white, border: 'none', borderRadius: 20, padding: '5px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>Reponer</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MockupFiado() {
+  return (
+    <div style={{ background: C.white, borderRadius: 20, boxShadow: '0 20px 60px rgba(15,23,42,.10), 0 0 0 1px rgba(15,23,42,.05)', overflow: 'hidden', maxWidth: 480, margin: '0 auto', width: '100%' }}>
+      <div style={{ background: C.n900, padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: C.e400 }} />
+          <span style={{ color: C.white, fontWeight: 600, fontSize: 13 }}>📝 Fiado — Cuenta corriente</span>
+        </div>
+        <span style={{ background: '#fee2e2', color: '#b91c1c', borderRadius: 100, fontSize: 10, fontWeight: 700, padding: '3px 9px' }}>7 con saldo</span>
+      </div>
+      <div style={{ background: C.e50, borderBottom: `1px solid ${C.e200}`, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 12, color: C.textSoft }}>Total pendiente</span>
+        <span style={{ fontFamily: 'var(--font-inter)', fontSize: 16, fontWeight: 700, color: C.e700 }}>$43.200</span>
+      </div>
+      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {([
+          { initial: 'M', name: 'Marcela P.', amount: '$12.500', last: 'Hace 3 días' },
+          { initial: 'R', name: 'Roberto G.', amount: '$8.200', last: 'Ayer' },
+          { initial: 'L', name: 'Luis F.', amount: '$22.500', last: 'Hace 1 semana' },
+        ] as const).map(c => (
+          <div key={c.name} style={{ display: 'flex', alignItems: 'center', background: C.n50, borderRadius: 10, padding: '10px 12px', border: `1px solid ${C.border}`, gap: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: C.e100, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: C.e700, flexShrink: 0 }}>{c.initial}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: C.textDark }}>{c.name}</div>
+              <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{c.last}</div>
+            </div>
+            <span style={{ fontFamily: 'var(--font-inter)', fontSize: 13, fontWeight: 700, color: '#d97706', flexShrink: 0 }}>{c.amount}</span>
+            <button type="button" style={{ background: C.e600, color: C.white, border: 'none', borderRadius: 20, padding: '5px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>Cobrar</button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
