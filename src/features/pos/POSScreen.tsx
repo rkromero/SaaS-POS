@@ -353,14 +353,22 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
 
   useEffect(() => {
     if (showCreateProduct) {
-      setTimeout(() => createProductNameRef.current?.focus(), 50);
+      // Si el barcode ya viene pre-cargado → focus en nombre
+      // Si el barcode está vacío → focus en barcode para que el escáner caiga ahí
+      setTimeout(() => {
+        if (createProductBarcode) {
+          createProductNameRef.current?.focus();
+        } else {
+          createProductBarcodeRef.current?.focus();
+        }
+      }, 50);
     } else {
       // Limpiar al cerrar
       setCreateProductSuggestedImage(null);
       setCreateProductImageUrl('');
       setCreateProductFetchingInfo(false);
     }
-  }, [showCreateProduct]);
+  }, [showCreateProduct]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Consulta Open Food Facts cuando el barcode del modal tiene ≥8 chars
   useEffect(() => {
@@ -2183,24 +2191,20 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
                 <Input
                   ref={createProductNameRef}
                   value={createProductName}
-                  onChange={e => setCreateProductName(e.target.value)}
-                  className="mt-0.5 h-8 text-sm"
-                  placeholder="Nombre del producto"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleCreateProduct();
-                      return;
-                    }
-                    // Detectar escáner (chars muy rápidos) y redirigir al campo barcode
-                    const now = Date.now();
-                    const diff = now - lastKeyTime.current;
-                    lastKeyTime.current = now;
-                    if (diff < 80 && e.key.length === 1) {
-                      e.preventDefault();
-                      setCreateProductBarcode(prev => prev + e.key);
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCreateProductName(val);
+                    // Si lo que se escribió parece un barcode (solo dígitos, ≥8 chars)
+                    // lo movemos al campo barcode — ocurre cuando el foco cae mal al escanear
+                    if (/^\d{8,}$/.test(val.trim())) {
+                      setCreateProductBarcode(val.trim());
+                      setCreateProductName('');
                       createProductBarcodeRef.current?.focus();
                     }
                   }}
+                  className="mt-0.5 h-8 text-sm"
+                  placeholder="Nombre del producto"
+                  onKeyDown={e => e.key === 'Enter' && handleCreateProduct()}
                 />
               </div>
               <div>
