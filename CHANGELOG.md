@@ -1,3 +1,10 @@
+# [1.68.0](https://github.com/rkromero/SaaS-POS/compare/v1.67.2...v1.68.0) (2026-04-23)
+
+
+### Features
+
+* **arca:** mejorar UX del wizard de configuración de facturación ([0f4f3be](https://github.com/rkromero/SaaS-POS/commit/0f4f3be3058f016697cf0ecc0750465432f68c91))
+
 ## [1.67.2](https://github.com/rkromero/SaaS-POS/compare/v1.67.1...v1.67.2) (2026-04-23)
 
 
