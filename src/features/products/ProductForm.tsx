@@ -83,9 +83,17 @@ export const ProductForm = ({
   const [suggestedImage, setSuggestedImage] = useState<string | null>(null);
   const [fetchingImage, setFetchingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const barcodeInputRef = useRef<HTMLInputElement>(null);
   const barcodeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isEditing = !!product;
+
+  // Al abrir en modo creación: foco en barcode para capturar el escáner directo
+  useEffect(() => {
+    if (open && !isEditing) {
+      setTimeout(() => barcodeInputRef.current?.focus(), 80);
+    }
+  }, [open, isEditing]);
 
   useEffect(() => {
     fetch('/api/categories')
@@ -168,6 +176,11 @@ export const ProductForm = ({
           if (img) {
             setSuggestedImage(img);
           }
+          // Auto-completar nombre solo si el campo está vacío
+          const offName = data.product.product_name ?? null;
+          if (offName && !name.trim()) {
+            setName(offName);
+          }
         }
       } catch {
         // Silencioso — la búsqueda de imagen es un plus, no bloquea el flujo
@@ -181,7 +194,7 @@ export const ProductForm = ({
         clearTimeout(barcodeDebounceRef.current);
       }
     };
-  }, [barcode, imageUrl]);
+  }, [barcode, imageUrl, name]);
 
   /** Sube el archivo seleccionado a Cloudinary vía el endpoint de la API */
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -283,7 +296,17 @@ export const ProductForm = ({
             <Input
               id="name"
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                // Si lo escrito parece un código de barras (solo dígitos, ≥8) lo redirige al campo correcto
+                if (/^\d{8,}$/.test(val.trim())) {
+                  setBarcode(val.trim());
+                  setName('');
+                  barcodeInputRef.current?.focus();
+                  return;
+                }
+                setName(val);
+              }}
               placeholder="Ej: Café con leche"
             />
           </div>
@@ -333,6 +356,7 @@ export const ProductForm = ({
               <Label htmlFor="barcode">Código de barras</Label>
               <Input
                 id="barcode"
+                ref={barcodeInputRef}
                 value={barcode}
                 onChange={e => setBarcode(e.target.value)}
                 placeholder="EAN-13, UPC..."
