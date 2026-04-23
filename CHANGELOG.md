@@ -1,3 +1,10 @@
+# [1.62.0](https://github.com/rkromero/SaaS-POS/compare/v1.61.2...v1.62.0) (2026-04-23)
+
+
+### Features
+
+* **pos:** pestañas de ventas paralelas con navegación y cierre automático ([33b7be0](https://github.com/rkromero/SaaS-POS/commit/33b7be0a7e6acfbf197e3b7288d176335625953f))
+
 ## [1.61.2](https://github.com/rkromero/SaaS-POS/compare/v1.61.1...v1.61.2) (2026-04-23)
 
 
