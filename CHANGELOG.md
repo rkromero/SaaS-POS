@@ -1,3 +1,11 @@
+## [1.69.3](https://github.com/rkromero/SaaS-POS/compare/v1.69.2...v1.69.3) (2026-04-24)
+
+
+### Bug Fixes
+
+* **arca:** wrappear generate-csr en try-catch y simplificar public key ([0792a02](https://github.com/rkromero/SaaS-POS/commit/0792a02424ea5dcd88eca0d15d75213dc9758fdd))
+* **theme:** forzar tema claro por defecto al iniciar sesión ([8a5f243](https://github.com/rkromero/SaaS-POS/commit/8a5f243dcb187b0f321e2d227a3c830b3283f1e4))
+
 ## [1.69.2](https://github.com/rkromero/SaaS-POS/compare/v1.69.1...v1.69.2) (2026-04-23)
 
 
