@@ -53,9 +53,27 @@ export type VoucherResult = {
 };
 
 // ─── Helpers de XML ──────────────────────────────────────────────────────────
+/** Decodifica HTML entities (&lt; &gt; &amp; &quot; &apos;) en un string */
+function decodeXmlEntities(s: string): string {
+  return s
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, '\'');
+}
+
 function extractTag(xml: string, tag: string): string | null {
-  const m = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`));
-  return m ? m[1]!.trim() : null;
+  // First try on the raw XML
+  const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`);
+  const m = xml.match(re);
+  if (m) {
+    return m[1]!.trim();
+  }
+  // AFIP/ARCA returns loginCmsReturn with HTML-escaped XML — decode and retry
+  const decoded = decodeXmlEntities(xml);
+  const m2 = decoded.match(re);
+  return m2 ? m2[1]!.trim() : null;
 }
 
 function toIsoUtc(date: Date): string {
