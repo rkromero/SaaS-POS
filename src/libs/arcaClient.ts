@@ -52,6 +52,27 @@ export type VoucherResult = {
   CAEFchVto: string;
 };
 
+// ─── Fetch con retry (AFIP suele fallar intermitentemente) ──────────────────
+async function fetchWithRetry(url: string, init: RequestInit, retries = 2): Promise<Response> {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30_000);
+      const res = await fetch(url, { ...init, signal: controller.signal });
+      clearTimeout(timeout);
+      return res;
+    } catch (err: any) {
+      if (i === retries) {
+        const cause = err?.cause?.message ?? err?.message ?? String(err);
+        throw new Error(`No se pudo conectar con AFIP (${url}) después de ${retries + 1} intentos: ${cause}`);
+      }
+      // Wait 1s before retry
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  }
+  throw new Error('Unreachable');
+}
+
 // ─── Helpers de XML ──────────────────────────────────────────────────────────
 /** Decodifica HTML entities (&lt; &gt; &amp; &quot; &apos;) en un string */
 function decodeXmlEntities(s: string): string {
@@ -123,16 +144,11 @@ async function getToken(config: ArcaAuthConfig): Promise<{ token: string; sign: 
 
   const soap = `<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsaa="http://wsaa.view.sua.dvadac.desein.afip.gov"><soapenv:Header/><soapenv:Body><wsaa:loginCms><wsaa:in0>${cms}</wsaa:in0></wsaa:loginCms></soapenv:Body></soapenv:Envelope>`;
 
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/xml; charset=UTF-8', 'SOAPAction': '' },
-      body: soap,
-    });
-  } catch (fetchErr: any) {
-    throw new Error(`No se pudo conectar con WSAA (${url}): ${fetchErr?.cause?.message ?? fetchErr?.message ?? fetchErr}`);
-  }
+  const res = await fetchWithRetry(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/xml; charset=UTF-8', 'SOAPAction': '' },
+    body: soap,
+  });
 
   const text = await res.text();
 
@@ -165,7 +181,7 @@ export async function getLastVoucher(
 
   const soap = `<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ar="http://ar.gov.afip.dif.FEV1/"><soapenv:Header/><soapenv:Body><ar:FECompUltimoAutorizado>${buildWsfeAuth(token, sign, config.cuit)}<ar:PtoVta>${puntoVenta}</ar:PtoVta><ar:CbteTipo>${cbteTipo}</ar:CbteTipo></ar:FECompUltimoAutorizado></soapenv:Body></soapenv:Envelope>`;
 
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'text/xml; charset=UTF-8',
@@ -206,7 +222,7 @@ export async function createVoucher(
 
   const soap = `<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ar="http://ar.gov.afip.dif.FEV1/"><soapenv:Header/><soapenv:Body><ar:FECAESolicitar>${buildWsfeAuth(token, sign, config.cuit)}<ar:FeCAEReq><ar:FeCabReq><ar:CantReg>${data.CantReg}</ar:CantReg><ar:PtoVta>${data.PtoVta}</ar:PtoVta><ar:CbteTipo>${data.CbteTipo}</ar:CbteTipo></ar:FeCabReq><ar:FeDetReq><ar:FECAEDetRequest><ar:Concepto>${data.Concepto}</ar:Concepto><ar:DocTipo>${data.DocTipo}</ar:DocTipo><ar:DocNro>${data.DocNro}</ar:DocNro><ar:CbteDesde>${data.CbteDesde}</ar:CbteDesde><ar:CbteHasta>${data.CbteHasta}</ar:CbteHasta><ar:CbteFch>${data.CbteFch}</ar:CbteFch><ar:ImpTotal>${data.ImpTotal}</ar:ImpTotal><ar:ImpTotConc>${data.ImpTotConc}</ar:ImpTotConc><ar:ImpNeto>${data.ImpNeto}</ar:ImpNeto><ar:ImpOpEx>${data.ImpOpEx}</ar:ImpOpEx><ar:ImpIVA>${data.ImpIVA}</ar:ImpIVA><ar:ImpTrib>${data.ImpTrib}</ar:ImpTrib><ar:MonId>${data.MonId}</ar:MonId><ar:MonCotiz>${data.MonCotiz}</ar:MonCotiz>${ivaXml ? `<ar:Iva>${ivaXml}</ar:Iva>` : ''}</ar:FECAEDetRequest></ar:FeDetReq></ar:FeCAEReq></ar:FECAESolicitar></soapenv:Body></soapenv:Envelope>`;
 
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'text/xml; charset=UTF-8',
