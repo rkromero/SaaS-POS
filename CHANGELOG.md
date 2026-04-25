@@ -1,3 +1,10 @@
+## [1.70.5](https://github.com/rkromero/SaaS-POS/compare/v1.70.4...v1.70.5) (2026-04-25)
+
+
+### Bug Fixes
+
+* **arca:** mejorar error logging en WSAA fetch ([faaa17c](https://github.com/rkromero/SaaS-POS/commit/faaa17c327c7a9e760c3203c1e47c930303f18e1))
+
 ## [1.70.4](https://github.com/rkromero/SaaS-POS/compare/v1.70.3...v1.70.4) (2026-04-25)
 
 
