@@ -44,6 +44,7 @@ export async function POST() {
     return NextResponse.json({ ok: true, message: 'Conexión exitosa con ARCA' });
   } catch (error: any) {
     const msg = error?.message ?? String(error);
+    console.error('[arca/test] Error completo:', msg);
     return NextResponse.json(
       { error: `Error al conectar con ARCA: ${msg}` },
       { status: 400 },

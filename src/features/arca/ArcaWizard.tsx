@@ -49,7 +49,7 @@ function parseArcaError(msg: string): { title: string; detail: string } {
       detail: 'Verificá que copiaste o subiste el archivo .crt completo. Debe empezar con -----BEGIN CERTIFICATE-----.',
     };
   }
-  if (m.includes('private key') || m.includes('clave privada') || m.includes('key')) {
+  if (m.includes('private key') || m.includes('clave privada') || m.includes('privatekey')) {
     return {
       title: 'Clave privada inválida',
       detail: 'La clave privada (.key) no coincide con el certificado, o no es válida. Verificá que subiste el archivo correcto.',
@@ -86,7 +86,7 @@ function parseArcaError(msg: string): { title: string; detail: string } {
   };
 }
 
-function useFileReader(setter: (v: string) => void) {
+function useFileReader(setter: (v: string) => void, pemType: 'CERTIFICATE' | 'RSA PRIVATE KEY' = 'CERTIFICATE') {
   const ref = useRef<HTMLInputElement>(null);
   const trigger = () => ref.current?.click();
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,7 +114,7 @@ function useFileReader(setter: (v: string) => void) {
         });
         const b64 = btoa(binary);
         const lines = b64.match(/.{1,64}/g) ?? [];
-        setter(`-----BEGIN CERTIFICATE-----\n${lines.join('\n')}\n-----END CERTIFICATE-----`);
+        setter(`-----BEGIN ${pemType}-----\n${lines.join('\n')}\n-----END ${pemType}-----`);
       }
     };
     reader.readAsArrayBuffer(file);
@@ -280,7 +280,7 @@ export const ArcaWizard = () => {
   const [hasPrivateKey, setHasPrivateKey] = useState(false);
 
   const certUpload = useFileReader(setCert);
-  const keyUpload = useFileReader(setPrivateKey);
+  const keyUpload = useFileReader(setPrivateKey, 'RSA PRIVATE KEY');
 
   useEffect(() => {
     fetch('/api/arca/config')
