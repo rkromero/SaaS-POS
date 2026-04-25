@@ -1,3 +1,10 @@
+# [1.70.0](https://github.com/rkromero/SaaS-POS/compare/v1.69.3...v1.70.0) (2026-04-25)
+
+
+### Features
+
+* **caja:** implementar apertura y cierre de caja por usuario con auto-cierre ([d5bee73](https://github.com/rkromero/SaaS-POS/commit/d5bee73b275c9cc592c595210030d5fba80e98c6))
+
 ## [1.69.3](https://github.com/rkromero/SaaS-POS/compare/v1.69.2...v1.69.3) (2026-04-24)
 
 
