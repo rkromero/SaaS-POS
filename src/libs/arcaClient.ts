@@ -123,11 +123,16 @@ async function getToken(config: ArcaAuthConfig): Promise<{ token: string; sign: 
 
   const soap = `<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsaa="http://wsaa.view.sua.dvadac.desein.afip.gov"><soapenv:Header/><soapenv:Body><wsaa:loginCms><wsaa:in0>${cms}</wsaa:in0></wsaa:loginCms></soapenv:Body></soapenv:Envelope>`;
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/xml; charset=UTF-8', 'SOAPAction': '' },
-    body: soap,
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/xml; charset=UTF-8', 'SOAPAction': '' },
+      body: soap,
+    });
+  } catch (fetchErr: any) {
+    throw new Error(`No se pudo conectar con WSAA (${url}): ${fetchErr?.cause?.message ?? fetchErr?.message ?? fetchErr}`);
+  }
 
   const text = await res.text();
 
@@ -136,7 +141,7 @@ async function getToken(config: ArcaAuthConfig): Promise<{ token: string; sign: 
 
   if (!token || !sign) {
     const faultstring = extractTag(text, 'faultstring');
-    throw new Error(faultstring ?? `WSAA sin token. Respuesta: ${text.slice(0, 300)}`);
+    throw new Error(faultstring ?? `WSAA sin token. Status: ${res.status}. Respuesta: ${text.slice(0, 500)}`);
   }
 
   return { token, sign };
