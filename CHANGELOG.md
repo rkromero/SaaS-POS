@@ -1,3 +1,10 @@
+## [1.70.1](https://github.com/rkromero/SaaS-POS/compare/v1.70.0...v1.70.1) (2026-04-25)
+
+
+### Bug Fixes
+
+* **arca:** usar OID directo para serialNumber en CSR ([dd65d5f](https://github.com/rkromero/SaaS-POS/commit/dd65d5f1b333930fcc004c97c3cb6c783aa5fee3))
+
 # [1.70.0](https://github.com/rkromero/SaaS-POS/compare/v1.69.3...v1.70.0) (2026-04-25)
 
 
