@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     csr.setSubject([
       { name: 'countryName', value: 'AR' },
       { name: 'organizationName', value: String(razonSocial) },
-      { shortName: 'serialNumber', value: `CUIT ${cuitClean}` },
+      { type: '2.5.4.5', value: `CUIT ${cuitClean}` },
       { name: 'commonName', value: String(alias) },
     ]);
     csr.sign(forgePrivKey as forge.pki.rsa.PrivateKey, forge.md.sha256.create());
