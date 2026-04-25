@@ -58,10 +58,10 @@ function extractTag(xml: string, tag: string): string | null {
   return m ? m[1]!.trim() : null;
 }
 
-function toIsoAr(date: Date): string {
-  // Formato: 2024-01-15T10:00:00-03:00
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}-03:00`;
+function toIsoUtc(date: Date): string {
+  // Usar ISO 8601 con Z (UTC) — AFIP/ARCA lo acepta y evita
+  // problemas de timezone en servidores que no están en -03:00
+  return date.toISOString().replace(/\.\d{3}Z$/, 'Z');
 }
 
 // ─── WSAA: firma CMS/PKCS7 + obtención de token ──────────────────────────────
@@ -71,7 +71,7 @@ function buildLoginTicketRequest(): string {
   const to = new Date(now.getTime() + 10 * 60 * 1000);
   const uniqueId = Math.floor(now.getTime() / 1000);
 
-  return `<?xml version="1.0" encoding="UTF-8"?><loginTicketRequest version="1.0"><header><uniqueId>${uniqueId}</uniqueId><generationTime>${toIsoAr(from)}</generationTime><expirationTime>${toIsoAr(to)}</expirationTime></header><service>wsfe</service></loginTicketRequest>`;
+  return `<?xml version="1.0" encoding="UTF-8"?><loginTicketRequest version="1.0"><header><uniqueId>${uniqueId}</uniqueId><generationTime>${toIsoUtc(from)}</generationTime><expirationTime>${toIsoUtc(to)}</expirationTime></header><service>wsfe</service></loginTicketRequest>`;
 }
 
 function signCMS(xml: string, certPem: string, keyPem: string): string {
