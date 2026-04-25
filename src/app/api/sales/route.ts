@@ -6,6 +6,7 @@ import { db } from '@/libs/DB';
 import { getOrgAccess } from '@/libs/OrgAccess';
 import { deductBatchesFEFO } from '@/libs/StockBatchFEFO';
 import {
+  cashRegisterSessionSchema,
   customerSchema,
   debtTransactionSchema,
   locationSchema,
@@ -155,6 +156,24 @@ async function handlePost(request: Request) {
     // Excluir promos que alcanzaron su límite de usos
     or(isNull(promotionSchema.usageLimit), lt(promotionSchema.usageCount, promotionSchema.usageLimit!)),
   );
+
+  // Check if the user has an open cash register session
+  const [activeSession] = await db
+    .select({ id: cashRegisterSessionSchema.id })
+    .from(cashRegisterSessionSchema)
+    .where(
+      and(
+        eq(cashRegisterSessionSchema.userId, userId),
+        eq(cashRegisterSessionSchema.status, 'open'),
+      ),
+    );
+
+  if (!activeSession) {
+    return NextResponse.json(
+      { error: 'Debés abrir la caja antes de registrar ventas', code: 'CAJA_NOT_OPEN' },
+      { status: 403 },
+    );
+  }
 
   const [
     productsResult,
@@ -532,6 +551,7 @@ async function handlePost(request: Request) {
       paymentMethod,
       total: String(total.toFixed(2)),
       status: 'completed',
+      cashRegisterSessionId: activeSession.id,
     })
     .returning();
 

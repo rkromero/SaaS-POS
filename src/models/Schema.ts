@@ -341,6 +341,9 @@ export const saleSchema = pgTable(
     invoiceNumber: integer('invoice_number'),
     invoiceType: text('invoice_type'), // 'A' | 'B' | 'C'
     invoiceFullNumber: text('invoice_full_number'), // ej: "0001-00000001"
+    // Cash register session link — tracks which shift this sale belongs to
+    cashRegisterSessionId: integer('cash_register_session_id')
+      .references(() => cashRegisterSessionSchema.id, { onDelete: 'set null' }),
     updatedAt: timestamp('updated_at', { mode: 'date' })
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -361,6 +364,8 @@ export const saleSchema = pgTable(
     ),
     // Sales per customer
     saleCustomerIdx: index('sale_customer_idx').on(table.customerId),
+    // Sales per cash register session
+    saleSessionIdx: index('sale_session_idx').on(table.cashRegisterSessionId),
     // Count for receipt number generation
     saleOrgIdx: index('sale_org_idx').on(table.organizationId),
   }),
@@ -442,6 +447,7 @@ export const debtTransactionSchema = pgTable(
 export const cashRegisterStatusEnum = pgEnum('cash_register_status', [
   'open',
   'closed',
+  'auto_closed',
 ]);
 
 export const cashRegisterSessionSchema = pgTable(
@@ -475,9 +481,14 @@ export const cashRegisterSessionSchema = pgTable(
     closedAt: timestamp('closed_at', { mode: 'date' }),
   },
   table => ({
-    // Check if there's an open session for a location — called on every POS load
+    // Check if there's an open session for a location — admin consolidated view
     cashSessionLocationStatusIdx: index('cash_session_location_status_idx').on(
       table.locationId,
+      table.status,
+    ),
+    // Per-user open session lookup — used on every sale and POS load
+    cashSessionUserStatusIdx: index('cash_session_user_status_idx').on(
+      table.userId,
       table.status,
     ),
   }),

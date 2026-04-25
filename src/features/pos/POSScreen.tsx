@@ -235,6 +235,10 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
   const [loyaltyRewardId, setLoyaltyRewardId] = useState<number | null>(null);
   const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
 
+  // Cash register gate — block sales if caja is not open
+  const [cajaOpen, setCajaOpen] = useState<boolean | null>(null); // null = loading
+  const [cajaWarning, setCajaWarning] = useState(false); // near auto-close
+
   // Offline sync
   const { isOnline, pendingCount, isSyncing, syncPendingSales, refreshCount } = useOfflineSync();
 
@@ -448,6 +452,17 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
           setSelectedLocationId(String(active[0]!.id));
         }
       });
+  }, []);
+
+  // Check if the user has an open cash register session
+  useEffect(() => {
+    fetch('/api/caja/status')
+      .then(r => r.json())
+      .then(data => {
+        setCajaOpen(!!data.session);
+        setCajaWarning(!!data.warningAutoClose);
+      })
+      .catch(() => setCajaOpen(false));
   }, []);
 
   // Load products for selected location.
@@ -722,6 +737,9 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
 
       if (!response.ok) {
         const data = await response.json();
+        if (data.code === 'CAJA_NOT_OPEN') {
+          setCajaOpen(false);
+        }
         setCheckoutError(data.error ?? 'Error al registrar la venta');
         return;
       }
@@ -1260,6 +1278,28 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
     );
   }
 
+  // Block sales if caja is not open
+  if (cajaOpen === false) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-4 rounded-lg border border-dashed bg-card p-8 text-center">
+        <ShoppingBasket className="size-12 text-muted-foreground" />
+        <div>
+          <p className="text-lg font-semibold text-muted-foreground">Caja cerrada</p>
+          <p className="text-sm text-muted-foreground">
+            Debés abrir la caja antes de registrar ventas.
+          </p>
+        </div>
+        <a href="/dashboard/caja">
+          <Button>Abrir caja</Button>
+        </a>
+      </div>
+    );
+  }
+
+  if (cajaOpen === null) {
+    return <div className="h-40 animate-pulse rounded-lg bg-muted" />;
+  }
+
   return (
     // posRef apunta al contenedor que se va a fullscreen.
     // En modo fullscreen, el div ocupa h-screen con su propio fondo y padding.
@@ -1267,6 +1307,14 @@ export const POSScreen = ({ orgName }: POSScreenProps) => {
       ref={posRef}
       className={`flex flex-col gap-3 ${isFullscreen ? 'h-screen bg-background p-4' : 'h-full'}`}
     >
+      {/* Warning: caja near auto-close */}
+      {cajaWarning && (
+        <div className="rounded-md border border-yellow-500/50 bg-yellow-50 px-4 py-2 text-sm text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
+          Tu caja lleva más de 8 horas abierta. Se cerrará automáticamente a las 10 horas.
+          <a href="/dashboard/caja" className="ml-2 underline">Cerrar caja</a>
+        </div>
+      )}
+
       {/* Barra superior interna — solo visible en fullscreen */}
       {isFullscreen && (
         <div className="flex shrink-0 items-center justify-between">

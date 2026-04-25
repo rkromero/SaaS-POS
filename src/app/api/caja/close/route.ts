@@ -1,5 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
-import { and, eq, gte, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/libs/DB';
@@ -7,7 +7,7 @@ import { cashRegisterSessionSchema, saleSchema } from '@/models/Schema';
 
 // POST /api/caja/close — close the current open session with a counted closing balance
 export async function POST(request: Request) {
-  const { userId, orgId } = await auth();
+  const { userId, orgId, orgRole } = await auth();
   if (!userId || !orgId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -35,7 +35,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'La sesión ya está cerrada' }, { status: 409 });
   }
 
-  // Calculate sales totals since session opened
+  // Only the user who opened the session or an admin can close it
+  if (session.userId !== userId && orgRole !== 'org:admin') {
+    return NextResponse.json(
+      { error: 'Solo el usuario que abrió la caja o un administrador puede cerrarla' },
+      { status: 403 },
+    );
+  }
+
+  // Calculate sales totals from linked sales (cashRegisterSessionId)
   const totalsResult = await db
     .select({
       totalSales: sql<string>`COALESCE(SUM(${saleSchema.total}::numeric), 0)`,
@@ -44,13 +52,7 @@ export async function POST(request: Request) {
       totalCard: sql<string>`COALESCE(SUM(CASE WHEN ${saleSchema.paymentMethod} IN ('debit','credit') THEN ${saleSchema.total}::numeric ELSE 0 END), 0)`,
     })
     .from(saleSchema)
-    .where(
-      and(
-        eq(saleSchema.locationId, session.locationId),
-        eq(saleSchema.status, 'completed'),
-        gte(saleSchema.createdAt, session.openedAt),
-      ),
-    );
+    .where(eq(saleSchema.cashRegisterSessionId, Number(sessionId)));
 
   const totalSales = totalsResult[0]?.totalSales ?? '0';
   const totalCash = totalsResult[0]?.totalCash ?? '0';
@@ -77,6 +79,12 @@ export async function POST(request: Request) {
     ? Number(closingEnvios) - Number(session.openingEnvios ?? 0)
     : null;
 
+  const hasDiscrepancy =
+    Math.abs(difference) > 0.01
+    || (differencePosnet != null && Math.abs(differencePosnet) > 0.01)
+    || (differenceMercadopago != null && Math.abs(differenceMercadopago) > 0.01)
+    || (differenceEnvios != null && Math.abs(differenceEnvios) > 0.01);
+
   const [closed] = await db
     .update(cashRegisterSessionSchema)
     .set({
@@ -100,5 +108,5 @@ export async function POST(request: Request) {
     .where(eq(cashRegisterSessionSchema.id, Number(sessionId)))
     .returning();
 
-  return NextResponse.json(closed);
+  return NextResponse.json({ ...closed, hasDiscrepancy });
 }

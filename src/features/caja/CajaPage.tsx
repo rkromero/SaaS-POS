@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 
 type HistorySession = {
   id: number;
+  userId: string;
   openingBalance: string;
   closingBalance: string | null;
   totalSales: string | null;
@@ -26,6 +27,7 @@ type HistorySession = {
   closingMercadopago: string | null;
   closingEnvios: string | null;
   notes: string | null;
+  status: 'open' | 'closed' | 'auto_closed';
   openedAt: string;
   closedAt: string | null;
 };
@@ -49,19 +51,41 @@ type Session = {
   differenceMercadopago: string | null;
   differenceEnvios: string | null;
   notes: string | null;
-  status: 'open' | 'closed';
+  status: 'open' | 'closed' | 'auto_closed';
   openedAt: string;
   closedAt: string | null;
+  hasDiscrepancy?: boolean;
+};
+
+type ConsolidatedData = {
+  location: { id: number; name: string };
+  date: string;
+  sessions: HistorySession[];
+  totals: {
+    totalSales: number;
+    totalCash: number;
+    totalCard: number;
+    totalTransfer: number;
+    totalDifference: number;
+    totalDifferencePosnet: number;
+    totalDifferenceMercadopago: number;
+    totalDifferenceEnvios: number;
+  };
+  hasDiscrepancy: boolean;
 };
 
 type Mode = 'view' | 'opening' | 'closing' | 'closed_summary';
 
-const fmt = (v: string | null) =>
+const fmt = (v: string | number | null) =>
   new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(
     Number(v ?? 0),
   );
 
-export const CajaPage = () => {
+type CajaPageProps = {
+  isAdmin?: boolean;
+};
+
+export const CajaPage = ({ isAdmin = false }: CajaPageProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [locationId, setLocationId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,6 +105,15 @@ export const CajaPage = () => {
   const [history, setHistory] = useState<HistorySession[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [warningAutoClose, setWarningAutoClose] = useState(false);
+
+  // Admin consolidated view
+  const [showConsolidated, setShowConsolidated] = useState(false);
+  const [consolidatedDate, setConsolidatedDate] = useState(
+    new Date().toISOString().slice(0, 10),
+  );
+  const [consolidated, setConsolidated] = useState<ConsolidatedData | null>(null);
+  const [consolidatedLoading, setConsolidatedLoading] = useState(false);
 
   const cancelOpening = () => {
     setMode('view');
@@ -109,6 +142,7 @@ export const CajaPage = () => {
         } else {
           setSession(data.session);
           setLocationId(data.locationId);
+          setWarningAutoClose(!!data.warningAutoClose);
         }
         setLoading(false);
       })
@@ -125,6 +159,15 @@ export const CajaPage = () => {
       .then(data => setHistory(data.sessions ?? []))
       .catch(() => {})
       .finally(() => setHistoryLoading(false));
+  };
+
+  const loadConsolidated = () => {
+    setConsolidatedLoading(true);
+    fetch(`/api/caja/consolidated?date=${consolidatedDate}`)
+      .then(r => r.json())
+      .then(data => setConsolidated(data))
+      .catch(() => {})
+      .finally(() => setConsolidatedLoading(false));
   };
 
   useEffect(() => {
@@ -200,15 +243,23 @@ export const CajaPage = () => {
   }
 
   if (mode === 'closed_summary' && closedSession) {
+    const hasDisc = closedSession.hasDiscrepancy;
     return (
       <div className="mx-auto max-w-lg space-y-4">
         <div className="rounded-lg border bg-card p-6 shadow">
           <h2 className="mb-4 text-xl font-bold">Resumen de cierre</h2>
+
+          {hasDisc && (
+            <div className="mb-4 rounded-md border border-red-500/50 bg-red-50 px-4 py-2 text-sm text-red-800 dark:bg-red-950 dark:text-red-200">
+              Se detectaron diferencias entre el saldo esperado y el contado.
+            </div>
+          )}
+
           <div className="space-y-4 text-sm">
 
             {/* Ventas del día */}
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ventas del día</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ventas del turno</p>
               <Row label="Total" value={fmt(closedSession.totalSales)} />
               <Row label="  · Efectivo" value={fmt(closedSession.totalCash)} />
               <Row label="  · Tarjeta (Posnet)" value={fmt(closedSession.totalCard)} />
@@ -430,6 +481,13 @@ export const CajaPage = () => {
                 </div>
                 <Badge variant="default">Abierta</Badge>
               </div>
+
+              {warningAutoClose && (
+                <div className="mb-4 rounded-md border border-yellow-500/50 bg-yellow-50 px-4 py-2 text-sm text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
+                  Tu caja lleva más de 8 horas abierta. Se cerrará automáticamente a las 10 horas.
+                </div>
+              )}
+
               <p className="text-sm text-muted-foreground">Fondo inicial</p>
               <p className="text-3xl font-bold">{fmt(session.openingBalance)}</p>
               <Button
@@ -460,6 +518,102 @@ export const CajaPage = () => {
               </Button>
             </div>
           )}
+
+      {/* Admin: vista consolidada del día */}
+      {isAdmin && (
+        <div>
+          <div className="mb-3 flex items-center gap-3">
+            <h3 className="text-base font-semibold">Consolidado del día</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setShowConsolidated(!showConsolidated);
+                if (!showConsolidated && !consolidated) loadConsolidated();
+              }}
+            >
+              {showConsolidated ? 'Ocultar' : 'Ver consolidado'}
+            </Button>
+          </div>
+
+          {showConsolidated && (
+            <div className="space-y-3 rounded-lg border bg-card p-4">
+              <div className="flex items-end gap-2">
+                <div>
+                  <Label>Fecha</Label>
+                  <Input
+                    type="date"
+                    value={consolidatedDate}
+                    onChange={e => setConsolidatedDate(e.target.value)}
+                  />
+                </div>
+                <Button size="sm" onClick={loadConsolidated} disabled={consolidatedLoading}>
+                  {consolidatedLoading ? 'Cargando...' : 'Consultar'}
+                </Button>
+              </div>
+
+              {consolidated && (
+                <div className="space-y-3">
+                  {consolidated.hasDiscrepancy && (
+                    <div className="rounded-md border border-red-500/50 bg-red-50 px-4 py-2 text-sm text-red-800 dark:bg-red-950 dark:text-red-200">
+                      Se detectaron diferencias en uno o más turnos del día.
+                    </div>
+                  )}
+
+                  <div className="space-y-1 text-sm">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Totales del día — {consolidated.location.name}
+                    </p>
+                    <Row label="Ventas totales" value={fmt(consolidated.totals.totalSales)} />
+                    <Row label="  · Efectivo" value={fmt(consolidated.totals.totalCash)} />
+                    <Row label="  · Tarjeta" value={fmt(consolidated.totals.totalCard)} />
+                    <Row label="  · Transferencia" value={fmt(consolidated.totals.totalTransfer)} />
+                    <hr />
+                    <DiffRow label="Diferencia efectivo" value={consolidated.totals.totalDifference} />
+                    <DiffRow label="Diferencia posnet" value={consolidated.totals.totalDifferencePosnet} />
+                    <DiffRow label="Diferencia MP" value={consolidated.totals.totalDifferenceMercadopago} />
+                    <DiffRow label="Diferencia envíos" value={consolidated.totals.totalDifferenceEnvios} />
+                  </div>
+
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Turnos ({consolidated.sessions.length})
+                  </p>
+                  {consolidated.sessions.map(s => (
+                    <div key={s.id} className="rounded border p-3 text-sm">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-medium">{s.userId}</span>
+                          <span className="ml-2 text-muted-foreground">
+                            {new Date(s.openedAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                            {s.closedAt && (
+                              <>
+                                {' → '}
+                                {new Date(s.closedAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                              </>
+                            )}
+                          </span>
+                        </div>
+                        <StatusBadge status={s.status} />
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        Ventas: {fmt(s.totalSales)}
+                        {s.difference != null && (
+                          <>
+                            {' · Dif: '}
+                            <span className={Number(s.difference) < 0 ? 'text-red-600' : Number(s.difference) > 0 ? 'text-green-600' : ''}>
+                              {Number(s.difference) >= 0 ? '+' : ''}{fmt(s.difference)}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Historial de cajas */}
       <div>
@@ -499,23 +653,28 @@ export const CajaPage = () => {
                       Ventas:
                       {' '}
                       {fmt(s.totalSales)}
-                      {' '}
-                      · Diferencia efectivo:
-                      {' '}
-                      <span className={Number(s.difference ?? 0) < 0 ? 'text-red-600' : Number(s.difference ?? 0) > 0 ? 'text-green-600' : ''}>
-                        {Number(s.difference ?? 0) >= 0 ? '+' : ''}
-                        {fmt(s.difference)}
-                      </span>
+                      {s.difference != null && (
+                        <>
+                          {' · Diferencia efectivo: '}
+                          <span className={Number(s.difference ?? 0) < 0 ? 'text-red-600' : Number(s.difference ?? 0) > 0 ? 'text-green-600' : ''}>
+                            {Number(s.difference ?? 0) >= 0 ? '+' : ''}
+                            {fmt(s.difference)}
+                          </span>
+                        </>
+                      )}
                     </p>
                   </div>
-                  <span className="text-xs text-muted-foreground">{expandedId === s.id ? '▲' : '▼'}</span>
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={s.status} />
+                    <span className="text-xs text-muted-foreground">{expandedId === s.id ? '▲' : '▼'}</span>
+                  </div>
                 </button>
 
                 {expandedId === s.id && (
                   <div className="border-t px-4 pb-4 pt-3">
                     <div className="space-y-3 text-sm">
                       <div className="space-y-1">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ventas del día</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ventas del turno</p>
                         <Row label="Total" value={fmt(s.totalSales)} />
                         <Row label="  · Efectivo" value={fmt(s.totalCash)} />
                         <Row label="  · Tarjeta (Posnet)" value={fmt(s.totalCard)} />
@@ -551,11 +710,31 @@ export const CajaPage = () => {
   );
 };
 
+function StatusBadge({ status }: { status: 'open' | 'closed' | 'auto_closed' }) {
+  if (status === 'auto_closed') {
+    return <Badge variant="outline" className="border-yellow-500 text-yellow-700">Cierre automático</Badge>;
+  }
+  if (status === 'open') {
+    return <Badge variant="default">Abierta</Badge>;
+  }
+  return null;
+}
+
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between">
       <span className="text-muted-foreground">{label}</span>
       <span>{value}</span>
+    </div>
+  );
+}
+
+function DiffRow({ label, value }: { label: string; value: number }) {
+  if (Math.abs(value) < 0.01) return null;
+  return (
+    <div className={`flex justify-between font-bold ${value > 0 ? 'text-green-600' : 'text-red-600'}`}>
+      <span>{label}</span>
+      <span>{value >= 0 ? '+' : ''}{fmt(value)}</span>
     </div>
   );
 }
