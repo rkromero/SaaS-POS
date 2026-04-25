@@ -1,3 +1,10 @@
+## [1.70.7](https://github.com/rkromero/SaaS-POS/compare/v1.70.6...v1.70.7) (2026-04-25)
+
+
+### Bug Fixes
+
+* **arca:** corregir conversión DER→PEM para claves privadas ([dbbeb43](https://github.com/rkromero/SaaS-POS/commit/dbbeb43dc19823d3b66379fc5e1209f8b6eec0d7))
+
 ## [1.70.6](https://github.com/rkromero/SaaS-POS/compare/v1.70.5...v1.70.6) (2026-04-25)
 
 
