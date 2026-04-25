@@ -1,3 +1,11 @@
+## [1.70.3](https://github.com/rkromero/SaaS-POS/compare/v1.70.2...v1.70.3) (2026-04-25)
+
+
+### Bug Fixes
+
+* **arca:** soportar certificados DER y normalizar PEM ([24deb21](https://github.com/rkromero/SaaS-POS/commit/24deb21719638415ba13cbde8f1b706bf3054316))
+* **arca:** usar UTC para generationTime en WSAA login ticket ([987fcd1](https://github.com/rkromero/SaaS-POS/commit/987fcd172021e4f4a13ba0495959af0a95aaa15a))
+
 ## [1.70.2](https://github.com/rkromero/SaaS-POS/compare/v1.70.1...v1.70.2) (2026-04-25)
 
 
