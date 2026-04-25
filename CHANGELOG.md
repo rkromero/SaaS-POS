@@ -1,3 +1,10 @@
+## [1.70.4](https://github.com/rkromero/SaaS-POS/compare/v1.70.3...v1.70.4) (2026-04-25)
+
+
+### Bug Fixes
+
+* **arca:** decodificar HTML entities en respuesta WSAA ([ce2dc08](https://github.com/rkromero/SaaS-POS/commit/ce2dc08ba58c840d027df5ad90558601fbf72668))
+
 ## [1.70.3](https://github.com/rkromero/SaaS-POS/compare/v1.70.2...v1.70.3) (2026-04-25)
 
 
