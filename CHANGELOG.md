@@ -1,3 +1,10 @@
+## [1.70.6](https://github.com/rkromero/SaaS-POS/compare/v1.70.5...v1.70.6) (2026-04-25)
+
+
+### Bug Fixes
+
+* **arca:** agregar retry y timeout en conexiones a AFIP ([053b8fd](https://github.com/rkromero/SaaS-POS/commit/053b8fd19f0c0b909808634554119fb0f6287a20))
+
 ## [1.70.5](https://github.com/rkromero/SaaS-POS/compare/v1.70.4...v1.70.5) (2026-04-25)
 
 
