@@ -94,9 +94,30 @@ function useFileReader(setter: (v: string) => void) {
     if (!file) {
       return;
     }
+    // Read as ArrayBuffer to handle both PEM (text) and DER (binary) formats
     const reader = new FileReader();
-    reader.onload = ev => setter((ev.target?.result as string) ?? '');
-    reader.readAsText(file);
+    reader.onload = (ev) => {
+      const buf = ev.target?.result as ArrayBuffer;
+      if (!buf) {
+        return;
+      }
+      const bytes = new Uint8Array(buf);
+      // Check if it starts with "-----" (PEM text) — ASCII 45
+      const isPem = bytes[0] === 45 && bytes[1] === 45 && bytes[2] === 45;
+      if (isPem) {
+        setter(new TextDecoder().decode(bytes));
+      } else {
+        // DER binary → convert to PEM base64
+        let binary = '';
+        bytes.forEach((b) => {
+          binary += String.fromCharCode(b);
+        });
+        const b64 = btoa(binary);
+        const lines = b64.match(/.{1,64}/g) ?? [];
+        setter(`-----BEGIN CERTIFICATE-----\n${lines.join('\n')}\n-----END CERTIFICATE-----`);
+      }
+    };
+    reader.readAsArrayBuffer(file);
     // Reset so the same file can be re-uploaded
     e.target.value = '';
   };

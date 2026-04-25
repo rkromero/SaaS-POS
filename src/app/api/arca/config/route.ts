@@ -5,6 +5,19 @@ import { NextResponse } from 'next/server';
 import { db } from '@/libs/DB';
 import { arcaConfigSchema } from '@/models/Schema';
 
+/** Normaliza un certificado PEM: asegura headers y line breaks correctos */
+function normalizePem(raw: string): string {
+  const s = raw.trim();
+  // Si ya es PEM válido, solo normalizar line breaks
+  if (s.startsWith('-----BEGIN')) {
+    return s.replace(/\r\n/g, '\n');
+  }
+  // Si es base64 puro (sin headers), envolver en PEM
+  const clean = s.replace(/\s/g, '');
+  const lines = clean.match(/.{1,64}/g) ?? [];
+  return `-----BEGIN CERTIFICATE-----\n${lines.join('\n')}\n-----END CERTIFICATE-----`;
+}
+
 export async function GET() {
   const { orgId } = await auth();
   if (!orgId) {
@@ -72,7 +85,7 @@ export async function PUT(request: Request) {
       puntoVenta: puntoVenta ? Number(puntoVenta) : 0,
       tipoContribuyente,
       ambiente: ambiente ?? 'sandbox',
-      cert: cert || existing?.cert || null,
+      cert: cert ? normalizePem(cert) : existing?.cert || null,
       privateKey: privateKey || existing?.privateKey || null,
       isActive: isActive ?? false,
     })
@@ -84,7 +97,7 @@ export async function PUT(request: Request) {
         puntoVenta: puntoVenta ? Number(puntoVenta) : 0,
         tipoContribuyente,
         ambiente: ambiente ?? 'sandbox',
-        ...(cert ? { cert } : {}),
+        ...(cert ? { cert: normalizePem(cert) } : {}),
         ...(privateKey ? { privateKey } : {}),
         isActive: isActive ?? false,
         updatedAt: new Date(),
