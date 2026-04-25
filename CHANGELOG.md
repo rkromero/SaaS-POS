@@ -1,3 +1,10 @@
+## [1.70.2](https://github.com/rkromero/SaaS-POS/compare/v1.70.1...v1.70.2) (2026-04-25)
+
+
+### Bug Fixes
+
+* **cron:** cambiar caja-autoclose a diario para plan Hobby de Vercel ([622fad8](https://github.com/rkromero/SaaS-POS/commit/622fad870892b64bad4c492e0254ca62086084ba))
+
 ## [1.70.1](https://github.com/rkromero/SaaS-POS/compare/v1.70.0...v1.70.1) (2026-04-25)
 
 
