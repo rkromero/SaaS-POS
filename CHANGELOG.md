@@ -1,3 +1,10 @@
+## [1.70.12](https://github.com/rkromero/SaaS-POS/compare/v1.70.11...v1.70.12) (2026-04-26)
+
+
+### Bug Fixes
+
+* **arca:** mostrar error WSFE real en lugar de mensaje genérico ([93cff3d](https://github.com/rkromero/SaaS-POS/commit/93cff3de9153efcd02b4881521a3c91009242ed4))
+
 ## [1.70.11](https://github.com/rkromero/SaaS-POS/compare/v1.70.10...v1.70.11) (2026-04-26)
 
 
