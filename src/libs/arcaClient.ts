@@ -124,7 +124,9 @@ function signCMS(xml: string, certPem: string, keyPem: string): string {
   p7.addSigner({
     key,
     certificate: cert,
-    digestAlgorithm: forge.pki.oids.sha256 as string,
+    // WSAA de ARCA/AFIP requiere SHA-1 para la firma del LoginTicketRequest.
+    // SHA-256 genera "Firma inválida o algoritmo no soportado" en producción y sandbox.
+    digestAlgorithm: forge.pki.oids.sha1 as string,
     authenticatedAttributes: [
       { type: forge.pki.oids.contentType as string, value: forge.pki.oids.data as string },
       { type: forge.pki.oids.messageDigest as string },
