@@ -43,6 +43,14 @@ function formatCuit(value: string) {
 function parseArcaError(msg: string): { title: string; detail: string } {
   const m = msg?.toLowerCase() ?? '';
 
+  // Mensajes específicos del servidor con instrucciones ya incluidas — mostrar tal cual
+  if (m.includes('no pudo ser leído') || m.includes('no pudo ser procesado') || m.includes('volvé al paso')) {
+    return { title: 'Problema con el certificado', detail: msg };
+  }
+  if (m.includes('la clave privada no coincide')) {
+    return { title: 'Clave privada no coincide', detail: msg };
+  }
+
   if (m.includes('certificate') || m.includes('certificado') || m.includes('cert')) {
     return {
       title: 'Certificado inválido',
