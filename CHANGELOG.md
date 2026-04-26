@@ -1,3 +1,10 @@
+## [1.70.10](https://github.com/rkromero/SaaS-POS/compare/v1.70.9...v1.70.10) (2026-04-26)
+
+
+### Bug Fixes
+
+* **arca:** mostrar mensajes de error específicos del servidor sin sobrescribirlos ([2f5601f](https://github.com/rkromero/SaaS-POS/commit/2f5601f344e078c68acf1a0425a609cb285a10c1))
+
 ## [1.70.9](https://github.com/rkromero/SaaS-POS/compare/v1.70.8...v1.70.9) (2026-04-26)
 
 
