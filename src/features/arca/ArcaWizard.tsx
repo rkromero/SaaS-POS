@@ -65,8 +65,8 @@ function parseArcaError(msg: string): { title: string; detail: string } {
   }
   if (m.includes('wsfe') || m.includes('web service')) {
     return {
-      title: 'Servicio WSFE no habilitado',
-      detail: 'Debés adherir el servicio WSFE en ARCA → Administrador de Relaciones de Clave Fiscal → Adherir servicio.',
+      title: 'Error en servicio WSFE',
+      detail: msg,
     };
   }
   if (m.includes('cuit') || m.includes('contribuyente')) {
