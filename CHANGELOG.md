@@ -1,3 +1,10 @@
+## [1.70.13](https://github.com/rkromero/SaaS-POS/compare/v1.70.12...v1.70.13) (2026-04-26)
+
+
+### Bug Fixes
+
+* **arca:** usar https.Agent con SECLEVEL=1 para compatibilidad con DH 1024-bit de AFIP ([33c867d](https://github.com/rkromero/SaaS-POS/commit/33c867db36ad2d1fcc1a42382e634df2da041e22))
+
 ## [1.70.12](https://github.com/rkromero/SaaS-POS/compare/v1.70.11...v1.70.12) (2026-04-26)
 
 
