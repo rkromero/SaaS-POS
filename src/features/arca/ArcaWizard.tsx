@@ -290,6 +290,26 @@ export const ArcaWizard = () => {
   const certUpload = useFileReader(setCert);
   const keyUpload = useFileReader(setPrivateKey, 'RSA PRIVATE KEY');
 
+  // Saves the new private key to the server immediately after CSR generation,
+  // before the user navigates to ARCA. Without this, a page reload between
+  // generating the CSR and uploading the cert causes a key/cert mismatch.
+  const handlePrivateKeyGenerated = async (key: string) => {
+    setPrivateKey(key);
+    try {
+      const res = await fetch('/api/arca/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cuit, razonSocial, puntoVenta, tipoContribuyente, ambiente, privateKey: key, isActive }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setHasPrivateKey(!!d.hasPrivateKey);
+      }
+    } catch {
+      // Non-critical: key is still in state for the current session
+    }
+  };
+
   useEffect(() => {
     fetch('/api/arca/config')
       .then(r => r.json())
@@ -684,7 +704,7 @@ export const ArcaWizard = () => {
           <Step3CsrHelper
             cuit={cuit}
             razonSocial={razonSocial}
-            onPrivateKey={setPrivateKey}
+            onPrivateKey={handlePrivateKeyGenerated}
           />
 
           {/* Certificado (.crt) — lo sube el usuario después de arca */}
