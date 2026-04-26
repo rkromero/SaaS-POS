@@ -4,6 +4,9 @@
  * Usa node-forge para firmar CMS/PKCS7 y fetch nativo para SOAP.
  */
 
+import { Buffer } from 'node:buffer';
+import https from 'node:https';
+
 import * as forge from 'node-forge';
 
 // ─── Endpoints ────────────────────────────────────────────────────────────────
@@ -52,21 +55,55 @@ export type VoucherResult = {
   CAEFchVto: string;
 };
 
+// AFIP's servers use 1024-bit DH keys, rejected by Node.js 18+ at default SECLEVEL=2.
+// SECLEVEL=1 allows 1024-bit DH while keeping all other security properties.
+const _afipTlsAgent = new https.Agent({
+  ciphers: 'DEFAULT:@SECLEVEL=1',
+});
+
+// ─── HTTPS request usando node:https para compatibilidad con SSL legacy de AFIP ──
+function afipRequest(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const body = init.body as string | undefined;
+    const req = https.request(
+      {
+        hostname: u.hostname,
+        port: 443,
+        path: u.pathname + u.search,
+        method: (init.method as string) || 'POST',
+        headers: init.headers as Record<string, string>,
+        agent: _afipTlsAgent,
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk: Buffer) => chunks.push(chunk));
+        res.on('end', () => resolve(new Response(Buffer.concat(chunks), { status: res.statusCode ?? 200 })));
+      },
+    );
+    const timer = setTimeout(() => req.destroy(new Error('timeout')), timeoutMs);
+    req.on('error', (err) => {
+      clearTimeout(timer);
+      reject(err);
+    });
+    req.on('close', () => clearTimeout(timer));
+    if (body) {
+      req.write(body);
+    }
+    req.end();
+  });
+}
+
 // ─── Fetch con retry (AFIP suele fallar intermitentemente) ──────────────────
 async function fetchWithRetry(url: string, init: RequestInit, retries = 2): Promise<Response> {
   for (let i = 0; i <= retries; i++) {
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30_000);
-      const res = await fetch(url, { ...init, signal: controller.signal });
-      clearTimeout(timeout);
-      return res;
+      return await afipRequest(url, init, 30_000);
     } catch (err: any) {
       if (i === retries) {
         const cause = err?.cause?.message ?? err?.message ?? String(err);
         throw new Error(`No se pudo conectar con AFIP (${url}) después de ${retries + 1} intentos: ${cause}`);
       }
-      // Wait 1s before retry
       await new Promise(r => setTimeout(r, 1000));
     }
   }
