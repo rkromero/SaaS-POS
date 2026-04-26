@@ -1,3 +1,10 @@
+## [1.70.11](https://github.com/rkromero/SaaS-POS/compare/v1.70.10...v1.70.11) (2026-04-26)
+
+
+### Bug Fixes
+
+* **arca:** guardar clave privada en servidor al generar CSR para evitar mismatch ([ba4179d](https://github.com/rkromero/SaaS-POS/commit/ba4179ddc43ada92d5091e3c7c5b3a8ce8f263f2))
+
 ## [1.70.10](https://github.com/rkromero/SaaS-POS/compare/v1.70.9...v1.70.10) (2026-04-26)
 
 
