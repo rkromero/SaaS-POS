@@ -1,3 +1,11 @@
+## [1.70.9](https://github.com/rkromero/SaaS-POS/compare/v1.70.8...v1.70.9) (2026-04-26)
+
+
+### Bug Fixes
+
+* **arca:** normalizar BOM y CR en PEM; mensaje de error más claro si falla parseo ([2d3b73e](https://github.com/rkromero/SaaS-POS/commit/2d3b73e5bff97ccf936994687110c6d6f11bcc96))
+* **arca:** validar que cert y clave privada coincidan antes de llamar a WSAA ([988d273](https://github.com/rkromero/SaaS-POS/commit/988d2736611011429e1c98f4262108fcaf000f3c))
+
 ## [1.70.8](https://github.com/rkromero/SaaS-POS/compare/v1.70.7...v1.70.8) (2026-04-26)
 
 
