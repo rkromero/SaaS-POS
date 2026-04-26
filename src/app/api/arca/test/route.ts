@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import * as forge from 'node-forge';
 
 import { getLastVoucher } from '@/libs/arcaClient';
 import { db } from '@/libs/DB';
@@ -31,6 +32,24 @@ export async function POST() {
   }
 
   try {
+    // Validate cert + key match before calling ARCA to give a clear error
+    try {
+      const cert = forge.pki.certificateFromPem(config.cert);
+      const privKey = forge.pki.privateKeyFromPem(config.privateKey) as forge.pki.rsa.PrivateKey;
+      const certPubKey = cert.publicKey as forge.pki.rsa.PublicKey;
+      if (certPubKey.n.toString(16) !== privKey.n.toString(16)) {
+        return NextResponse.json(
+          { error: 'La clave privada no coincide con el certificado. Volvé al Paso 3, generá un nuevo CSR y subí el .crt que ARCA te devuelva para ese CSR.' },
+          { status: 400 },
+        );
+      }
+    } catch (parseErr: any) {
+      return NextResponse.json(
+        { error: `Certificado o clave privada inválidos: ${parseErr?.message ?? parseErr}` },
+        { status: 400 },
+      );
+    }
+
     const arcaConfig = {
       cuit: config.cuit,
       cert: config.cert,
