@@ -5,14 +5,14 @@ import { NextResponse } from 'next/server';
 import { db } from '@/libs/DB';
 import { arcaConfigSchema } from '@/models/Schema';
 
-/** Normaliza un certificado PEM: asegura headers y line breaks correctos */
+/** Normaliza un certificado PEM: maneja BOM, CRLF, CR suelto, y base64 puro */
 function normalizePem(raw: string): string {
-  const s = raw.trim();
-  // Si ya es PEM válido, solo normalizar line breaks
+  // Strip BOM and normalize all line endings to \n
+  const s = raw.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
   if (s.startsWith('-----BEGIN')) {
-    return s.replace(/\r\n/g, '\n');
+    return s;
   }
-  // Si es base64 puro (sin headers), envolver en PEM
+  // Base64 puro sin headers → envolver en PEM
   const clean = s.replace(/\s/g, '');
   const lines = clean.match(/.{1,64}/g) ?? [];
   return `-----BEGIN CERTIFICATE-----\n${lines.join('\n')}\n-----END CERTIFICATE-----`;

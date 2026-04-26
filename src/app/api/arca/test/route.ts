@@ -44,8 +44,9 @@ export async function POST() {
         );
       }
     } catch (parseErr: any) {
+      const detail = parseErr?.message ?? String(parseErr);
       return NextResponse.json(
-        { error: `Certificado o clave privada inválidos: ${parseErr?.message ?? parseErr}` },
+        { error: `El certificado (.crt) guardado no pudo ser leído. Volvé al Paso 3 y volvé a subir el archivo .crt que descargaste de ARCA. Detalle técnico: ${detail}` },
         { status: 400 },
       );
     }
