@@ -1,3 +1,10 @@
+## [1.70.8](https://github.com/rkromero/SaaS-POS/compare/v1.70.7...v1.70.8) (2026-04-26)
+
+
+### Bug Fixes
+
+* **arca:** usar SHA-1 en firma CMS para WSAA — SHA-256 es rechazado por el servidor ([a027cb3](https://github.com/rkromero/SaaS-POS/commit/a027cb35493d8b03296c36c6d011a0e41be35507))
+
 ## [1.70.7](https://github.com/rkromero/SaaS-POS/compare/v1.70.6...v1.70.7) (2026-04-25)
 
 
